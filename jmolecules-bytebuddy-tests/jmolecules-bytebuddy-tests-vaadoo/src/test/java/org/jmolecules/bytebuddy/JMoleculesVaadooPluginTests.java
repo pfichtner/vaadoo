@@ -16,8 +16,7 @@
 package org.jmolecules.bytebuddy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
+import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,10 +26,13 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void defaultsForSampleValueObject() throws Exception {
-		new SampleValueObject("test");
-		System.out.println(Arrays.toString(SampleValueObject.class.getMethods()));
-		System.out.println(Arrays.toString(SampleValueObject.class.getDeclaredMethods()));
 		assertThat(SampleValueObject.class.getDeclaredMethod("__vaadoo$validate")).isNotNull();
+	}
+
+	@Test
+	void createInstance() throws Exception {
+		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject("test"))
+				.withMessage("Vaadoo validation failed: override or disable this method");
 	}
 
 }

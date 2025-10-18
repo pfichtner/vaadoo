@@ -10,6 +10,7 @@ import org.jmolecules.bytebuddy.PluginLogger.Log;
 
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
 import net.bytebuddy.dynamic.DynamicType.Builder;
+import net.bytebuddy.implementation.ExceptionMethod;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.StubMethod;
 import net.bytebuddy.implementation.SuperMethodCall;
@@ -42,7 +43,14 @@ class VaadooImplementor {
 	}
 
 	private Builder<?> addValidationMethod(Builder<?> builder, String methodName) {
-		return builder.defineMethod(methodName, void.class).intercept(StubMethod.INSTANCE);
+	    return builder
+	        .defineMethod(methodName, void.class)
+	        .intercept(
+	            ExceptionMethod.throwing(
+	                IllegalStateException.class,
+	                "Vaadoo validation failed: override or disable this method"
+	            )
+	        );
 	}
 
 	private Builder<?> injectValidationIntoConstructors(Builder<?> builder, String methodName) {
