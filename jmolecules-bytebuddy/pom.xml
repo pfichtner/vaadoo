@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.jmolecules.integrations</groupId>
+		<artifactId>jmolecules-integrations</artifactId>
+		<version>0.31.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<name>jMolecules - ByteBuddy plugin</name>
+	<description>A ByteBuddy plugin to translate jMolecules abstractions into implementation technology abstractions</description>
+	<artifactId>jmolecules-bytebuddy</artifactId>
+
+	<properties>
+		<module.name>org.jmolecules.integrations.bytebuddy</module.name>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy</artifactId>
+		</dependency>
+	</dependencies>
+
+</project>
