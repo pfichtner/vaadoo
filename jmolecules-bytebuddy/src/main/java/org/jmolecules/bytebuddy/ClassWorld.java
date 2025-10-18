@@ -26,10 +26,9 @@ class ClassWorld {
 	private final ClassFileLocator locator;
 
 	boolean isAvailable(String name) {
-
 		try {
 			return locator.locate(name).isResolved();
-		} catch (IOException o_O) {
+		} catch (IOException e) {
 			return false;
 		}
 	}

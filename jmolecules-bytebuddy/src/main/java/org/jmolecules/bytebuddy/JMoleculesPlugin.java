@@ -54,7 +54,6 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	@Override
 	public void onPreprocess(TypeDescription typeDescription, ClassFileLocator classFileLocator) {
-
 		if (!configuration.include(typeDescription)) {
 			return;
 		}
@@ -88,7 +87,6 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Builder<?> apply(Builder<?> builder, TypeDescription typeDescription, ClassFileLocator classFileLocator) {
-
 		return delegates.get(typeDescription).stream().reduce(builder,
 				(it, plugin) -> (Builder) plugin.apply(it, typeDescription, classFileLocator), (left, right) -> right);
 	}

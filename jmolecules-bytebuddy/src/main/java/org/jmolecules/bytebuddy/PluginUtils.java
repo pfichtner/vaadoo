@@ -58,7 +58,6 @@ class PluginUtils {
 	 * @return result of the check.
 	 */
 	static boolean isAnnotatedWith(TypeDescription type, Class<?> annotationType) {
-
 		return type.getDeclaredAnnotations() //
 				.asTypeList() //
 				.stream() //
@@ -100,9 +99,7 @@ class PluginUtils {
 			Map<Class<?>, Class<? extends Annotation>> mappings, Log log) {
 
 		for (Entry<Class<?>, Class<? extends Annotation>> entry : mappings.entrySet()) {
-
 			Class<?> source = entry.getKey();
-
 			if (source.isAnnotation() ? isAnnotatedWith(type, source) : type.isAssignableTo(source)) {
 				builder = addAnnotationIfMissing(entry.getValue(), builder, type, log);
 			}
@@ -235,9 +232,7 @@ class PluginUtils {
 	 * @return output for the log.
 	 */
 	static String toLog(FieldDescription field) {
-
 		TypeDefinition type = field.getDeclaringType();
-
 		return abbreviate(type).concat(".").concat(field.getName());
 	}
 
@@ -248,10 +243,9 @@ class PluginUtils {
 	 * @param consumer must not be {@literal null}.
 	 */
 	static void ifTypePresent(String fullyQualifiedTypeName, Consumer<Class<?>> consumer) {
-
 		try {
 			consumer.accept(PluginUtils.class.getClassLoader().loadClass(fullyQualifiedTypeName));
-		} catch (ClassNotFoundException o_O) {}
+		} catch (ClassNotFoundException e) {}
 	}
 
 	/**
@@ -262,11 +256,10 @@ class PluginUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	static void ifAnnotationTypePresent(String fullyQualifiedTypeName, Consumer<Class<? extends Annotation>> consumer) {
-
 		try {
 			consumer
 					.accept((Class<? extends Annotation>) PluginUtils.class.getClassLoader().loadClass(fullyQualifiedTypeName));
-		} catch (ClassNotFoundException o_O) {}
+		} catch (ClassNotFoundException e) {}
 	}
 
 	/**
@@ -286,7 +279,6 @@ class PluginUtils {
 	 * @return since 0.26
 	 */
 	static MethodDefinition<?> markGenerated(MethodDefinition<?> method) {
-
 		return getGeneratedTypeAnnotation(ElementType.METHOD)
 				.<MethodDefinition<?>> map(method::annotateMethod)
 				.orElse(method);
@@ -301,7 +293,6 @@ class PluginUtils {
 	 * @since 0.26
 	 */
 	static Builder<?> markGenerated(Builder<?> builder, Log log) {
-
 		return getGeneratedTypeAnnotation(ElementType.TYPE)
 				.map(it -> {
 
@@ -316,34 +307,27 @@ class PluginUtils {
 
 	private static Builder<?> addAnnotationIfMissing(Class<? extends Annotation> annotation, Builder<?> builder,
 			TypeDescription type, Log log) {
-
 		if (isAnnotatedWith(type, annotation)) {
 			log.info("Not adding @{}, already present.", PluginUtils.abbreviate(annotation));
 			return builder;
 		}
 
 		log.info("Adding @{}.", PluginUtils.abbreviate(annotation));
-
 		return builder.annotateType(getAnnotation(annotation));
 	}
 
 	private static String getPackageName(String fullyQualifiedTypeName) {
-
 		int lastDotIndex = fullyQualifiedTypeName.lastIndexOf('.');
-
 		return lastDotIndex == -1 ? fullyQualifiedTypeName : fullyQualifiedTypeName.substring(0, lastDotIndex);
 	}
 
 	private static String getShortName(String fullyQualifiedTypeName) {
-
 		int lastDotIndex = fullyQualifiedTypeName.lastIndexOf('.');
-
 		return lastDotIndex == -1 ? fullyQualifiedTypeName
 				: fullyQualifiedTypeName.substring(lastDotIndex, fullyQualifiedTypeName.length());
 	}
 
 	private static Optional<AnnotationDescription> getGeneratedTypeAnnotation(ElementType type) {
-
 		return Types.AT_GENERATED.stream()
 				.filter(it -> hasTarget(it, type))
 				.findFirst()
@@ -354,9 +338,8 @@ class PluginUtils {
 	}
 
 	private static boolean hasTarget(Class<? extends Annotation> type, ElementType target) {
-
 		Target annotation = type.getAnnotation(Target.class);
-
 		return annotation != null && Arrays.asList(annotation.value()).contains(target);
 	}
+
 }

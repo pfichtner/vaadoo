@@ -26,10 +26,6 @@ import java.io.IOException;
  */
 public interface LoggingPlugin extends Plugin {
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.io.Closeable#close()
-	 */
 	@Override
 	public default void close() throws IOException {
 		PluginLogger.INSTANCE.flush();

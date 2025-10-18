@@ -46,7 +46,6 @@ enum PluginLogger {
 	 * @return will never be {@literal null}.
 	 */
 	public Log getLog(TypeDescription description, String name) {
-
 		if (description == null) {
 			throw new IllegalArgumentException("TypeDescription must not be null!");
 		}
@@ -56,20 +55,16 @@ enum PluginLogger {
 		}
 
 		Set<LogEntry> moduleLogs = logs.computeIfAbsent(description.getName(), it -> new TreeSet<>());
-
 		return (message, parameters) -> moduleLogs.add(new LogEntry(name, message, parameters));
 	}
 
 	public void flush() {
-
 		try {
-
 			if (!logs.isEmpty()) {
 				log.info("");
 			}
 
 			logs.forEach((description, moduleLogs) -> {
-
 				if (moduleLogs.isEmpty()) {
 					return;
 				}
@@ -107,10 +102,6 @@ enum PluginLogger {
 		String message;
 		Object[] parameters;
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.lang.Comparable#compareTo(java.lang.Object)
-		 */
 		@Override
 		public int compareTo(LogEntry o) {
 
@@ -125,4 +116,5 @@ enum PluginLogger {
 			return String.format(message.replace("{}", "%s"), parameters);
 		}
 	}
+
 }

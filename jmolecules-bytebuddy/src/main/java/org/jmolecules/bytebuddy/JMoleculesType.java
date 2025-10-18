@@ -34,7 +34,6 @@ class JMoleculesType {
 	 * @param type must not be {@literal null}.
 	 */
 	JMoleculesType(TypeDescription type) {
-
 		if (type == null) {
 			throw new IllegalArgumentException("TypeDescription must not be null!");
 		}

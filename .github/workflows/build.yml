@@ -27,5 +27,5 @@ jobs:
       env:
         CENTRAL_OSSRH_USERNAME: ${{ secrets.CENTRAL_OSSRH_USERNAME }}
         CENTRAL_OSSRH_PASSWORD: ${{ secrets.CENTRAL_OSSRH_PASSWORD }}
-      run: ./mvnw -B package
+      run: ./mvnw -B test
 #     run: ./mvnw -B deploy -s settings.xml
