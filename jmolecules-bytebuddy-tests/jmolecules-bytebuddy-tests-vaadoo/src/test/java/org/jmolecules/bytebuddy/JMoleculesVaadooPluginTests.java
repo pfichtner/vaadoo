@@ -26,7 +26,7 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void defaultsForSampleValueObject() throws Exception {
-		assertThat(SampleValueObject.class.getDeclaredMethod("__vaadoo$validate")).isNotNull();
+		assertThat(SampleValueObject.class.getDeclaredMethod("validate")).isNotNull();
 	}
 
 	@Test
