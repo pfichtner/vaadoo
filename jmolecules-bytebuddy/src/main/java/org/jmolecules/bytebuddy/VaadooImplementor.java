@@ -28,7 +28,7 @@ class VaadooImplementor {
 	}
 
 	private static String nonExistingMethodName(JMoleculesTypeBuilder type) {
-		if (type.tryFindMethod(target -> isValidateMethod(target, VALIDATE_METHOD_NAME_1)) == null) {
+		if (type.tryFindMethod(target -> hasNoArgsMethodNamed(target, VALIDATE_METHOD_NAME_1)) == null) {
 			return VALIDATE_METHOD_NAME_1;
 		}
 
@@ -36,7 +36,7 @@ class VaadooImplementor {
 		String methodName = baseMethodName;
 		for (int i = 0;; i++) {
 			final String currentName = methodName;
-			if (type.tryFindMethod(target -> isValidateMethod(target, currentName)) == null) {
+			if (type.tryFindMethod(target -> hasNoArgsMethodNamed(target, currentName)) == null) {
 				break;
 			}
 			methodName = baseMethodName + "_" + i++;
@@ -44,7 +44,7 @@ class VaadooImplementor {
 		return methodName;
 	}
 
-	private static boolean isValidateMethod(InDefinedShape target, String methodName) {
+	private static boolean hasNoArgsMethodNamed(InDefinedShape target, String methodName) {
 		return target.getName().equals(methodName) && target.getParameters().size() == 0;
 	}
 
