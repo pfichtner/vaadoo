@@ -3,14 +3,17 @@
  */
 package org.jmolecules.bytebuddy;
 
+import static java.lang.String.format;
 import static net.bytebuddy.matcher.ElementMatchers.any;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 
 import org.jmolecules.bytebuddy.PluginLogger.Log;
 
+import net.bytebuddy.description.field.FieldDescription;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.Implementation.Context;
@@ -73,38 +76,41 @@ class VaadooImplementor {
 	    @Override
 	    public Size apply(MethodVisitor mv, Context implementationContext,
 	                      MethodDescription instrumentedMethod) {
+	    	
+	    	int maxStack = 3; // base stack requirement
+	    	TypeDescription type = implementationContext.getInstrumentedType();
 
-	        Label end = new Label();
+	    	for (FieldDescription.InDefinedShape field : type.getDeclaredFields()) {
+	            if (field.isStatic() || field.isSynthetic()) {
+	                continue; // skip irrelevant fields
+	            }
+				Label end = new Label();
+				// load `this`
+				mv.visitVarInsn(Opcodes.ALOAD, 0);
+	            // get `this.<field>`
+	            mv.visitFieldInsn(
+	                    Opcodes.GETFIELD,
+	                    type.getInternalName(),
+	                    field.getName(),
+	                    field.getType().asErasure().getDescriptor());
 
-	        // load `this`
-	        mv.visitVarInsn(Opcodes.ALOAD, 0);
-	        // get `this.value`
-	        mv.visitFieldInsn(Opcodes.GETFIELD,
-	                implementationContext.getInstrumentedType().getInternalName(),
-	                "value",
-	                "Ljava/lang/String;");
-	        // if not null, jump to end
-	        mv.visitJumpInsn(Opcodes.IFNONNULL, end);
+				// if not null, jump to end
+				mv.visitJumpInsn(Opcodes.IFNONNULL, end);
+				// --- throw new IllegalStateException("Vaadoo validation failed: value is null"); ---
+				mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalStateException"); // create new exception
+				mv.visitInsn(Opcodes.DUP); // duplicate for constructor call
+	            mv.visitLdcInsn(format("field '%s' is null", field.getName()));
+				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/IllegalStateException", "<init>",
+						"(Ljava/lang/String;)V", false);
+				mv.visitInsn(Opcodes.ATHROW); // throw it
+				// --- end label ---
+				mv.visitLabel(end);
+				mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+			}
+			mv.visitInsn(Opcodes.RETURN);
 
-	        // --- throw new IllegalStateException("Vaadoo validation failed: value is null"); ---
-	        mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalStateException");  // create new exception
-	        mv.visitInsn(Opcodes.DUP);                                         // duplicate for constructor call
-	        mv.visitLdcInsn("Vaadoo validation failed: value is null");        // push constructor argument
-	        mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-	                "java/lang/IllegalStateException",
-	                "<init>",
-	                "(Ljava/lang/String;)V",
-	                false);
-	        mv.visitInsn(Opcodes.ATHROW);                                      // throw it
-
-	        // --- end label ---
-	        mv.visitLabel(end);
-	        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-
-	        mv.visitInsn(Opcodes.RETURN);
-
-	        // Max stack = 3 is sufficient: ALOAD_0 + GETFIELD + NEW + DUP + LDC
-	        return new Size(3, instrumentedMethod.getStackSize());
+	        // maximum stack used: ALOAD_0 + GETFIELD + NEW + DUP + LDC + INVOKESPECIAL + ATHROW
+	        return new Size(maxStack, instrumentedMethod.getStackSize());
 	    }
 	}
 

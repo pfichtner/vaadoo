@@ -33,7 +33,7 @@ class JMoleculesVaadooPluginTests {
 	@Test
 	void throwsExceptionOnNullValue() throws Exception {
 		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject(null))
-				.withMessage("Vaadoo validation failed: value is null");
+				.withMessage("field 'value' is null");
 	}
 
 	@Test
