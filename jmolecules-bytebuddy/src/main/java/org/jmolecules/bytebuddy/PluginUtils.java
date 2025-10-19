@@ -57,9 +57,11 @@ class PluginUtils {
 	// private static final String GENERATED_BY = "jMolecules ByteBuddy Plugin";
 	private static final String GENERATED_BY = "vaadoo ByteBuddy Plugin";
 
+	private static Function<AnnotationDescription.Builder, AnnotationDescription.Builder> ADD_GENERATED_BY_TO_VALUE = b -> b
+			.defineArray("value", GENERATED_BY);
 	public static Map<String, Function<AnnotationDescription.Builder, AnnotationDescription.Builder>> ANNO_BUILDERS = Map.of( //
-			"javax.annotation.processing.Generated", b -> b.defineArray("value", GENERATED_BY), //
-			"javax.annotation.Generated", b -> b.defineArray("value", GENERATED_BY)
+			"javax.annotation.processing.Generated", ADD_GENERATED_BY_TO_VALUE, //
+			"javax.annotation.Generated", ADD_GENERATED_BY_TO_VALUE
 	);
 
 	/**
