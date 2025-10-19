@@ -171,15 +171,14 @@ class PluginUtils {
 		AnnotationList existing = type.getDeclaredAnnotations();
 		Class<? extends Annotation> annotation = producer.apply(type);
 
-		String annotationName = PluginUtils.abbreviate(annotation);
+		String annotationName = abbreviate(annotation);
 
 		boolean existingFound = Stream.of(exclusions).anyMatch(it -> {
 
 			boolean found = existing.isAnnotationPresent(it);
 
 			if (found) {
-				log.info("Not adding @{} because type is already annotated with @{}.", annotationName,
-						PluginUtils.abbreviate(it));
+				log.info("Not adding @{} because type is already annotated with @{}.", annotationName, abbreviate(it));
 			}
 
 			return found;
@@ -295,10 +294,7 @@ class PluginUtils {
 	static Builder<?> markGenerated(Builder<?> builder, Log log) {
 		return getGeneratedTypeAnnotation(ElementType.TYPE)
 				.map(it -> {
-
-					log.info("Adding {} to generated {}.", PluginUtils.abbreviate(it),
-							builder.toTypeDescription().getName());
-
+					log.info("Adding {} to generated {}.", abbreviate(it), builder.toTypeDescription().getName());
 					return it;
 				})
 				.<Builder<?>> map(builder::annotateType)
@@ -308,11 +304,11 @@ class PluginUtils {
 	private static Builder<?> addAnnotationIfMissing(Class<? extends Annotation> annotation, Builder<?> builder,
 			TypeDescription type, Log log) {
 		if (isAnnotatedWith(type, annotation)) {
-			log.info("Not adding @{}, already present.", PluginUtils.abbreviate(annotation));
+			log.info("Not adding @{}, already present.", abbreviate(annotation));
 			return builder;
 		}
 
-		log.info("Adding @{}.", PluginUtils.abbreviate(annotation));
+		log.info("Adding @{}.", abbreviate(annotation));
 		return builder.annotateType(getAnnotation(annotation));
 	}
 
