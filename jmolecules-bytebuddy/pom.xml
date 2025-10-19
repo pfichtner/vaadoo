@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.jmolecules.integrations</groupId>
+		<groupId>github.io.pfichtner.integrations</groupId>
 		<artifactId>jmolecules-integrations</artifactId>
 		<version>0.31.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
@@ -13,7 +13,7 @@
 	<artifactId>jmolecules-bytebuddy</artifactId>
 
 	<properties>
-		<module.name>org.jmolecules.integrations.bytebuddy</module.name>
+		<module.name>github.io.pfichtner.integrations.bytebuddy</module.name>
 	</properties>
 
 	<dependencies>
