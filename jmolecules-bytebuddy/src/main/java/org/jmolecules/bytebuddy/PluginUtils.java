@@ -15,6 +15,8 @@
  */
 package org.jmolecules.bytebuddy;
 
+import static java.util.function.Function.identity;
+
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
@@ -54,6 +56,11 @@ class PluginUtils {
 	// this differs from jMolecukes, was: 
 	// private static final String GENERATED_BY = "jMolecules ByteBuddy Plugin";
 	private static final String GENERATED_BY = "vaadoo ByteBuddy Plugin";
+
+	public static Map<String, Function<AnnotationDescription.Builder, AnnotationDescription.Builder>> ANNO_BUILDERS = Map.of( //
+			"javax.annotation.processing.Generated", b -> b.defineArray("value", GENERATED_BY), //
+			"javax.annotation.Generated", b -> b.defineArray("value", GENERATED_BY)
+	);
 
 	/**
 	 * Returns whether the given {@link TypeDescription} is annotated with the given annotation.
@@ -332,10 +339,7 @@ class PluginUtils {
 		return Types.AT_GENERATED.stream()
 				.filter(it -> hasTarget(it, type))
 				.findFirst()
-				.map(it -> getAnnotation(it,
-						builder -> it.getName().startsWith("javax.annotation")
-								? builder.defineArray("value", GENERATED_BY)
-								: builder));
+				.map(it -> getAnnotation(it, ANNO_BUILDERS.getOrDefault(it.getName(), identity())));
 	}
 
 	private static boolean hasTarget(Class<? extends Annotation> type, ElementType target) {
