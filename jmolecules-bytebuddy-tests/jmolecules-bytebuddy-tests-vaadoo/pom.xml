@@ -23,7 +23,7 @@
 		     classes required for classpath discovery by the byte-buddy
 		     plugin without bringing full runtime dependencies. -->
 		<dependency>
-			<groupId>github.io.pfichtner.integrations</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>jmolecules-bytebuddy-nodep</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -31,7 +31,7 @@
 		<!-- Ensure the plugin implementation class is available on the
 		     test classpath so classPathDiscovery can load the plugin. -->
 		<dependency>
-			<groupId>github.io.pfichtner.integrations</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>jmolecules-bytebuddy</artifactId>
 			<version>${project.version}</version>
 		</dependency>
