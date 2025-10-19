@@ -23,7 +23,7 @@ class VaadooImplementor {
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
 		String methodName = nonExistingMethodName(type);
 		return type //
-				.mapBuilder(t -> addValidationMethod(t, methodName))
+				.mapBuilder(t -> addValidationMethod(t, methodName, log))
 				.mapBuilder(t -> injectValidationIntoConstructors(t, methodName));
 	}
 
@@ -48,7 +48,8 @@ class VaadooImplementor {
 		return target.getName().equals(methodName) && target.getParameters().size() == 0;
 	}
 
-	private Builder<?> addValidationMethod(Builder<?> builder, String methodName) {
+	private Builder<?> addValidationMethod(Builder<?> builder, String methodName, Log log) {
+		log.info("Implementing validate method #{}.", methodName);
 		return markGenerated(builder.defineMethod(methodName, void.class).intercept(ExceptionMethod
 				.throwing(IllegalStateException.class, "Vaadoo validation failed: override or disable this method")));
 	}
