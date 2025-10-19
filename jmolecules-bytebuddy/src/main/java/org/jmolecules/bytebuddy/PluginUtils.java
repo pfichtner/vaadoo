@@ -186,13 +186,10 @@ class PluginUtils {
 		String annotationName = abbreviate(annotation);
 
 		boolean existingFound = Stream.of(exclusions).anyMatch(it -> {
-
 			boolean found = existing.isAnnotationPresent(it);
-
 			if (found) {
 				log.info("Not adding @{} because type is already annotated with @{}.", annotationName, abbreviate(it));
 			}
-
 			return found;
 		});
 
@@ -201,7 +198,6 @@ class PluginUtils {
 		}
 
 		log.info("Adding @{}.", annotationName);
-
 		return builder.annotateType(getAnnotation(annotation));
 	}
 
@@ -215,22 +211,15 @@ class PluginUtils {
 	 * @since 0.6
 	 */
 	static <T> Supplier<T> memoized(Supplier<T> source) {
-
 		return new Supplier<T>() {
 
 			private T instance;
 
-			/*
-			 * (non-Javadoc)
-			 * @see java.util.function.Supplier#get()
-			 */
 			@Override
 			public T get() {
-
 				if (instance == null) {
 					instance = source.get();
 				}
-
 				return instance;
 			}
 		};
