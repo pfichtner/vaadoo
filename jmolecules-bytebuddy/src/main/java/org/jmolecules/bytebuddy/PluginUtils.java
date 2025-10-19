@@ -47,8 +47,13 @@ import net.bytebuddy.matcher.ElementMatcher.Junction;
  * Utility methods to be used from different {@link Plugin} implementations
  *
  * @author Oliver Drotbohm
+ * @author Peter Fichtner
  */
 class PluginUtils {
+
+	// this differs from jMolecukes, was: 
+	// private static final String GENERATED_BY = "jMolecules ByteBuddy Plugin";
+	private static final String GENERATED_BY = "vaadoo ByteBuddy Plugin";
 
 	/**
 	 * Returns whether the given {@link TypeDescription} is annotated with the given annotation.
@@ -329,7 +334,7 @@ class PluginUtils {
 				.findFirst()
 				.map(it -> getAnnotation(it,
 						builder -> it.getName().startsWith("javax.annotation")
-								? builder.defineArray("value", "jMolecules ByteBuddy Plugin")
+								? builder.defineArray("value", GENERATED_BY)
 								: builder));
 	}
 

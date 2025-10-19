@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -33,7 +34,7 @@ class Types {
 			"org.springframework.aot.generate.Generated", //
 			"javax.annotation.processing.Generated", //
 			"javax.annotation.Generated" //
-	).<Class<? extends Annotation>>map(Types::loadIfPresent).collect(toList());
+	).<Class<? extends Annotation>>map(Types::loadIfPresent).filter(Objects::nonNull).collect(toList());
 
 	@SuppressWarnings("unchecked")
 	private static <T> Class<T> loadIfPresent(String type) {
