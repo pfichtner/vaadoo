@@ -32,7 +32,7 @@ class JMoleculesVaadooPluginTests {
 	@Test
 	void createInstance() throws Exception {
 		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject("test"))
-				.withMessage("Vaadoo validation failed: override or disable this method");
+				.withMessage("Vaadoo validation failed: override or disable this method. Fields: [value]");
 	}
 
 }

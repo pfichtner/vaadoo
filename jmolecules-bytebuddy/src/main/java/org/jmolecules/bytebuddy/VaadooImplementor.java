@@ -3,6 +3,7 @@
  */
 package org.jmolecules.bytebuddy;
 
+import static java.util.stream.Collectors.joining;
 import static net.bytebuddy.matcher.ElementMatchers.any;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
@@ -50,8 +51,19 @@ class VaadooImplementor {
 
 	private Builder<?> addValidationMethod(Builder<?> builder, String methodName, Log log) {
 		log.info("Implementing validate method #{}.", methodName);
+		
+	    String fieldNames = builder.toTypeDescription().getDeclaredFields().stream()
+	            .map(net.bytebuddy.description.field.FieldDescription.InDefinedShape::getName)
+	            .sorted()
+	            .collect(joining(", "));
+
+	    String message = String.format(
+	        "Vaadoo validation failed: override or disable this method. Fields: [%s]",
+	        fieldNames
+	    );
+		
 		return markGenerated(builder.defineMethod(methodName, void.class).intercept(ExceptionMethod
-				.throwing(IllegalStateException.class, "Vaadoo validation failed: override or disable this method")));
+				.throwing(IllegalStateException.class, message)));
 	}
 
 	private Builder<?> injectValidationIntoConstructors(Builder<?> builder, String methodName) {
