@@ -34,6 +34,21 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<!-- Configure the byte-buddy transform once for all test modules. Each
+			     test module should execute the transform in process-classes so the
+			     module's target/classes are instrumented before tests run. -->
+			<plugins>
+				<plugin>
+					<groupId>net.bytebuddy</groupId>
+					<artifactId>byte-buddy-maven-plugin</artifactId>
+					<version>${byte-buddy.version}</version>
+					<configuration>
+						<classPathDiscovery>true</classPathDiscovery>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 </project>

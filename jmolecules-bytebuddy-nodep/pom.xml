@@ -33,7 +33,7 @@
 				<executions>
 					<execution>
 						<id>flatten</id>
-						<phase>process-resources</phase>
+						<phase>package</phase>
 						<goals>
 							<goal>flatten</goal>
 						</goals>
@@ -78,6 +78,12 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- No unpacking here; nodep will be consumed as a normal dependency
+				 by test modules so its META-INF resources are available on the
+				 project classpath during the byte-buddy transform. -->
+
+
 		</plugins>
 	</build>
 

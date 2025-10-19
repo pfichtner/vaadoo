@@ -19,6 +19,45 @@
                         <version>${jmolecules.version}</version>
                 </dependency>
 
+		<!-- nodep artifact provides the plugin registration and minimal
+		     classes required for classpath discovery by the byte-buddy
+		     plugin without bringing full runtime dependencies. -->
+		<dependency>
+			<groupId>github.io.pfichtner.integrations</groupId>
+			<artifactId>jmolecules-bytebuddy-nodep</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Ensure the plugin implementation class is available on the
+		     test classpath so classPathDiscovery can load the plugin. -->
+		<dependency>
+			<groupId>github.io.pfichtner.integrations</groupId>
+			<artifactId>jmolecules-bytebuddy</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 	</dependencies>
+
+	<build>
+
+		<plugins>
+
+			<!-- Use managed byte-buddy plugin from ../jmolecules-bytebuddy-tests/pom.xml -->
+			<plugin>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>transform-extended</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+
+	</build>
 
 </project>
