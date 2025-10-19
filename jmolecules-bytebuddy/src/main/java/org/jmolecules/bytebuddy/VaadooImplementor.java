@@ -5,6 +5,7 @@ package org.jmolecules.bytebuddy;
 
 import static net.bytebuddy.matcher.ElementMatchers.any;
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 
 import org.jmolecules.bytebuddy.PluginLogger.Log;
 
@@ -48,8 +49,8 @@ class VaadooImplementor {
 	}
 
 	private Builder<?> addValidationMethod(Builder<?> builder, String methodName) {
-		return builder.defineMethod(methodName, void.class).intercept(ExceptionMethod
-				.throwing(IllegalStateException.class, "Vaadoo validation failed: override or disable this method"));
+		return markGenerated(builder.defineMethod(methodName, void.class).intercept(ExceptionMethod
+				.throwing(IllegalStateException.class, "Vaadoo validation failed: override or disable this method")));
 	}
 
 	private Builder<?> injectValidationIntoConstructors(Builder<?> builder, String methodName) {
