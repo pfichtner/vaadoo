@@ -16,6 +16,7 @@
 package org.jmolecules.bytebuddy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 
 import org.junit.jupiter.api.Test;
@@ -30,9 +31,14 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	@Test
-	void createInstance() throws Exception {
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject("test"))
-				.withMessage("Vaadoo validation failed: override or disable this method. Fields: [value]");
+	void throwsExceptionOnNullValue() throws Exception {
+		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject(null))
+				.withMessage("Vaadoo validation failed: value is null");
+	}
+
+	@Test
+	void doesNotThrowExceptionOnNonNullValue() throws Exception {
+		assertThatNoException().isThrownBy(() -> new SampleValueObject("test"));
 	}
 
 }
