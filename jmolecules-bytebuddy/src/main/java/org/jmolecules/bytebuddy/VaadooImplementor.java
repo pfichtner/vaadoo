@@ -4,19 +4,24 @@
 package org.jmolecules.bytebuddy;
 
 import static java.lang.String.format;
-import static net.bytebuddy.matcher.ElementMatchers.any;
-import static net.bytebuddy.matcher.ElementMatchers.named;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toList;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.jmolecules.bytebuddy.PluginLogger.Log;
 
-import net.bytebuddy.description.field.FieldDescription;
+import lombok.RequiredArgsConstructor;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
+import net.bytebuddy.description.method.ParameterDescription;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.Implementation.Context;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
@@ -26,98 +31,102 @@ import net.bytebuddy.jar.asm.Opcodes;
 
 class VaadooImplementor {
 
-	private static final String VALIDATE_METHOD_NAME_1 = "validate";
-	private static final String VALIDATE_METHOD_NAME_2 = "__vaadoo$__validate";
+	private static final String VALIDATE_METHOD_BASE_NAME = "validate";
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
-		String methodName = nonExistingMethodName(type);
-		return type //
-				.mapBuilder(t -> addValidationMethod(t, methodName, log))
-				.mapBuilder(t -> injectValidationIntoConstructors(t, methodName));
-	}
+		TypeDescription typeDescription = type.getTypeDescription();
 
-	private static String nonExistingMethodName(JMoleculesTypeBuilder type) {
-		if (type.tryFindMethod(target -> hasNoArgsMethodNamed(target, VALIDATE_METHOD_NAME_1)) == null) {
-			return VALIDATE_METHOD_NAME_1;
+		// Loop over all constructors
+		for (InDefinedShape constructor : typeDescription.getDeclaredMethods().stream()
+				.filter(MethodDescription::isConstructor).collect(toList())) {
+
+			// Generate a unique method name per constructor
+			// TODO we could overload (add validate(String,String) works also if there
+			// already is a validate())
+			String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
+
+			// Extract constructor parameter types
+			List<TypeDescription> paramTypes = constructor.getParameters().stream()
+					.map(ParameterDescription.InDefinedShape::getType).map(Generic::asErasure).collect(toList());
+
+			// Add static validate method
+			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, paramTypes, log));
+
+			// Inject call into this constructor
+			type = type.mapBuilder(t -> injectValidationIntoConstructor(t, constructor, validateMethodName));
 		}
 
-		String baseMethodName = VALIDATE_METHOD_NAME_2;
-		String methodName = baseMethodName;
-		for (int i = 0;; i++) {
-			final String currentName = methodName;
-			if (type.tryFindMethod(target -> hasNoArgsMethodNamed(target, currentName)) == null) {
-				break;
-			}
-			methodName = baseMethodName + "_" + i++;
-		}
-		return methodName;
+		return type;
 	}
 
-	private static boolean hasNoArgsMethodNamed(InDefinedShape target, String methodName) {
-		return target.getName().equals(methodName) && target.getParameters().size() == 0;
+	private static String nonExistingMethodName(TypeDescription typeDescription, String base) {
+		List<String> methodNames = typeDescription.getDeclaredMethods().stream()
+				.map(MethodDescription.InDefinedShape::getName).toList();
+		return Stream.iterate(0, i -> i + 1) //
+				.map(i -> (i == 0) ? base : base + "_" + i) //
+				.filter(not(methodNames::contains)) //
+				.findFirst() //
+				.get(); // safe because stream is infinite, will always find a free name
 	}
 
-	private Builder<?> addValidationMethod(Builder<?> builder, String methodName, Log log) {
-		log.info("Implementing validate method #{}.", methodName);
-		
-	    return markGenerated(builder.defineMethod(methodName, void.class)
-		        .intercept(new Implementation.Simple(new ValidateValueAppender())));
+	private Builder<?> addStaticValidationMethod(Builder<?> builder, String methodName,
+			List<TypeDescription> paramTypes, Log log) {
+		log.info("Implementing static validate method #{}.", methodName);
+		return markGenerated(builder.defineMethod(methodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
+				.withParameters(paramTypes)
+				.intercept(new Implementation.Simple(new StaticValidateAppender(paramTypes))));
+	}
+
+	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
+			String validateMethodName) {
+		return builder.constructor(is(constructor)) //
+				.intercept(SuperMethodCall.INSTANCE.andThen( //
+						MethodCall.invoke(named(validateMethodName)).withAllArguments() //
+				));
 	}
 
 	/**
-	 * ByteBuddy appender that emits bytecode for:
-	 *
-	 * if (this.value == null) {
-	 *     throw new IllegalStateException("Vaadoo validation failed: value is null");
-	 * }
+	 * Emits static validate(...) method for constructor parameters. For each
+	 * parameter: if null -> throw IllegalStateException("parameter X is null")
 	 */
-	private static class ValidateValueAppender implements ByteCodeAppender {
+	@RequiredArgsConstructor
+	private static class StaticValidateAppender implements ByteCodeAppender {
 
-	    @Override
-	    public Size apply(MethodVisitor mv, Context implementationContext,
-	                      MethodDescription instrumentedMethod) {
-	    	
-	    	int maxStack = 3; // base stack requirement
-	    	TypeDescription type = implementationContext.getInstrumentedType();
+		private final List<TypeDescription> paramTypes;
 
-	    	for (FieldDescription.InDefinedShape field : type.getDeclaredFields()) {
-	            if (field.isStatic() || field.isSynthetic()) {
-	                continue; // skip irrelevant fields
-	            }
+		@Override
+		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
+			int maxStack = 3;
+
+			for (int i = 0; i < paramTypes.size(); i++) {
 				Label end = new Label();
-				// load `this`
-				mv.visitVarInsn(Opcodes.ALOAD, 0);
-	            // get `this.<field>`
-	            mv.visitFieldInsn(
-	                    Opcodes.GETFIELD,
-	                    type.getInternalName(),
-	                    field.getName(),
-	                    field.getType().asErasure().getDescriptor());
 
-				// if not null, jump to end
+				// Load parameter i (0-based for static method)
+				mv.visitVarInsn(Opcodes.ALOAD, i);
+
+				// If not null, jump over
 				mv.visitJumpInsn(Opcodes.IFNONNULL, end);
-				// --- throw new IllegalStateException("Vaadoo validation failed: value is null"); ---
-				mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalStateException"); // create new exception
-				mv.visitInsn(Opcodes.DUP); // duplicate for constructor call
-	            mv.visitLdcInsn(format("field '%s' is null", field.getName()));
+
+				// Else throw new IllegalStateException("parameter X is null")
+				mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalStateException");
+				mv.visitInsn(Opcodes.DUP);
+				mv.visitLdcInsn(format("parameter '%s' is null", getName(paramTypes.get(i))));
 				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/IllegalStateException", "<init>",
 						"(Ljava/lang/String;)V", false);
-				mv.visitInsn(Opcodes.ATHROW); // throw it
-				// --- end label ---
+				mv.visitInsn(Opcodes.ATHROW);
+
 				mv.visitLabel(end);
 				mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
 			}
+
 			mv.visitInsn(Opcodes.RETURN);
+			return new Size(maxStack, 0);
+		}
 
-	        // maximum stack used: ALOAD_0 + GETFIELD + NEW + DUP + LDC + INVOKESPECIAL + ATHROW
-	        return new Size(maxStack, instrumentedMethod.getStackSize());
-	    }
-	}
+		private static String getName(TypeDescription typeDescription) {
+			return typeDescription.getName();
+		}
 
-
-	private Builder<?> injectValidationIntoConstructors(Builder<?> builder, String methodName) {
-		return builder.constructor(any())
-				.intercept(SuperMethodCall.INSTANCE.andThen(MethodCall.invoke(named(methodName))));
 	}
 
 }

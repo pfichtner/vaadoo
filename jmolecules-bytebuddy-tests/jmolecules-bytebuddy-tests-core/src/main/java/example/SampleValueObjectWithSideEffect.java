@@ -15,16 +15,16 @@
  */
 package example;
 
+import java.util.List;
+
 import org.jmolecules.ddd.types.ValueObject;
 
 import jakarta.validation.constraints.NotNull;
 
-public class SampleValueObject implements ValueObject {
-
-	@NotNull
-	private final String value;
-
-	public SampleValueObject(String value) {
-		this.value = value;
+public class SampleValueObjectWithSideEffect implements ValueObject {
+	
+	public SampleValueObjectWithSideEffect(List<String> list, @NotNull String toAdd) {
+		list.add(toAdd);
 	}
+	
 }

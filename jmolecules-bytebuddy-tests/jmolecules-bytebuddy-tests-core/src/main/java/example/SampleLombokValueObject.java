@@ -15,16 +15,15 @@
  */
 package example;
 
+import lombok.Value;
+
 import org.jmolecules.ddd.types.ValueObject;
 
 import jakarta.validation.constraints.NotNull;
 
-public class SampleValueObject implements ValueObject {
-
+// TODO To make this work we have to use https://github.com/pfichtner/vaadoo/blob/main/vaadoo-tests/lombok.config 
+@Value
+public class SampleLombokValueObject implements ValueObject {
 	@NotNull
-	private final String value;
-
-	public SampleValueObject(String value) {
-		this.value = value;
-	}
+	String value;
 }

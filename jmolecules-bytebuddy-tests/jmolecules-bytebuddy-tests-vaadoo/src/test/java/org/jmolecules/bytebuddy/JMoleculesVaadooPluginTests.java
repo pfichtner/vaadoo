@@ -18,10 +18,15 @@ package org.jmolecules.bytebuddy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatRuntimeException;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import example.SampleValueObject;
+import example.SampleValueObjectWithSideEffect;
 
 class JMoleculesVaadooPluginTests {
 
@@ -32,13 +37,20 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void throwsExceptionOnNullValue() throws Exception {
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject(null))
-				.withMessage("field 'value' is null");
+		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject(null)).withMessage("parameter 'value' is null");
 	}
 
 	@Test
 	void doesNotThrowExceptionOnNonNullValue() throws Exception {
 		assertThatNoException().isThrownBy(() -> new SampleValueObject("test"));
+	}
+
+	@Test
+	void mustNotCallAddOnListWithNull() throws Exception {
+		List<String> list = new ArrayList<>();
+		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(list, null))
+				.withMessage("parameter 'toAdd' is null");
+		assertThat(list).isEmpty();
 	}
 
 }
