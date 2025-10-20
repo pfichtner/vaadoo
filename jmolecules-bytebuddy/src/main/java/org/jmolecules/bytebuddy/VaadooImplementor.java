@@ -48,9 +48,11 @@ class VaadooImplementor {
 			// Extract constructor parameter types
 			List<TypeDescription> paramTypes = constructor.getParameters().stream()
 					.map(ParameterDescription.InDefinedShape::getType).map(Generic::asErasure).collect(toList());
+			List<String> paramNames = constructor.getParameters().stream()
+					.map(ParameterDescription.InDefinedShape::getName).toList();
 
 			// Add static validate method
-			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, paramTypes, log));
+			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, paramTypes, paramNames, log));
 
 			// Inject call into this constructor
 			type = type.mapBuilder(t -> injectValidationIntoConstructor(t, constructor, validateMethodName));
@@ -70,11 +72,11 @@ class VaadooImplementor {
 	}
 
 	private Builder<?> addStaticValidationMethod(Builder<?> builder, String methodName,
-			List<TypeDescription> paramTypes, Log log) {
+			List<TypeDescription> paramTypes, List<String> paramNames, Log log) {
 		log.info("Implementing static validate method #{}.", methodName);
 		return markGenerated(builder.defineMethod(methodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
 				.withParameters(paramTypes)
-				.intercept(new Implementation.Simple(new StaticValidateAppender(paramTypes))));
+				.intercept(new Implementation.Simple(new StaticValidateAppender(paramTypes, paramNames))));
 	}
 
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
@@ -93,6 +95,7 @@ class VaadooImplementor {
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
 		private final List<TypeDescription> paramTypes;
+		private final List<String> paramNames;
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
@@ -110,7 +113,7 @@ class VaadooImplementor {
 				// Else throw new IllegalStateException("parameter X is null")
 				mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalStateException");
 				mv.visitInsn(Opcodes.DUP);
-				mv.visitLdcInsn(format("parameter '%s' is null", getName(paramTypes.get(i))));
+				mv.visitLdcInsn(format("parameter '%s' is null", paramNames.get(i)));
 				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/IllegalStateException", "<init>",
 						"(Ljava/lang/String;)V", false);
 				mv.visitInsn(Opcodes.ATHROW);
@@ -121,10 +124,6 @@ class VaadooImplementor {
 
 			mv.visitInsn(Opcodes.RETURN);
 			return new Size(maxStack, 0);
-		}
-
-		private static String getName(TypeDescription typeDescription) {
-			return typeDescription.getName();
 		}
 
 	}
