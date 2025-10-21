@@ -46,7 +46,7 @@ class VaadooImplementor {
 			String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
 
 			// Extract constructor parameter types
-			Parameters parameters = new Parameters(constructor.getParameters());
+			Parameters parameters = Parameters.of(constructor.getParameters());
 			// Add static validate method
 			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, parameters, log));
 

@@ -27,6 +27,10 @@ import net.bytebuddy.description.type.TypeDescription;
 
 public class Parameters implements Iterable<Parameters.Parameter> {
 
+	public static Parameters of(ParameterList<InDefinedShape> parameterList) {
+		return new Parameters(parameterList);
+	}
+
 	private List<Parameter> values;
 
 	public static interface Parameter {
@@ -66,8 +70,8 @@ public class Parameters implements Iterable<Parameters.Parameter> {
 
 	}
 
-	public Parameters(ParameterList<InDefinedShape> parameters) {
-		values = range(0, parameters.size()).mapToObj(i -> new ParameterWrapper(i, parameters.get(i)))
+	private Parameters(ParameterList<InDefinedShape> parameterList) {
+		values = range(0, parameterList.size()).mapToObj(i -> new ParameterWrapper(i, parameterList.get(i)))
 				.collect(toList());
 	}
 
