@@ -39,14 +39,14 @@ class VaadooImplementor {
 		// Loop over all constructors
 		for (InDefinedShape constructor : typeDescription.getDeclaredMethods().stream()
 				.filter(MethodDescription::isConstructor).collect(toList())) {
+			// Extract constructor parameter types
+			Parameters parameters = Parameters.of(constructor.getParameters());
 
 			// Generate a unique method name per constructor
 			// TODO we could overload (add validate(String,String) works also if there
 			// already is a validate())
 			String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
 
-			// Extract constructor parameter types
-			Parameters parameters = Parameters.of(constructor.getParameters());
 			// Add static validate method
 			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, parameters, log));
 
