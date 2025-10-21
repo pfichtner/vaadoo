@@ -6,20 +6,20 @@ package org.jmolecules.bytebuddy;
 import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
-import static net.bytebuddy.matcher.ElementMatchers.*;
+import static net.bytebuddy.matcher.ElementMatchers.is;
+import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.jmolecules.bytebuddy.Parameters.Parameter;
 import org.jmolecules.bytebuddy.PluginLogger.Log;
 
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
-import net.bytebuddy.description.method.ParameterDescription;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodCall;
@@ -46,13 +46,9 @@ class VaadooImplementor {
 			String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
 
 			// Extract constructor parameter types
-			List<TypeDescription> paramTypes = constructor.getParameters().stream()
-					.map(ParameterDescription.InDefinedShape::getType).map(Generic::asErasure).collect(toList());
-			List<String> paramNames = constructor.getParameters().stream()
-					.map(ParameterDescription.InDefinedShape::getName).toList();
-
+			Parameters parameters = new Parameters(constructor.getParameters());
 			// Add static validate method
-			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, paramTypes, paramNames, log));
+			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, parameters, log));
 
 			// Inject call into this constructor
 			type = type.mapBuilder(t -> injectValidationIntoConstructor(t, constructor, validateMethodName));
@@ -71,12 +67,12 @@ class VaadooImplementor {
 				.get(); // safe because stream is infinite, will always find a free name
 	}
 
-	private Builder<?> addStaticValidationMethod(Builder<?> builder, String methodName,
-			List<TypeDescription> paramTypes, List<String> paramNames, Log log) {
+	private Builder<?> addStaticValidationMethod(Builder<?> builder, String methodName, Parameters parameters,
+			Log log) {
 		log.info("Implementing static validate method #{}.", methodName);
 		return markGenerated(builder.defineMethod(methodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
-				.withParameters(paramTypes)
-				.intercept(new Implementation.Simple(new StaticValidateAppender(paramTypes, paramNames))));
+				.withParameters(parameters.types())
+				.intercept(new Implementation.Simple(new StaticValidateAppender(parameters))));
 	}
 
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
@@ -95,18 +91,16 @@ class VaadooImplementor {
 	@RequiredArgsConstructor
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
-		private final List<TypeDescription> paramTypes;
-		private final List<String> paramNames;
+		private final Parameters parameters;
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
 			int maxStack = 3;
-
-			for (int i = 0; i < paramTypes.size(); i++) {
+			for (Parameter parameter : parameters) {
 				Label end = new Label();
 
 				// Load parameter i (0-based for static method)
-				mv.visitVarInsn(Opcodes.ALOAD, i);
+				mv.visitVarInsn(Opcodes.ALOAD, parameter.index());
 
 				// If not null, jump over
 				mv.visitJumpInsn(Opcodes.IFNONNULL, end);
@@ -114,7 +108,7 @@ class VaadooImplementor {
 				// Else throw new IllegalStateException("parameter X is null")
 				mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalStateException");
 				mv.visitInsn(Opcodes.DUP);
-				mv.visitLdcInsn(format("parameter '%s' is null", paramNames.get(i)));
+				mv.visitLdcInsn(format("parameter '%s' is null", parameter.name()));
 				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/IllegalStateException", "<init>",
 						"(Ljava/lang/String;)V", false);
 				mv.visitInsn(Opcodes.ATHROW);
