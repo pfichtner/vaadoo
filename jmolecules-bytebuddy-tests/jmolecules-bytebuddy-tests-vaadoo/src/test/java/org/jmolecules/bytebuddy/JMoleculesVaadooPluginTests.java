@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -33,9 +34,10 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void defaultsForSampleValueObject() {
-		List<Class<?>[]> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
-				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).toList();
-		assertThat(methodParams).containsExactlyInAnyOrder(new Class[] { String.class });
+		List<List<Class<?>>> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
+				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).map(Arrays::asList)
+				.toList();
+		assertThat(methodParams).containsExactly(List.of(String.class));
 	}
 
 	@Test
