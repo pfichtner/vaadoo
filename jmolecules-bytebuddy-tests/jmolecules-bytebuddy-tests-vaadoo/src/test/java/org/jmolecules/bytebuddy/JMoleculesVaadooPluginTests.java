@@ -32,29 +32,29 @@ import example.SampleValueObjectWithSideEffect;
 class JMoleculesVaadooPluginTests {
 
 	@Test
-	void defaultsForSampleValueObject() throws Exception {
+	void defaultsForSampleValueObject() {
 		List<Class<?>[]> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
 				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).toList();
 		assertThat(methodParams).containsExactlyInAnyOrder(new Class[] { String.class });
 	}
 
 	@Test
-	void throwsExceptionOnNullValue() throws Exception {
+	void throwsExceptionOnNullValue() {
 		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject(null))
 				.withMessage("parameter 'value' is null");
 	}
 
 	@Test
-	void doesNotThrowExceptionOnNonNullValue() throws Exception {
+	void doesNotThrowExceptionOnNonNullValue() {
 		assertThatNoException().isThrownBy(() -> new SampleValueObject("test"));
 	}
 
 	@Test
-	void mustNotCallAddOnListWithNull() throws Exception {
+	void mustNotCallAddOnListWithNull() {
 		List<String> list = new ArrayList<>();
 		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(list, null))
 				.withMessage("parameter 'toAdd' is null");
-//		assertThat(list).isEmpty();
+		assertThat(list).isEmpty();
 	}
 
 }

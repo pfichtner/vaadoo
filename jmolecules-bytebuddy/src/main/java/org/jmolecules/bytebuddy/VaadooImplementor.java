@@ -81,9 +81,10 @@ class VaadooImplementor {
 
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
 			String validateMethodName) {
+
 		return builder.constructor(is(constructor)) //
-				.intercept(SuperMethodCall.INSTANCE.andThen( //
-						MethodCall.invoke(named(validateMethodName)).withAllArguments() //
+				.intercept(MethodCall.invoke(named(validateMethodName)).withAllArguments().andThen( //
+						SuperMethodCall.INSTANCE //
 				));
 	}
 

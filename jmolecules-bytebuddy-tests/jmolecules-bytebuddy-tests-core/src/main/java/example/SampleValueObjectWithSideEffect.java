@@ -17,14 +17,13 @@ package example;
 
 import java.util.List;
 
-import org.jmolecules.ddd.types.ValueObject;
-
 import jakarta.validation.constraints.NotNull;
 
-public class SampleValueObjectWithSideEffect implements ValueObject {
-	
+public class SampleValueObjectWithSideEffect extends SuperClassThatThrowsRTE {
+
+	// nor the super constructor nor the List#add should get called if "toAdd" is null
 	public SampleValueObjectWithSideEffect(List<String> list, @NotNull String toAdd) {
 		list.add(toAdd);
 	}
-	
+
 }
