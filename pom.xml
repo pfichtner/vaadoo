@@ -38,18 +38,8 @@
 
 	<developers>
 		<developer>
-			<id>odrotbohm</id>
-			<name>Oliver Drotbohm</name>
-			<email>odrotbohm@vmware.com</email>
-			<organization>VMware Inc.</organization>
-			<organizationUrl>https://vmware.com</organizationUrl>
-		</developer>
-		<developer>
-			<id>zambrovski</id>
-			<name>Simon Zambrovski</name>
-			<email>simon.zambrovski@holisticon.de</email>
-			<organization>Holisticon AG</organization>
-			<organizationUrl>https://holisticon.de</organizationUrl>
+			<id>pfichtner</id>
+			<name>Peter Fichtner</name>
 		</developer>
 	</developers>
 
