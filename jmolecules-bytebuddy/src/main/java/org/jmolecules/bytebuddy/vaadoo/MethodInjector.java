@@ -72,12 +72,12 @@ public class MethodInjector {
 		private final String sourceMethodName;
 		private final String searchDescriptor;
 		private final MethodVisitor targetMethodVisitor;
-		private final Parameter parameter;
+		private final Parameter targetParam;
 
-		private int sourceFirstArgAt;
-		private int sourceFirstLocalAt;
-		private int argOffset;
-		private int localOffset;
+		private int srcFirstArgIndex;
+		private int srcFirstLocalIndex;
+		private int argIndexOffset;
+		private int localIndexOffset;
 
 		private MethodInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
 				String signatureOfTargetMethod, Parameter parameter) {
@@ -86,17 +86,17 @@ public class MethodInjector {
 			this.sourceMethodName = sourceMethod.getName();
 			this.searchDescriptor = getMethodDescriptor(sourceMethod);
 			this.targetMethodVisitor = targetMethodVisitor;
-			this.parameter = parameter;
+			this.targetParam = parameter;
 
-			this.sourceFirstArgAt = Modifier.isStatic(sourceMethod.getModifiers()) ? 0 : 1;
-			this.sourceFirstLocalAt = sourceFirstArgAt
+			this.srcFirstArgIndex = Modifier.isStatic(sourceMethod.getModifiers()) ? 0 : 1;
+			this.srcFirstLocalIndex = srcFirstArgIndex
 					+ sizeOf(stream(sourceMethod.getParameterTypes()).map(Type::getType));
 
-			int targetFirstArgAt = TARGET_METHOD_IS_STATIC ? 0 : 1;
-			int targetFirstLocalAt = targetFirstArgAt + sizeOf(getArgumentTypes(signatureOfTargetMethod));
+			int tgtFirstArgIndex = TARGET_METHOD_IS_STATIC ? 0 : 1;
+			int tgtFirstLocalIndex = tgtFirstArgIndex + sizeOf(getArgumentTypes(signatureOfTargetMethod));
 
-			this.argOffset = sourceFirstArgAt - targetFirstArgAt;
-			this.localOffset = sourceFirstLocalAt - targetFirstLocalAt;
+			this.argIndexOffset = srcFirstArgIndex - tgtFirstArgIndex;
+			this.localIndexOffset = srcFirstLocalIndex - tgtFirstLocalIndex;
 		}
 
 		@Override
@@ -109,14 +109,14 @@ public class MethodInjector {
 
 					private final boolean isStatic = isStatic(access);
 
-					private boolean firstParamLoadStart;
-					private Type handledAnnotation;
+					private boolean isFirstParamLoad;
+					private Type currentAnnotationType;
 
 					private final Function<String, String> rbResolver = Resources::message;
-					private final Function<String, String> paramNameResolver = k -> k.equals(NAME) ? parameter.name()
+					private final Function<String, String> paramNameResolver = k -> k.equals(NAME) ? targetParam.name()
 							: k;
 					private final Function<String, Object> annotationValueResolver = k -> {
-						Object annotationValue = parameter.annotationValue(handledAnnotation, k);
+						Object annotationValue = targetParam.annotationValue(currentAnnotationType, k);
 						return annotationValue == null ? k : annotationValue;
 					};
 					final Function<String, Object> resolver = rbResolver.andThen(paramNameResolver)
@@ -152,11 +152,11 @@ public class MethodInjector {
 						boolean opcodeIsStore = isStoreOpcode(opcode);
 
 						if (opcodeIsLoad || opcodeIsStore) {
-							if (var >= sourceFirstLocalAt) {
+							if (var >= srcFirstLocalIndex) {
 								super.visitVarInsn(opcode, remapLocal(var));
 							} else {
-								if (opcodeIsLoad && var == sourceFirstArgAt) {
-									firstParamLoadStart = true;
+								if (opcodeIsLoad && var == srcFirstArgIndex) {
+									isFirstParamLoad = true;
 								} else if (isArrayHandlingCase(opcode, var)) {
 									if (!opcodeIsStore) {
 										super.visitVarInsn(opcode, remapArg(var));
@@ -175,11 +175,11 @@ public class MethodInjector {
 					}
 
 					private int remapArg(int var) {
-						return var + parameter.offset() - argOffset - REMOVED_PARAMETERS;
+						return var + targetParam.offset() - argIndexOffset - REMOVED_PARAMETERS;
 					}
 
 					private int remapLocal(int varIndex) {
-						return varIndex - localOffset;
+						return varIndex - localIndexOffset;
 					}
 
 					@Override
@@ -195,20 +195,20 @@ public class MethodInjector {
 									owner, name, sourceMethodOwner));
 						}
 
-						this.handledAnnotation = getObjectType(owner);
-						if (firstParamLoadStart) {
+						this.currentAnnotationType = getObjectType(owner);
+						if (isFirstParamLoad) {
 							Type returnType = getReturnType(descriptor);
 							if (isArray(returnType)) {
 								@SuppressWarnings("unchecked")
-								List<EnumEntry> annotationValues = (List<EnumEntry>) parameter
-										.annotationValue(handledAnnotation, name);
+								List<EnumEntry> annotationValues = (List<EnumEntry>) targetParam
+										.annotationValue(currentAnnotationType, name);
 								writeArray(returnType.getElementType(),
 										annotationValues == null ? emptyList() : annotationValues);
 							} else {
-								visitLdcInsn(annotationsLdcInsnValue(parameter, owner, name, returnType));
+								visitLdcInsn(annotationsLdcInsnValue(targetParam, owner, name, returnType));
 							}
 
-							firstParamLoadStart = false;
+							isFirstParamLoad = false;
 						} else {
 							super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 						}
@@ -246,11 +246,11 @@ public class MethodInjector {
 					}
 
 					private Object valueFromClass(Parameter parameter, String owner, String name) {
-						Object valueFromClass = parameter.annotationValue(handledAnnotation, name);
+						Object valueFromClass = parameter.annotationValue(currentAnnotationType, name);
 						if (valueFromClass != null) {
 							return valueFromClass;
 						}
-						Object defaultValue = defaultValue(this.handledAnnotation.getClassName(), name);
+						Object defaultValue = defaultValue(this.currentAnnotationType.getClassName(), name);
 						if (defaultValue != null) {
 							return defaultValue;
 						}
@@ -278,7 +278,7 @@ public class MethodInjector {
 										.equals(handle.getDesc())
 								&& "java/lang/invoke/StringConcatFactory".equals(handle.getOwner()) && args.length >= 0
 								&& args[0] instanceof String) {
-							args[0] = format((String) args[0], parameter.name());
+							args[0] = format((String) args[0], targetParam.name());
 						}
 						super.visitInvokeDynamicInsn(name, descriptor, handle, args);
 					};
