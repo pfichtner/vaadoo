@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public final class NamedPlaceholders {
 
@@ -64,12 +65,8 @@ public final class NamedPlaceholders {
 			}
 
 			private static Operator operator(String condition) {
-				for (Operator operator : values()) {
-					if (condition.contains(operator.sign)) {
-						return operator;
-					}
-				}
-				throw new IllegalArgumentException("Unsupported operator in condition: " + condition);
+				return Stream.of(values()).filter(op -> condition.contains(op.sign)).findFirst().orElseThrow(
+						() -> new IllegalArgumentException("Unsupported operator in condition: " + condition));
 			}
 
 			private String[] split(String condition) {

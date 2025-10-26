@@ -116,7 +116,7 @@ public class MethodInjector {
 					private final Function<String, String> paramNameResolver = k -> k.equals(NAME) ? parameter.name()
 							: k;
 					private final Function<String, Object> annotationValueResolver = k -> {
-						Object  annotationValue = parameter.annotationValue(handledAnnotation, k);
+						Object annotationValue = parameter.annotationValue(handledAnnotation, k);
 						return annotationValue == null ? k : annotationValue;
 					};
 					final Function<String, Object> resolver = rbResolver.andThen(paramNameResolver)
@@ -200,8 +200,8 @@ public class MethodInjector {
 							Type returnType = getReturnType(descriptor);
 							if (isArray(returnType)) {
 								@SuppressWarnings("unchecked")
-								List<EnumEntry> annotationValues = (List<EnumEntry>) parameter.annotationValue(handledAnnotation,
-										name);
+								List<EnumEntry> annotationValues = (List<EnumEntry>) parameter
+										.annotationValue(handledAnnotation, name);
 								writeArray(returnType.getElementType(),
 										annotationValues == null ? emptyList() : annotationValues);
 							} else {
@@ -305,20 +305,19 @@ public class MethodInjector {
 	}
 
 	private static String defaultValue(String className, String name) {
+		return defaultValue(loadClass(className), name);
+	}
+
+	private static Class<?> loadClass(String className) {
 		try {
-			return defaultValue(Class.forName(className), name);
+			return Class.forName(className);
 		} catch (ClassNotFoundException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
 	private static String defaultValue(Class<?> clazz, String name) {
-		return getDefaultValue(clazz, name);
-	}
-
-	private static String getDefaultValue(Class<?> clazz, String name) {
-		return stream(clazz //
-				.getMethods()) //
+		return stream(clazz.getMethods()) //
 				.filter(m -> name.equals(m.getName())) //
 				.findFirst() //
 				.map(Method::getDefaultValue) //
