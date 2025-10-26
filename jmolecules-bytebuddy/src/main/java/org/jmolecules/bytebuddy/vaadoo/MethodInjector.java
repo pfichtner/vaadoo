@@ -47,6 +47,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.jmolecules.bytebuddy.vaadoo.Parameters.EnumEntry;
 import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
@@ -90,7 +91,7 @@ public class MethodInjector {
 
 			this.sourceFirstArgAt = Modifier.isStatic(sourceMethod.getModifiers()) ? 0 : 1;
 			this.sourceFirstLocalAt = sourceFirstArgAt
-					+ sizeOf(stream(sourceMethod.getParameterTypes()).map(Type::getType).toArray(Type[]::new));
+					+ sizeOf(stream(sourceMethod.getParameterTypes()).map(Type::getType));
 
 			int targetFirstArgAt = TARGET_METHOD_IS_STATIC ? 0 : 1;
 			int targetFirstLocalAt = targetFirstArgAt + sizeOf(getArgumentTypes(signatureOfTargetMethod));

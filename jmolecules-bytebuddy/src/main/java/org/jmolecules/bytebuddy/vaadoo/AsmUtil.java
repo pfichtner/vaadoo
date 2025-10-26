@@ -1,6 +1,5 @@
 package org.jmolecules.bytebuddy.vaadoo;
 
-import static java.lang.reflect.Array.newInstance;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ARETURN;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
@@ -21,6 +20,7 @@ import static net.bytebuddy.jar.asm.Type.ARRAY;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.stream.Stream;
 
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.Type;
@@ -48,50 +48,16 @@ public final class AsmUtil {
 				|| opcode == LRETURN || opcode == FRETURN || opcode == DRETURN;
 	}
 
-	public static Class<?> classtype(Type type) {
-		try {
-			switch (type.getSort()) {
-			case Type.BOOLEAN:
-				return boolean.class;
-			case Type.CHAR:
-				return char.class;
-			case Type.BYTE:
-				return byte.class;
-			case Type.SHORT:
-				return short.class;
-			case Type.INT:
-				return int.class;
-			case Type.FLOAT:
-				return float.class;
-			case Type.LONG:
-				return long.class;
-			case Type.DOUBLE:
-				return double.class;
-			case Type.VOID:
-				return void.class;
-			case Type.ARRAY:
-				Type elementType = type.getElementType();
-				return newInstance(Class.forName(elementType.getClassName()), elementType.getDimensions()).getClass();
-			case Type.OBJECT:
-				return Class.forName(type.getClassName());
-			default:
-				throw new IllegalArgumentException("Unknown type: " + type);
-			}
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	public static boolean isArray(Type type) {
 		return type.getSort() == ARRAY;
 	}
 
-	public static int sizeOf(Type[] args) {
-		int size = 0;
-		for (Type type : args) {
-			size += type.getSize();
-		}
-		return size;
+	public static int sizeOf(Type[] types) {
+		return sizeOf(Stream.of(types));
+	}
+
+	public static int sizeOf(Stream<Type> types) {
+		return types.mapToInt(Type::getSize).sum();
 	}
 
 	public static ClassReader classReader(Class<?> clazz) {
