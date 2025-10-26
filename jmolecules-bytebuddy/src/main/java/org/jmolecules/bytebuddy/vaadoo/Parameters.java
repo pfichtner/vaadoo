@@ -13,25 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jmolecules.bytebuddy;
+package org.jmolecules.bytebuddy.vaadoo;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 
 import java.util.Iterator;
 import java.util.List;
 
+import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.method.ParameterDescription.InDefinedShape;
 import net.bytebuddy.description.method.ParameterList;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.implementation.bytecode.StackSize;
+import net.bytebuddy.jar.asm.Type;
 
 public class Parameters implements Iterable<Parameters.Parameter> {
+
+	@Deprecated // copied from vaadoo-poc
+	static class EnumEntry {
+		Type type;
+		String value;
+
+		EnumEntry(Type type, String value) {
+			this.type = type;
+			this.value = value;
+		}
+
+		Type type() {
+			return type;
+		}
+
+		String value() {
+			return value;
+		}
+	}
 
 	public static Parameters of(ParameterList<InDefinedShape> parameterList) {
 		return new Parameters(parameterList);
 	}
 
 	private List<Parameter> values;
+	private ParameterList<InDefinedShape> parameterList;
 
 	public static interface Parameter {
 
@@ -41,16 +64,22 @@ public class Parameters implements Iterable<Parameters.Parameter> {
 
 		TypeDescription type();
 
+		int offset();
+
+		List<TypeDescription> annotations();
+
 	}
 
-	private static class ParameterWrapper implements Parameter {
+	private class ParameterWrapper implements Parameter {
 
 		private final int index;
-		private final InDefinedShape definedShape;
 
-		public ParameterWrapper(int index, InDefinedShape definedShape) {
+		public ParameterWrapper(int index) {
 			this.index = index;
-			this.definedShape = definedShape;
+		}
+
+		private InDefinedShape definedShape() {
+			return parameterList.get(index);
 		}
 
 		@Override
@@ -60,19 +89,34 @@ public class Parameters implements Iterable<Parameters.Parameter> {
 
 		@Override
 		public String name() {
-			return definedShape.getName();
+			return definedShape().getName();
 		}
 
 		@Override
 		public TypeDescription type() {
-			return definedShape.getType().asErasure();
+			return definedShape().getType().asErasure();
+		}
+
+		@Override
+		public int offset() {
+			return index == 0 ? 0 : StackSize.of(values.subList(0, index).stream().map(Parameter::type).toList());
+		}
+
+		@Override
+		public List<TypeDescription> annotations() {
+			return annotationList().stream().map(AnnotationDescription::getAnnotationType)
+					.map(TypeDescription::asErasure).toList();
+		}
+
+		private AnnotationList annotationList() {
+			return definedShape().getDeclaredAnnotations();
 		}
 
 	}
 
 	private Parameters(ParameterList<InDefinedShape> parameterList) {
-		values = range(0, parameterList.size()).mapToObj(i -> new ParameterWrapper(i, parameterList.get(i)))
-				.collect(toList());
+		this.parameterList = parameterList;
+		this.values = range(0, parameterList.size()).<Parameter>mapToObj(ParameterWrapper::new).toList();
 	}
 
 	public Parameter param(int index) {
@@ -81,6 +125,10 @@ public class Parameters implements Iterable<Parameters.Parameter> {
 
 	public List<TypeDescription> types() {
 		return values.stream().map(Parameter::type).toList();
+	}
+
+	public int count() {
+		return values.size();
 	}
 
 	@Override

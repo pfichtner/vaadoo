@@ -3,19 +3,21 @@
  */
 package org.jmolecules.bytebuddy;
 
-import static java.lang.String.format;
 import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toList;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.jmolecules.bytebuddy.Parameters.Parameter;
 import org.jmolecules.bytebuddy.PluginLogger.Log;
+import org.jmolecules.bytebuddy.vaadoo.MethodInjector;
+import org.jmolecules.bytebuddy.vaadoo.Parameters;
+import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
@@ -25,9 +27,9 @@ import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
-import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
+import net.bytebuddy.jar.asm.Type;
 
 class VaadooImplementor {
 
@@ -38,7 +40,7 @@ class VaadooImplementor {
 
 		// Loop over all constructors
 		for (InDefinedShape constructor : typeDescription.getDeclaredMethods().stream()
-				.filter(MethodDescription::isConstructor).collect(toList())) {
+				.filter(MethodDescription::isConstructor).toList()) {
 			// Extract constructor parameter types
 			Parameters parameters = Parameters.of(constructor.getParameters());
 
@@ -67,12 +69,13 @@ class VaadooImplementor {
 				.get(); // safe because stream is infinite, will always find a free name
 	}
 
-	private Builder<?> addStaticValidationMethod(Builder<?> builder, String methodName, Parameters parameters,
+	private Builder<?> addStaticValidationMethod(Builder<?> builder, String validateMethodName, Parameters parameters,
 			Log log) {
-		log.info("Implementing static validate method #{}.", methodName);
-		return markGenerated(builder.defineMethod(methodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
-				.withParameters(parameters.types())
-				.intercept(new Implementation.Simple(new StaticValidateAppender(parameters))));
+		log.info("Implementing static validate method #{}.", validateMethodName);
+		return markGenerated(
+				builder.defineMethod(validateMethodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
+						.withParameters(parameters.types()).intercept(
+								new Implementation.Simple(new StaticValidateAppender(parameters, validateMethodName))));
 	}
 
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
@@ -91,33 +94,32 @@ class VaadooImplementor {
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
 		private final Parameters parameters;
+		private final String validateMethodName;
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			int maxStack = 3;
+			String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE,
+					parameters.types().stream().map(TypeDescription::getName).map(Type::getObjectType).toArray(Type[]::new));
 			for (Parameter parameter : parameters) {
-				Label end = new Label();
-
-				// Load parameter i (0-based for static method)
-				mv.visitVarInsn(Opcodes.ALOAD, parameter.index());
-
-				// If not null, jump over
-				mv.visitJumpInsn(Opcodes.IFNONNULL, end);
-
-				// Else throw new IllegalStateException("parameter X is null")
-				mv.visitTypeInsn(Opcodes.NEW, "java/lang/IllegalStateException");
-				mv.visitInsn(Opcodes.DUP);
-				mv.visitLdcInsn(format("parameter '%s' is null", parameter.name()));
-				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/IllegalStateException", "<init>",
-						"(Ljava/lang/String;)V", false);
-				mv.visitInsn(Opcodes.ATHROW);
-
-				mv.visitLabel(end);
-				mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+				emitCheckNotNullInline(mv, parameter, validateMethodName, methodDescriptor);
 			}
-
 			mv.visitInsn(Opcodes.RETURN);
-			return new Size(maxStack, 0);
+		    int maxStack = 4; // or compute dynamically based on emitted instructions
+		    return new Size(maxStack, parameters.count());
+		}
+
+	}
+
+	private static void emitCheckNotNullInline(MethodVisitor targetMv, Parameter parameter, String validateMethodName,
+			String signatureOfTargetMethod) {
+		MethodInjector methodInjector = new MethodInjector(
+				org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class, signatureOfTargetMethod);
+		try {
+			Method method = org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class.getMethod("check",
+					NotNull.class, Object.class);
+			methodInjector.inject(targetMv, parameter, method);
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e);
 		}
 
 	}

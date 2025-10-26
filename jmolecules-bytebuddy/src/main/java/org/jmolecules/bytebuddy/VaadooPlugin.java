@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import org.jmolecules.bytebuddy.PluginLogger.Log;
 
+import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.ClassFileLocator;
@@ -39,14 +40,19 @@ class VaadooPlugin implements LoggingPlugin {
 		if (!target.getInterfaces().filter(nameStartsWith("org.jmolecules")).isEmpty()) {
 			return true;
 		}
-		if (Stream.concat(target.getDeclaredAnnotations().stream(), target.getInheritedAnnotations().stream())
-				.anyMatch(it -> it.getAnnotationType().getName().startsWith("org.jmolecules"))) {
+		if (hasAnyJMoleculesAnnotation(target)) {
 			return true;
 		}
 
 		Generic superType = target.getSuperClass();
 		return target.isRecord()
 				|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
+	}
+
+	private boolean hasAnyJMoleculesAnnotation(TypeDescription target) {
+		return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
+				.flatMap(AnnotationList::stream)
+				.anyMatch(it -> it.getAnnotationType().getName().startsWith("org.jmolecules"));
 	}
 
 	@Override

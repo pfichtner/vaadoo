@@ -23,6 +23,15 @@
 		<module>jmolecules-bytebuddy-tests-parent</module>
 	</modules>
 
+	<dependencies>
+		<!-- for redefining already loaded classes in test -->
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy-agent</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
