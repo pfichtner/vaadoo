@@ -15,6 +15,7 @@
  */
 package org.jmolecules.bytebuddy.vaadoo;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.isStatic;
@@ -107,7 +108,7 @@ public class Parameters implements Iterable<Parameter> {
 
 		@Override
 		public int offset() {
-			return index == 0 ? 0 : StackSize.of(values.subList(0, index).stream().map(Parameter::type).toList());
+			return index == 0 ? 0 : StackSize.of(values.subList(0, index).stream().map(Parameter::type).collect(toList()));
 		}
 
 		@Override
@@ -134,7 +135,7 @@ public class Parameters implements Iterable<Parameter> {
 
 	private Parameters(ParameterList<InDefinedShape> parameterList) {
 		this.parameterList = parameterList;
-		this.values = range(0, parameterList.size()).<Parameter>mapToObj(ParameterWrapper::new).toList();
+		this.values = range(0, parameterList.size()).<Parameter>mapToObj(ParameterWrapper::new).collect(toList());
 	}
 
 	public Parameter param(int index) {
@@ -142,7 +143,7 @@ public class Parameters implements Iterable<Parameter> {
 	}
 
 	public List<TypeDescription> types() {
-		return values.stream().map(Parameter::type).toList();
+		return values.stream().map(Parameter::type).collect(toList());
 	}
 
 	public int count() {

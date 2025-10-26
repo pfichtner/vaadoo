@@ -15,6 +15,7 @@
  */
 package org.jmolecules.bytebuddy;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -105,7 +106,7 @@ class JMoleculesVaadooPluginTests {
 	void defaultsForSampleValueObject() {
 		List<List<Class<?>>> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
 				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).map(Arrays::asList)
-				.toList();
+				.collect(toList());
 		assertThat(methodParams).containsExactly(List.of(String.class));
 	}
 

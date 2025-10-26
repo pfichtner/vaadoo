@@ -1,9 +1,22 @@
 /*
- * Copyright 2025 ...
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.jmolecules.bytebuddy;
 
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toList;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
@@ -40,7 +53,7 @@ class VaadooImplementor {
 
 		// Loop over all constructors
 		for (InDefinedShape constructor : typeDescription.getDeclaredMethods().stream()
-				.filter(MethodDescription::isConstructor).toList()) {
+				.filter(MethodDescription::isConstructor).collect(toList())) {
 			// Extract constructor parameter types
 			Parameters parameters = Parameters.of(constructor.getParameters());
 
@@ -61,7 +74,7 @@ class VaadooImplementor {
 
 	private static String nonExistingMethodName(TypeDescription typeDescription, String base) {
 		List<String> methodNames = typeDescription.getDeclaredMethods().stream()
-				.map(MethodDescription.InDefinedShape::getName).toList();
+				.map(MethodDescription.InDefinedShape::getName).collect(toList());
 		return Stream.iterate(0, i -> i + 1) //
 				.map(i -> (i == 0) ? base : base + "_" + i) //
 				.filter(not(methodNames::contains)) //

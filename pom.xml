@@ -250,7 +250,7 @@
 						<configuration>
 							<rules>
 								<requireJavaVersion>
-									<version>[15,)</version>
+									<version>[11,)</version>
 								</requireJavaVersion>
 							</rules>
 						</configuration>
