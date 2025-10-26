@@ -25,6 +25,8 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
+
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.method.MethodDescription;
@@ -35,7 +37,7 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.StackSize;
 import net.bytebuddy.jar.asm.Type;
 
-public class Parameters implements Iterable<Parameters.Parameter> {
+public class Parameters implements Iterable<Parameter> {
 
 	static class EnumEntry {
 		private final Type type;
