@@ -76,8 +76,8 @@ public class MethodInjector {
 
 		private int srcFirstArgIndex;
 		private int srcFirstLocalIndex;
-		private int argIndexOffset;
 		private int localIndexOffset;
+		private int argIndexOffset;
 
 		private MethodInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
 				String signatureOfTargetMethod, Parameter parameter) {
@@ -95,8 +95,10 @@ public class MethodInjector {
 			int tgtFirstArgIndex = TARGET_METHOD_IS_STATIC ? 0 : 1;
 			int tgtFirstLocalIndex = tgtFirstArgIndex + sizeOf(getArgumentTypes(signatureOfTargetMethod));
 
-			this.argIndexOffset = srcFirstArgIndex - tgtFirstArgIndex;
 			this.localIndexOffset = srcFirstLocalIndex - tgtFirstLocalIndex;
+
+			int argIndexOffset = srcFirstArgIndex - tgtFirstArgIndex;
+			this.argIndexOffset = targetParam.offset() - argIndexOffset - REMOVED_PARAMETERS;
 		}
 
 		@Override
@@ -175,7 +177,7 @@ public class MethodInjector {
 					}
 
 					private int remapArg(int var) {
-						return var + targetParam.offset() - argIndexOffset - REMOVED_PARAMETERS;
+						return var + argIndexOffset;
 					}
 
 					private int remapLocal(int varIndex) {
