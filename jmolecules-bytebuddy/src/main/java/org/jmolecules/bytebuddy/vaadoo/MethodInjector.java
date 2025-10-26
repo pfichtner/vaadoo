@@ -47,7 +47,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.jmolecules.bytebuddy.vaadoo.Parameters.EnumEntry;
 import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
