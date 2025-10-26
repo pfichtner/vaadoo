@@ -54,11 +54,7 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	@Override
 	public void onPreprocess(TypeDescription typeDescription, ClassFileLocator classFileLocator) {
-		if (!configuration.include(typeDescription)) {
-			return;
-		}
-
-		if (PluginUtils.isCglibProxyType(typeDescription)) {
+		if (!configuration.include(typeDescription) || PluginUtils.isCglibProxyType(typeDescription)) {
 			return;
 		}
 
@@ -93,7 +89,7 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	private static Stream<LoggingPlugin> vaadooPlugin(ClassWorld world) {
 		return Stream.of(new VaadooPlugin());
-		// TODO
+		// TODO does vaadoo depend on something to get active at all?
 //		return world.isAvailable("org.axonframework.spring.stereotype.Aggregate") //
 //				? Stream.of(new VaadooPlugin()) //
 //				: Stream.empty();
@@ -102,16 +98,13 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	@Slf4j
 	private static class JMoleculesConfiguration {
 
-		private final Properties properties;
+		private final Properties properties = new Properties();
 
 		public JMoleculesConfiguration(File outputFolder) {
-			this.properties = new Properties();
-
 			Path projectRoot = detectProjectRoot(outputFolder);
 			loadProperties(detectConfiguration(projectRoot), outputFolder);
 
 			String toInclude = getPackagesToInclude();
-
 			if (toInclude != null) {
 				log.info("Applying code generation to types located in package(s): {}.", toInclude);
 			}
@@ -127,25 +120,18 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 				this.properties.load(new FileInputStream(configuration));
 			} catch (FileNotFoundException e) {
 				logNoConfigFound(outputFolder);
-				return;
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
 		}
 
 		public void logNoConfigFound(File outputFolder) {
-
 			log.info("No jmolecules.config found traversing {}", outputFolder.getAbsolutePath());
-			return;
 		}
 
 		public boolean include(TypeDescription description) {
 			String value = properties.getProperty("bytebuddy.include", "");
-			if (value.trim().isEmpty()) {
-				return true;
-			}
-
-			return Stream.of(value.split("\\,")).map(String::trim).map(it -> it.concat("."))
+			return value.trim().isEmpty() || Stream.of(value.split("\\,")).map(String::trim).map(it -> it.concat("."))
 					.anyMatch(description.getName()::startsWith);
 		}
 
@@ -168,7 +154,6 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 			File candidate = folder.resolve("jmolecules.config").toFile();
 
 			if (candidate.exists()) {
-
 				log.info("Found jmolecules.configuration at {}", candidate.getAbsolutePath());
 				return candidate;
 			}
@@ -178,8 +163,8 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	}
 
 	private static boolean hasBuildFile(Path folder) {
-		return Stream.of("pom.xml", "build.gradle", "build.gradle.kts").map(folder::resolve)
-				.anyMatch(it -> it.toFile().exists());
+		return Stream.of("pom.xml", "build.gradle", "build.gradle.kts").map(folder::resolve).map(Path::toFile)
+				.anyMatch(File::exists);
 	}
 
 }
