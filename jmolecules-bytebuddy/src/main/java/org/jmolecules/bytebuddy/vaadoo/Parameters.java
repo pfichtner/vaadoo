@@ -16,12 +16,19 @@
 package org.jmolecules.bytebuddy.vaadoo;
 
 import static java.util.stream.IntStream.range;
+import static net.bytebuddy.matcher.ElementMatchers.isPublic;
+import static net.bytebuddy.matcher.ElementMatchers.isStatic;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.not;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import java.util.Iterator;
 import java.util.List;
 
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationList;
+import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.method.MethodList;
 import net.bytebuddy.description.method.ParameterDescription.InDefinedShape;
 import net.bytebuddy.description.method.ParameterList;
 import net.bytebuddy.description.type.TypeDescription;
@@ -30,12 +37,11 @@ import net.bytebuddy.jar.asm.Type;
 
 public class Parameters implements Iterable<Parameters.Parameter> {
 
-	@Deprecated // copied from vaadoo-poc
 	static class EnumEntry {
-		Type type;
-		String value;
+		private final Type type;
+		private final String value;
 
-		EnumEntry(Type type, String value) {
+		private EnumEntry(Type type, String value) {
 			this.type = type;
 			this.value = value;
 		}
@@ -66,7 +72,7 @@ public class Parameters implements Iterable<Parameters.Parameter> {
 
 		int offset();
 
-		List<TypeDescription> annotations();
+		Object annotationValue(Type annotation, String name);
 
 	}
 
@@ -103,9 +109,19 @@ public class Parameters implements Iterable<Parameters.Parameter> {
 		}
 
 		@Override
-		public List<TypeDescription> annotations() {
-			return annotationList().stream().map(AnnotationDescription::getAnnotationType)
-					.map(TypeDescription::asErasure).toList();
+		public Object annotationValue(Type annotation, String name) {
+			for (AnnotationDescription annotationDescription : annotationList()) {
+				if (annotationDescription.getAnnotationType().getName().equals(annotation.getClassName())) {
+					MethodList<MethodDescription.InDefinedShape> candidates = annotationDescription.getAnnotationType() //
+							.getDeclaredMethods().filter(named(name) //
+									.and(takesArguments(0)) //
+									.and(isPublic()) //
+									.and(not(isStatic())));
+					return candidates.size() == 1 ? annotationDescription.getValue(candidates.getOnly()).resolve()
+							: null;
+				}
+			}
+			return null;
 		}
 
 		private AnnotationList annotationList() {

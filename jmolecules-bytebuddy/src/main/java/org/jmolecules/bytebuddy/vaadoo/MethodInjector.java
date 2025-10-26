@@ -101,9 +101,7 @@ public class MethodInjector {
 					private final Function<String, String> paramNameResolver = k -> k.equals(NAME) ? parameter.name()
 							: k;
 					private final Function<String, Object> annotationValueResolver = k -> {
-						// TODO xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//						Object  annotationValue = parameter.annotationValue(handledAnnotation, k);
-						Object annotationValue = null;
+						Object  annotationValue = parameter.annotationValue(handledAnnotation, k);
 						return annotationValue == null ? k : annotationValue;
 					};
 					final Function<String, Object> resolver = rbResolver.andThen(paramNameResolver)
@@ -185,16 +183,15 @@ public class MethodInjector {
 						this.handledAnnotation = getObjectType(owner);
 						if (firstParamLoadStart) {
 							Type returnType = getReturnType(descriptor);
-							// TODO xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//							if (isArray(returnType)) {
-//								@SuppressWarnings("unchecked")
-//								List<EnumEntry> annotationValues = (List<EnumEntry>) parameter.annotationValue(handledAnnotation,
-//										name);
-//								writeArray(returnType.getElementType(),
-//										annotationValues == null ? emptyList() : annotationValues);
-//							} else {
-							visitLdcInsn(annotationsLdcInsnValue(parameter, owner, name, returnType));
-//							}
+							if (isArray(returnType)) {
+								@SuppressWarnings("unchecked")
+								List<EnumEntry> annotationValues = (List<EnumEntry>) parameter.annotationValue(handledAnnotation,
+										name);
+								writeArray(returnType.getElementType(),
+										annotationValues == null ? emptyList() : annotationValues);
+							} else {
+								visitLdcInsn(annotationsLdcInsnValue(parameter, owner, name, returnType));
+							}
 
 							firstParamLoadStart = false;
 						} else {
@@ -234,17 +231,15 @@ public class MethodInjector {
 					}
 
 					private Object valueFromClass(Parameter parameter, String owner, String name) {
-						// TODO xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//						Object valueFromClass = parameter.annotationValue(handledAnnotation, name);
-//						if (valueFromClass != null) {
-//							return valueFromClass;
-//						}
-//						Object defaultValue = defaultValue(this.handledAnnotation.getClassName(), name);
-//						if (defaultValue != null) {
-//							return defaultValue;
-//						}
-//						throw new IllegalStateException(format("'%s' does not define attribute '%s'", owner, name));
-						return "XXXXX";
+						Object valueFromClass = parameter.annotationValue(handledAnnotation, name);
+						if (valueFromClass != null) {
+							return valueFromClass;
+						}
+						Object defaultValue = defaultValue(this.handledAnnotation.getClassName(), name);
+						if (defaultValue != null) {
+							return defaultValue;
+						}
+						throw new IllegalStateException(format("'%s' does not define attribute '%s'", owner, name));
 					};
 
 					@Override

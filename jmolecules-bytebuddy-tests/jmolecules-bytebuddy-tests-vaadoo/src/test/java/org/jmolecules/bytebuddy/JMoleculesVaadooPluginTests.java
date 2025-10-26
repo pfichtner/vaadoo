@@ -71,7 +71,7 @@ class JMoleculesVaadooPluginTests {
 		Class<?> transformedClass = transformedClass(ValueObjectWithAttribute.class, outputFolder);
 		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage("XXXXX"));
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage("someString must not be null"));
 	}
 
 	private Class<?> transformedClass(Class<?> clazz, File outputFolder) throws Exception {
@@ -112,7 +112,7 @@ class JMoleculesVaadooPluginTests {
 	@Test
 	void throwsExceptionOnNullValue() {
 		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject(null))
-				.withMessage("XXXXX");
+				.withMessage("value must not be null");
 	}
 
 	@Test
@@ -124,7 +124,7 @@ class JMoleculesVaadooPluginTests {
 	void mustNotCallAddOnListWithNull() {
 		List<String> list = new ArrayList<>();
 		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(list, null))
-				.withMessage("XXXXX");
+				.withMessage("toAdd must not be null");
 		assertThat(list).isEmpty();
 	}
 
