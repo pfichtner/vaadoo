@@ -49,7 +49,7 @@ import net.bytebuddy.dynamic.loading.ByteArrayClassLoader;
 
 class JMoleculesVaadooPluginTests {
 
-	private static final boolean DEBUG = true;
+	private static final boolean DUMP_CLASS_FILES_TO_TEMP = true;
 
 	@Test
 	void emptyClassIsUnchanged(@TempDir File outputFolder) throws Exception {
@@ -86,7 +86,7 @@ class JMoleculesVaadooPluginTests {
 			var transformedBuilder = plugin.apply(builder, typeDescription, locator);
 
 			Unloaded<?> dynamicType = transformedBuilder.make();
-			if (DEBUG) {
+			if (DUMP_CLASS_FILES_TO_TEMP) {
 				dynamicType.saveIn(outputFolder);
 			}
 			ByteBuddyAgent.install();
