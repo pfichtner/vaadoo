@@ -15,23 +15,51 @@
  */
 package org.jmolecules.bytebuddy;
 
+import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
+import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.jmolecules.bytebuddy.PluginLogger.Log;
-import org.jmolecules.bytebuddy.vaadoo.ValidationCallCodeInjector;
 import org.jmolecules.bytebuddy.vaadoo.Parameters;
 import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
+import org.jmolecules.bytebuddy.vaadoo.ValidationCodeInjector;
+import org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment;
 
+import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Negative;
+import jakarta.validation.constraints.NegativeOrZero;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
 import net.bytebuddy.description.type.TypeDescription;
@@ -47,6 +75,115 @@ import net.bytebuddy.jar.asm.Type;
 class VaadooImplementor {
 
 	private static final String VALIDATE_METHOD_BASE_NAME = "validate";
+
+	private static class ConfigEntry {
+
+		private final Class<? extends Annotation> anno;
+		private final Type type;
+
+		public ConfigEntry(Class<? extends Annotation> anno) {
+			this.anno = anno;
+			this.type = getType(anno);
+		}
+
+		Class<?> anno() {
+			return anno;
+		}
+
+		Type type() {
+			return type;
+		}
+
+		Class<?> resolveSuperType(Class<?> actual) {
+			return actual;
+		}
+
+	}
+
+	// TODO Possible checks during compile time: (but all these checks could be a
+	// separate project as well,
+	// https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator-annotation-processor)
+	// errors
+	// - Annotations on unsupported types, e.g. @Past on String <-- TODO already
+	// handled, right!?
+	// - @Pattern: Is the pattern valid (compile it)
+	// - @Size: Is min >= 0
+	// - @Min: Is there a @Max that is < @Min's value
+	// - @Max: Is there a @Min that is < @Max's value
+	// - @NotNull: Is there also @Null
+	// - @Null: Is there also @NotNull
+	// warnings
+	// - @NotNull: Annotations that checks for null as well like @NotBlank @NotEmpty
+	// - @Null: most (all?) other annotations doesn't make sense
+	private static final List<ConfigEntry> configs = List.of( //
+			new FixedClassConfigEntry(Null.class, Object.class), //
+			new FixedClassConfigEntry(NotNull.class, Object.class), //
+			new FixedClassConfigEntry(NotBlank.class, CharSequence.class), //
+			new ConfigEntry(NotEmpty.class) {
+				@Override
+				Class<?> resolveSuperType(Class<?> actual) {
+					var validTypes = List.of(CharSequence.class, Collection.class, Map.class, Object[].class);
+					return superType(actual, validTypes).orElseThrow(() -> {
+						return annotationOnTypeNotValid(anno(), actual,
+								validTypes.stream().map(Class::getName).collect(toList()));
+					});
+				}
+			}, //
+			new ConfigEntry(Size.class) {
+				@Override
+				Class<?> resolveSuperType(Class<?> actual) {
+					var validTypes = List.of(CharSequence.class, Collection.class, Map.class, Object[].class);
+					return superType(actual, validTypes).orElseThrow(() -> {
+						return annotationOnTypeNotValid(anno(), actual,
+								validTypes.stream().map(Class::getName).collect(toList()));
+					});
+				}
+			}, //
+			new FixedClassConfigEntry(Pattern.class, CharSequence.class), //
+			new FixedClassConfigEntry(Email.class, CharSequence.class), //
+			new ConfigEntry(AssertTrue.class), //
+			new ConfigEntry(AssertFalse.class), //
+			new ConfigEntry(Min.class), //
+			new ConfigEntry(Max.class), //
+			new ConfigEntry(Digits.class), //
+			new ConfigEntry(Positive.class), //
+			new ConfigEntry(PositiveOrZero.class), //
+			new ConfigEntry(Negative.class), //
+			new ConfigEntry(NegativeOrZero.class), //
+			new ConfigEntry(DecimalMin.class), //
+			new ConfigEntry(DecimalMax.class), //
+			new ConfigEntry(Future.class), //
+			new ConfigEntry(FutureOrPresent.class), //
+			new ConfigEntry(Past.class), //
+			new ConfigEntry(PastOrPresent.class) //
+	);
+
+	private static final Class<JdkOnlyCodeFragment> FRAGMENT_CLASS = org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class;
+
+	private static Optional<Class<?>> superType(Class<?> classToCheck, List<Class<?>> superTypes) {
+		return superTypes.stream().filter(t -> t.isAssignableFrom(classToCheck)).findFirst();
+	}
+
+	private static IllegalStateException annotationOnTypeNotValid(Class<?> anno, Class<?> type, List<String> valids) {
+		return new IllegalStateException(format("Annotation %s on type %s not allowed, allowed only on types: %s",
+				anno.getName(), type.getName(), valids));
+	}
+
+	private static class FixedClassConfigEntry extends ConfigEntry {
+
+		private final Class<?> superType;
+
+		public FixedClassConfigEntry(Class<? extends Annotation> anno, Class<?> superType) {
+			super(anno);
+			this.superType = superType;
+		}
+
+		@Override
+		public Class<?> resolveSuperType(Class<?> actual) {
+			return superType;
+		}
+
+	}
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
 		TypeDescription typeDescription = type.getTypeDescription();
@@ -87,8 +224,8 @@ class VaadooImplementor {
 		log.info("Implementing static validate method #{}.", validateMethodName);
 		return markGenerated(
 				builder.defineMethod(validateMethodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
-						.withParameters(parameters.types()).intercept(
-								new Implementation.Simple(new StaticValidateAppender(parameters, validateMethodName))));
+						.withParameters(parameters.types()).intercept(new Implementation.Simple(
+								new StaticValidateAppender(parameters, validateMethodName, FRAGMENT_CLASS))));
 	}
 
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
@@ -103,37 +240,83 @@ class VaadooImplementor {
 	 * Emits static validate(...) method for constructor parameters. For each
 	 * parameter: if null -> throw IllegalStateException("parameter X is null")
 	 */
-	@RequiredArgsConstructor
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
 		private final Parameters parameters;
 		private final String validateMethodName;
+		private final Class<JdkOnlyCodeFragment> fragmentClass;
+		private final List<Method> codeFragmentMethods;
+
+		public StaticValidateAppender(Parameters parameters, String validateMethodName,
+				Class<JdkOnlyCodeFragment> fragmentClass) {
+			this.parameters = parameters;
+			this.validateMethodName = validateMethodName;
+			this.fragmentClass = fragmentClass;
+			this.codeFragmentMethods = Arrays.asList(fragmentClass.getMethods());
+		}
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE,
-					parameters.types().stream().map(TypeDescription::getName).map(Type::getObjectType).toArray(Type[]::new));
+			String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
+					.map(TypeDescription::getName).map(Type::getObjectType).toArray(Type[]::new));
+
+			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
+
 			for (Parameter parameter : parameters) {
-				emitCheckNotNullInline(mv, parameter, validateMethodName, methodDescriptor);
+				for (Type annotation : parameter.annotations()) {
+					for (ConfigEntry config : configs) {
+						if (annotation.equals(config.type())) {
+							Class<?> clazz;
+							try {
+								clazz = Class.forName(parameter.type().getTypeName());
+							} catch (ClassNotFoundException e) {
+								throw new RuntimeException(e);
+							}
+							injector.inject(mv, parameter, checkMethod(config, clazz));
+						}
+					}
+					// TODO support custom annotations
+//					if (customAnnotationsEnabled) {
+//					}
+				}
 			}
+
 			mv.visitInsn(Opcodes.RETURN);
-		    int maxStack = 4; // or compute dynamically based on emitted instructions
-		    return new Size(maxStack, parameters.count());
+			int maxStack = 4; // or compute dynamically based on emitted instructions
+			return new Size(maxStack, parameters.count());
 		}
 
-	}
-
-	private static void emitCheckNotNullInline(MethodVisitor targetMv, Parameter parameter, String validateMethodName,
-			String signatureOfTargetMethod) {
-		ValidationCallCodeInjector validationCallCodeInjector = new ValidationCallCodeInjector(
-				org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class, signatureOfTargetMethod);
-		try {
-			Method method = org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class.getMethod("check",
-					NotNull.class, Object.class);
-			validationCallCodeInjector.inject(targetMv, parameter, method);
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new RuntimeException(e);
+		private Method checkMethod(ConfigEntry config, Class<?> actual) {
+			Class<?>[] parameters = new Class[] { config.anno(), config.resolveSuperType(actual) };
+			return checkMethod(parameters).map(m -> {
+				var supportedType = m.getParameterTypes()[1];
+				if (supportedType.isAssignableFrom(actual)) {
+					return m;
+				}
+				throw annotationOnTypeNotValid(parameters[0], actual, List.of(supportedType.getName()));
+			}).orElseThrow(() -> unsupportedType(parameters));
 		}
+
+		private IllegalStateException unsupportedType(Class<?>... parameters) {
+			assert parameters.length >= 2 : "Expected to get 2 parameters, got " + Arrays.toString(parameters);
+			var supported = this.codeFragmentMethods.stream() //
+					.filter(this::isCheckMethod) //
+					.filter(m -> m.getParameterCount() > 1) //
+					.filter(m -> m.getParameterTypes()[0] == parameters[0]) //
+					.map(m -> m.getParameterTypes()[1].getName()) //
+					.collect(toList());
+			return annotationOnTypeNotValid(parameters[0], parameters[1], supported);
+		}
+
+		private Optional<Method> checkMethod(Class<?>... parameters) {
+			return codeFragmentMethods.stream().filter(this::isCheckMethod)
+					.filter(m -> Arrays.equals(m.getParameterTypes(), parameters)).findFirst();
+		}
+
+		private boolean isCheckMethod(Method method) {
+			return "check".equals(method.getName());
+		}
+
 	}
 
 }

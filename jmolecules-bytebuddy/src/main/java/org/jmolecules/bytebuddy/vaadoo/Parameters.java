@@ -23,6 +23,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -75,6 +76,8 @@ public class Parameters implements Iterable<Parameter> {
 
 		int offset();
 
+		Type[] annotations();
+
 		Object annotationValue(Type annotation, String name);
 
 	}
@@ -108,7 +111,17 @@ public class Parameters implements Iterable<Parameter> {
 
 		@Override
 		public int offset() {
-			return index == 0 ? 0 : StackSize.of(values.subList(0, index).stream().map(Parameter::type).collect(toList()));
+			return index == 0 ? 0
+					: StackSize.of(values.subList(0, index).stream().map(Parameter::type).collect(toList()));
+		}
+
+		@Override
+		public Type[] annotations() {
+			return annotationList().stream() //
+					.map(AnnotationDescription::getAnnotationType) //
+					.map(TypeDescription::asErasure) //
+					.map(TypeDescription::getDescriptor) //
+					.map(Type::getType).toArray(Type[]::new);
 		}
 
 		@Override
@@ -129,6 +142,12 @@ public class Parameters implements Iterable<Parameter> {
 
 		private AnnotationList annotationList() {
 			return definedShape().getDeclaredAnnotations();
+		}
+
+		@Override
+		public String toString() {
+			return "ParameterWrapper [index()=" + index() + ", name()=" + name() + ", type()=" + type() + ", offset()="
+					+ offset() + ", annotations()=" + Arrays.toString(annotations()) + "]";
 		}
 
 	}

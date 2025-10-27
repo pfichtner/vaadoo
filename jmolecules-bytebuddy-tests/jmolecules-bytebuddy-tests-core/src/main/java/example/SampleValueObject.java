@@ -21,10 +21,10 @@ import jakarta.validation.constraints.NotNull;
 
 public class SampleValueObject implements ValueObject {
 
-	@NotNull
 	private final String value;
 
-	public SampleValueObject(String value) {
+	public SampleValueObject(@NotNull String value) {
 		this.value = value;
 	}
+
 }
