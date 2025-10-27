@@ -59,14 +59,14 @@ import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
 
-public class MethodInjector {
+public class ValidationCallCodeInjector {
 
 	// we remove the first arg (the code inserted has the annotation as it's first
 	// argument)
 	private static final int REMOVED_PARAMETERS = 1;
 	private static final boolean TARGET_METHOD_IS_STATIC = true;
 
-	private static final class MethodInjectorClassVisitor extends ClassVisitor {
+	private static final class ValidationCallCodeInjectorClassVisitor extends ClassVisitor {
 
 		private final String sourceMethodOwner;
 		private final String sourceMethodName;
@@ -79,7 +79,7 @@ public class MethodInjector {
 		private int localIndexOffset;
 		private int argIndexOffset;
 
-		private MethodInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
+		private ValidationCallCodeInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
 				String signatureOfTargetMethod, Parameter parameter) {
 			super(ASM9);
 			this.sourceMethodOwner = Type.getType(sourceMethod.getDeclaringClass()).getInternalName();
@@ -296,14 +296,14 @@ public class MethodInjector {
 	static final String NAME = "@@@NAME@@@";
 	private final String signatureOfTargetMethod;
 
-	public MethodInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod) {
+	public ValidationCallCodeInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod) {
 		this.classReader = classReader(clazz);
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
 	}
 
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
-		this.classReader.accept(new MethodInjectorClassVisitor(sourceMethod, mv, signatureOfTargetMethod, parameter),
-				0);
+		this.classReader.accept(
+				new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv, signatureOfTargetMethod, parameter), 0);
 	}
 
 	private static String defaultValue(String className, String name) {

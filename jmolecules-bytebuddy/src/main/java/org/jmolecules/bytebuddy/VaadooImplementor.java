@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.jmolecules.bytebuddy.PluginLogger.Log;
-import org.jmolecules.bytebuddy.vaadoo.MethodInjector;
+import org.jmolecules.bytebuddy.vaadoo.ValidationCallCodeInjector;
 import org.jmolecules.bytebuddy.vaadoo.Parameters;
 import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
 
@@ -125,16 +125,15 @@ class VaadooImplementor {
 
 	private static void emitCheckNotNullInline(MethodVisitor targetMv, Parameter parameter, String validateMethodName,
 			String signatureOfTargetMethod) {
-		MethodInjector methodInjector = new MethodInjector(
+		ValidationCallCodeInjector validationCallCodeInjector = new ValidationCallCodeInjector(
 				org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class, signatureOfTargetMethod);
 		try {
 			Method method = org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class.getMethod("check",
 					NotNull.class, Object.class);
-			methodInjector.inject(targetMv, parameter, method);
+			validationCallCodeInjector.inject(targetMv, parameter, method);
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
-
 	}
 
 }
