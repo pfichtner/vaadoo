@@ -15,6 +15,7 @@
  */
 package org.jmolecules.bytebuddy.vaadoo;
 
+import static java.lang.String.format;
 import static java.util.regex.Matcher.quoteReplacement;
 import static java.util.regex.Pattern.compile;
 
@@ -66,7 +67,7 @@ public final class NamedPlaceholders {
 
 			private static Operator operator(String condition) {
 				return Stream.of(values()).filter(op -> condition.contains(op.sign)).findFirst().orElseThrow(
-						() -> new IllegalArgumentException("Unsupported operator in condition: " + condition));
+						() -> new IllegalArgumentException(format("Unsupported operator in condition: %s", condition)));
 			}
 
 			private String[] split(String condition) {
@@ -87,17 +88,18 @@ public final class NamedPlaceholders {
 			expression = expression.trim();
 			if (expression.contains("?") && expression.contains(":")) {
 				Ternary ternary = splitTernary(expression);
-				return evaluateCondition(ternary.condition) ? stripQuotes(ternary.trueExpr)
+				return evaluateCondition(ternary.condition) //
+						? stripQuotes(ternary.trueExpr) //
 						: stripQuotes(ternary.falseExpr);
 			}
-			return evaluateCondition(expression) ? "true" : "false";
+			return String.valueOf(evaluateCondition(expression));
 		}
 
 		private Ternary splitTernary(String expression) {
 			int questionMark = expression.indexOf('?');
 			int colon = expression.lastIndexOf(':');
 			if (questionMark == -1 || colon == -1 || colon < questionMark) {
-				throw new IllegalArgumentException("Invalid ternary expression: " + expression);
+				throw new IllegalArgumentException(format("Invalid ternary expression: %s", expression));
 			}
 			String condition = expression.substring(0, questionMark);
 			String trueExpr = expression.substring(questionMark + 1, colon);
@@ -111,7 +113,7 @@ public final class NamedPlaceholders {
 
 			String[] operands = operator.split(condition);
 			if (operands.length != 2) {
-				throw new IllegalArgumentException("Invalid condition: " + condition);
+				throw new IllegalArgumentException(format("Invalid condition: %s", condition));
 			}
 			Object leftValue = resolver.apply(operands[0].trim());
 			Object rightValue = parseValue(operands[1].trim());
@@ -137,10 +139,9 @@ public final class NamedPlaceholders {
 
 		private String stripQuotes(String str) {
 			str = str.trim();
-			if (str.startsWith("'") && str.endsWith("'")) {
-				return str.substring(1, str.length() - 1);
-			}
-			return str;
+			return str.startsWith("'") && str.endsWith("'") //
+					? str.substring(1, str.length() - 1) //
+					: str;
 		}
 	}
 
@@ -171,7 +172,7 @@ public final class NamedPlaceholders {
 					replacement = new ExpressionEvaluator(resolver).evaluate(content);
 				} else {
 					Object value = resolver.apply(content);
-					replacement = value == null ? "{" + content + "}" : value.toString();
+					replacement = value == null ? format("{%s}", content) : value.toString();
 				}
 
 				if (!replacement.equals(content)) {
@@ -181,13 +182,12 @@ public final class NamedPlaceholders {
 			}
 
 			matcher.appendTail(sb);
-			if (!replaced) {
-				break;
+			if (replaced) {
+				result = sb.toString();
+			} else {
+				return result;
 			}
-			result = sb.toString();
 		}
-
-		return result;
 	}
 
 }
