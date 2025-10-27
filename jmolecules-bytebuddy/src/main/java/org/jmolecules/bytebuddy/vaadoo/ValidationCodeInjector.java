@@ -59,7 +59,7 @@ import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
 
-public class ValidationCallCodeInjector {
+public class ValidationCodeInjector {
 
 	// we remove the first arg (the code inserted has the annotation as it's first
 	// argument)
@@ -296,7 +296,7 @@ public class ValidationCallCodeInjector {
 	static final String NAME = "@@@NAME@@@";
 	private final String signatureOfTargetMethod;
 
-	public ValidationCallCodeInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod) {
+	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod) {
 		this.classReader = classReader(clazz);
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
 	}
