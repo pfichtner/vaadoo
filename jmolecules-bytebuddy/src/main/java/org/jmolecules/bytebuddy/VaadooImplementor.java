@@ -98,6 +98,10 @@ class VaadooImplementor {
 			return actual;
 		}
 
+		static List<TypeDescription> descriptors(Class<?>... classses) {
+			return Stream.of(classses).map(TypeDescription.ForLoadedType::of).collect(toList());
+		}
+
 	}
 
 	// TODO Possible checks during compile time: (but all these checks could be a
@@ -120,9 +124,8 @@ class VaadooImplementor {
 			new FixedClassConfigEntry(NotNull.class, Object.class), //
 			new FixedClassConfigEntry(NotBlank.class, CharSequence.class), //
 			new ConfigEntry(NotEmpty.class) {
-				List<TypeDescription> validTypes = Stream
-						.of(CharSequence.class, Collection.class, Map.class, Object[].class)
-						.map(TypeDescription.ForLoadedType::of).collect(toList());
+				List<TypeDescription> validTypes = descriptors(CharSequence.class, Collection.class, Map.class,
+						Object[].class);
 
 				@Override
 				TypeDescription resolveSuperType(TypeDescription actual) {
@@ -131,9 +134,8 @@ class VaadooImplementor {
 				};
 			}, //
 			new ConfigEntry(Size.class) {
-				List<TypeDescription> validTypes = Stream
-						.of(CharSequence.class, Collection.class, Map.class, Object[].class)
-						.map(TypeDescription.ForLoadedType::of).collect(toList());
+				List<TypeDescription> validTypes = descriptors(CharSequence.class, Collection.class, Map.class,
+						Object[].class);
 
 				@Override
 				TypeDescription resolveSuperType(TypeDescription actual) {
