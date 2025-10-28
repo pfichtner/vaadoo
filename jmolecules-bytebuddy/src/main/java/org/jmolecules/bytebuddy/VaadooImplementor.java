@@ -18,6 +18,7 @@ package org.jmolecules.bytebuddy;
 import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
@@ -287,7 +288,7 @@ class VaadooImplementor {
 			TypeDescription[] parameters = new TypeDescription[] { config.anno(), config.resolveSuperType(actual) };
 			return checkMethod(parameters).map(m -> {
 				var supportedType = m.getParameterTypes()[1];
-				if (new TypeDescription.ForLoadedType(supportedType).isAssignableFrom(actual)) {
+				if (actual.isAssignableTo(supportedType)) {
 					return m;
 				}
 				throw annotationOnTypeNotValid(parameters[0], actual, List.of(supportedType.getName()));
@@ -299,17 +300,22 @@ class VaadooImplementor {
 			var supported = this.codeFragmentMethods.stream() //
 					.filter(this::isCheckMethod) //
 					.filter(m -> m.getParameterCount() > 1) //
-					.filter(m -> TypeDescription.ForLoadedType.of(m.getParameterTypes()[0]) == parameters[0]) //
+					.filter(m -> parameters[0].represents(m.getParameterTypes()[0])) //
 					.map(m -> m.getParameterTypes()[1].getName()) //
 					.collect(toList());
 			return annotationOnTypeNotValid(parameters[0], parameters[1], supported);
 		}
 
 		private Optional<Method> checkMethod(TypeDescription... parameters) {
-			return codeFragmentMethods
-					.stream().filter(this::isCheckMethod).filter(m -> Arrays.equals(Stream.of(m.getParameterTypes())
-							.map(TypeDescription.ForLoadedType::of).toArray(TypeDescription[]::new), parameters))
+			return codeFragmentMethods.stream() //
+					.filter(this::isCheckMethod) //
+					.filter(m -> representsAll(parameters, m.getParameterTypes())) //
 					.findFirst();
+		}
+
+		private static boolean representsAll(TypeDescription[] descriptions, Class<?>[] classes) {
+			return classes.length == descriptions.length && range(0, classes.length) //
+					.allMatch(i -> descriptions[i].represents(classes[i]));
 		}
 
 		private boolean isCheckMethod(Method method) {
