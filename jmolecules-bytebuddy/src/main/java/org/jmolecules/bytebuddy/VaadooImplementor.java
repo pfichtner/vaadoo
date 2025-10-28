@@ -78,18 +78,18 @@ class VaadooImplementor {
 	private static class ConfigEntry {
 
 		private final TypeDescription anno;
-		private final Type type;
+		private final TypeDescription type;
 
 		public ConfigEntry(Class<? extends Annotation> anno) {
 			this.anno = TypeDescription.ForLoadedType.of(anno);
-			this.type = Type.getType(anno);
+			this.type = this.anno;
 		}
 
 		TypeDescription anno() {
 			return anno;
 		}
 
-		Type type() {
+		TypeDescription type() {
 			return type;
 		}
 
@@ -266,7 +266,7 @@ class VaadooImplementor {
 			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
 
 			for (Parameter parameter : parameters) {
-				for (Type annotation : parameter.annotations()) {
+				for (TypeDescription annotation : parameter.annotations()) {
 					for (ConfigEntry config : configs) {
 						if (annotation.equals(config.type())) {
 							injector.inject(mv, parameter, checkMethod(config, parameter.type()));

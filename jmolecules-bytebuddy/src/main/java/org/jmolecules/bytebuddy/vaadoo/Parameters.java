@@ -76,7 +76,7 @@ public class Parameters implements Iterable<Parameter> {
 
 		int offset();
 
-		Type[] annotations();
+		TypeDescription[] annotations();
 
 		Object annotationValue(Type annotation, String name);
 
@@ -116,12 +116,11 @@ public class Parameters implements Iterable<Parameter> {
 		}
 
 		@Override
-		public Type[] annotations() {
+		public TypeDescription[] annotations() {
 			return annotationList().stream() //
 					.map(AnnotationDescription::getAnnotationType) //
 					.map(TypeDescription::asErasure) //
-					.map(TypeDescription::getDescriptor) //
-					.map(Type::getType).toArray(Type[]::new);
+					.toArray(TypeDescription[]::new);
 		}
 
 		@Override
