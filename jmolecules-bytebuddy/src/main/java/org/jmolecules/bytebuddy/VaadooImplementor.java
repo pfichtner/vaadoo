@@ -119,25 +119,25 @@ class VaadooImplementor {
 			new FixedClassConfigEntry(NotNull.class, Object.class), //
 			new FixedClassConfigEntry(NotBlank.class, CharSequence.class), //
 			new ConfigEntry(NotEmpty.class) {
+				List<TypeDescription> validTypes = Stream
+						.of(CharSequence.class, Collection.class, Map.class, Object[].class)
+						.map(TypeDescription.ForLoadedType::of).collect(toList());
+
 				@Override
 				TypeDescription resolveSuperType(TypeDescription actual) {
-					var validTypes = Stream.of(CharSequence.class, Collection.class, Map.class, Object[].class)
-							.map(TypeDescription.ForLoadedType::of).collect(toList());
-					return superType(actual, validTypes).orElseThrow(() -> {
-						return annotationOnTypeNotValid(anno(), actual,
-								validTypes.stream().map(TypeDescription::getName).collect(toList()));
-					});
+					return superType(actual, validTypes).orElseThrow(() -> annotationOnTypeNotValid(anno(), actual,
+							validTypes.stream().map(TypeDescription::getName).collect(toList())));
 				};
 			}, //
 			new ConfigEntry(Size.class) {
+				List<TypeDescription> validTypes = Stream
+						.of(CharSequence.class, Collection.class, Map.class, Object[].class)
+						.map(TypeDescription.ForLoadedType::of).collect(toList());
+
 				@Override
 				TypeDescription resolveSuperType(TypeDescription actual) {
-					var validTypes = Stream.of(CharSequence.class, Collection.class, Map.class, Object[].class)
-							.map(TypeDescription.ForLoadedType::of).collect(toList());
-					return superType(actual, validTypes).orElseThrow(() -> {
-						return annotationOnTypeNotValid(anno(), actual,
-								validTypes.stream().map(TypeDescription::getName).collect(toList()));
-					});
+					return superType(actual, validTypes).orElseThrow(() -> annotationOnTypeNotValid(anno(), actual,
+							validTypes.stream().map(TypeDescription::getName).collect(toList())));
 				}
 
 			}, //
