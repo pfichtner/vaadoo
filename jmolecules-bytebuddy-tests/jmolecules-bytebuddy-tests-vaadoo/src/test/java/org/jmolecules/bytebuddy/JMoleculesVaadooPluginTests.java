@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +38,6 @@ import org.jmolecules.bytebuddy.testclasses.EmptyClass;
 import org.jmolecules.bytebuddy.testclasses.ValueObjectWithAttribute;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mockito;
 
 import example.SampleValueObject;
 import example.SampleValueObjectWithSideEffect;
