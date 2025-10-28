@@ -82,8 +82,8 @@ class VaadooImplementor {
 		private final TypeDescription type;
 
 		public ConfigEntry(Class<? extends Annotation> anno) {
-			this.anno = TypeDescription.ForLoadedType.of(anno);
-			this.type = this.anno;
+			this.anno = type(anno);
+			this.type = type(anno);
 		}
 
 		TypeDescription anno() {
@@ -98,8 +98,12 @@ class VaadooImplementor {
 			return actual;
 		}
 
+		static TypeDescription type(Class<?> clazz) {
+			return TypeDescription.ForLoadedType.of(clazz);
+		}
+
 		static List<TypeDescription> descriptors(Class<?>... classses) {
-			return Stream.of(classses).map(TypeDescription.ForLoadedType::of).collect(toList());
+			return Stream.of(classses).map(ConfigEntry::type).collect(toList());
 		}
 
 	}
