@@ -201,11 +201,10 @@ public class ValidationCodeInjector {
 						if (isFirstParamLoad) {
 							Type returnType = getReturnType(descriptor);
 							if (isArray(returnType)) {
-								@SuppressWarnings("unchecked")
-								List<EnumEntry> annotationValues = (List<EnumEntry>) targetParam
+								EnumerationDescription[] annotationValues = (EnumerationDescription[]) targetParam
 										.annotationValue(currentAnnotationType, name);
 								writeArray(returnType.getElementType(),
-										annotationValues == null ? emptyList() : annotationValues);
+										annotationValues == null ? emptyList() : Arrays.asList(annotationValues));
 							} else {
 								visitLdcInsn(annotationsLdcInsnValue(targetParam, owner, name, returnType));
 							}
@@ -216,18 +215,18 @@ public class ValidationCodeInjector {
 						}
 					}
 
-					private void writeArray(Type arrayElementType, List<EnumEntry> annotationValues) {
+					private void writeArray(Type arrayElementType, List<EnumerationDescription> annotationValues) {
 						int intInsn = annotationValues.size() <= 127 ? BIPUSH : SIPUSH;
 						mv.visitIntInsn(intInsn, annotationValues.size());
 						// TODO this only works for objects but not primitive arrays
 						mv.visitTypeInsn(ANEWARRAY, arrayElementType.getInternalName());
 
 						int idx = 0;
-						for (EnumEntry entry : annotationValues) {
+						for (EnumerationDescription entry : annotationValues) {
 							mv.visitInsn(DUP);
 							mv.visitIntInsn(intInsn, idx++);
-							mv.visitFieldInsn(GETSTATIC, entry.type().getInternalName(), entry.value(),
-									entry.type().getDescriptor());
+							mv.visitFieldInsn(GETSTATIC, entry.getEnumerationType().getInternalName(), entry.getValue(),
+									entry.getEnumerationType().getDescriptor());
 							mv.visitInsn(AASTORE);
 						}
 					}

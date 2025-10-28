@@ -41,24 +41,6 @@ import net.bytebuddy.jar.asm.Type;
 
 public class Parameters implements Iterable<Parameter> {
 
-	static class EnumEntry {
-		private final Type type;
-		private final String value;
-
-		private EnumEntry(Type type, String value) {
-			this.type = type;
-			this.value = value;
-		}
-
-		Type type() {
-			return type;
-		}
-
-		String value() {
-			return value;
-		}
-	}
-
 	public static Parameters of(ParameterList<InDefinedShape> parameterList) {
 		return new Parameters(parameterList);
 	}
