@@ -37,6 +37,7 @@ import org.jmolecules.bytebuddy.testclasses.ClassWithAttribute;
 import org.jmolecules.bytebuddy.testclasses.ClassWithNotNullAttribute;
 import org.jmolecules.bytebuddy.testclasses.EmptyClass;
 import org.jmolecules.bytebuddy.testclasses.ValueObjectWithAttribute;
+import org.jmolecules.bytebuddy.testclasses.ValueObjectWithRegexAttribute;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -76,6 +77,12 @@ class JMoleculesVaadooPluginTests {
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
 				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
 						.hasMessage("someString must not be null"));
+	}
+
+	@Test
+	void regex(@TempDir File outputFolder) throws Exception {
+		Class<?> transformedClass = transformedClass(ValueObjectWithRegexAttribute.class, outputFolder);
+		transformedClass.getDeclaredConstructor(String.class).newInstance(42);
 	}
 
 	@Test
