@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatRuntimeException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -37,6 +39,7 @@ import org.jmolecules.bytebuddy.testclasses.EmptyClass;
 import org.jmolecules.bytebuddy.testclasses.ValueObjectWithAttribute;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import example.SampleValueObject;
 import example.SampleValueObjectWithSideEffect;
@@ -130,10 +133,11 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void mustNotCallAddOnListWithNull() {
-		List<String> list = new ArrayList<>();
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(list, null))
+		@SuppressWarnings("unchecked")
+		List<String> listMock = mock(List.class);
+		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(listMock, null))
 				.withMessage("toAdd must not be null");
-		assertThat(list).isEmpty();
+		verifyNoInteractions(listMock);
 	}
 
 }
