@@ -45,13 +45,14 @@ import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.sizeOf;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import org.jmolecules.bytebuddy.vaadoo.Parameters.EnumEntry;
 import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
 import org.jmolecules.bytebuddy.vaadoo.fragments.Jsr380CodeFragment;
 
+import net.bytebuddy.description.enumeration.EnumerationDescription;
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
