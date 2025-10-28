@@ -18,7 +18,6 @@ package org.jmolecules.bytebuddy;
 import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
-import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
@@ -78,15 +77,15 @@ class VaadooImplementor {
 
 	private static class ConfigEntry {
 
-		private final Class<? extends Annotation> anno;
+		private final TypeDescription anno;
 		private final Type type;
 
 		public ConfigEntry(Class<? extends Annotation> anno) {
-			this.anno = anno;
-			this.type = getType(anno);
+			this.anno = TypeDescription.ForLoadedType.of(anno);
+			this.type = Type.getType(anno);
 		}
 
-		Class<?> anno() {
+		TypeDescription anno() {
 			return anno;
 		}
 
@@ -94,7 +93,7 @@ class VaadooImplementor {
 			return type;
 		}
 
-		Class<?> resolveSuperType(Class<?> actual) {
+		TypeDescription resolveSuperType(TypeDescription actual) {
 			return actual;
 		}
 
@@ -121,23 +120,26 @@ class VaadooImplementor {
 			new FixedClassConfigEntry(NotBlank.class, CharSequence.class), //
 			new ConfigEntry(NotEmpty.class) {
 				@Override
-				Class<?> resolveSuperType(Class<?> actual) {
-					var validTypes = List.of(CharSequence.class, Collection.class, Map.class, Object[].class);
+				TypeDescription resolveSuperType(TypeDescription actual) {
+					var validTypes = Stream.of(CharSequence.class, Collection.class, Map.class, Object[].class)
+							.map(TypeDescription.ForLoadedType::of).collect(toList());
 					return superType(actual, validTypes).orElseThrow(() -> {
 						return annotationOnTypeNotValid(anno(), actual,
-								validTypes.stream().map(Class::getName).collect(toList()));
+								validTypes.stream().map(TypeDescription::getName).collect(toList()));
 					});
-				}
+				};
 			}, //
 			new ConfigEntry(Size.class) {
 				@Override
-				Class<?> resolveSuperType(Class<?> actual) {
-					var validTypes = List.of(CharSequence.class, Collection.class, Map.class, Object[].class);
+				TypeDescription resolveSuperType(TypeDescription actual) {
+					var validTypes = Stream.of(CharSequence.class, Collection.class, Map.class, Object[].class)
+							.map(TypeDescription.ForLoadedType::of).collect(toList());
 					return superType(actual, validTypes).orElseThrow(() -> {
 						return annotationOnTypeNotValid(anno(), actual,
-								validTypes.stream().map(Class::getName).collect(toList()));
+								validTypes.stream().map(TypeDescription::getName).collect(toList()));
 					});
 				}
+
 			}, //
 			new FixedClassConfigEntry(Pattern.class, CharSequence.class), //
 			new FixedClassConfigEntry(Email.class, CharSequence.class), //
@@ -160,26 +162,27 @@ class VaadooImplementor {
 
 	private static final Class<JdkOnlyCodeFragment> FRAGMENT_CLASS = org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment.class;
 
-	private static Optional<Class<?>> superType(Class<?> classToCheck, List<Class<?>> superTypes) {
+	private static Optional<TypeDescription> superType(TypeDescription classToCheck, List<TypeDescription> superTypes) {
 		return superTypes.stream().filter(t -> t.isAssignableFrom(classToCheck)).findFirst();
 	}
 
-	private static IllegalStateException annotationOnTypeNotValid(Class<?> anno, Class<?> type, List<String> valids) {
+	private static IllegalStateException annotationOnTypeNotValid(TypeDescription anno, TypeDescription type,
+			List<String> valids) {
 		return new IllegalStateException(format("Annotation %s on type %s not allowed, allowed only on types: %s",
 				anno.getName(), type.getName(), valids));
 	}
 
 	private static class FixedClassConfigEntry extends ConfigEntry {
 
-		private final Class<?> superType;
+		private final TypeDescription superType;
 
 		public FixedClassConfigEntry(Class<? extends Annotation> anno, Class<?> superType) {
 			super(anno);
-			this.superType = superType;
+			this.superType = TypeDescription.ForLoadedType.of(superType);
 		}
 
 		@Override
-		public Class<?> resolveSuperType(Class<?> actual) {
+		TypeDescription resolveSuperType(TypeDescription actual) {
 			return superType;
 		}
 
@@ -266,13 +269,7 @@ class VaadooImplementor {
 				for (Type annotation : parameter.annotations()) {
 					for (ConfigEntry config : configs) {
 						if (annotation.equals(config.type())) {
-							Class<?> clazz;
-							try {
-								clazz = Class.forName(parameter.type().getTypeName());
-							} catch (ClassNotFoundException e) {
-								throw new RuntimeException(e);
-							}
-							injector.inject(mv, parameter, checkMethod(config, clazz));
+							injector.inject(mv, parameter, checkMethod(config, parameter.type()));
 						}
 					}
 					// TODO support custom annotations
@@ -286,31 +283,33 @@ class VaadooImplementor {
 			return new Size(maxStack, parameters.count());
 		}
 
-		private Method checkMethod(ConfigEntry config, Class<?> actual) {
-			Class<?>[] parameters = new Class[] { config.anno(), config.resolveSuperType(actual) };
+		private Method checkMethod(ConfigEntry config, TypeDescription actual) {
+			TypeDescription[] parameters = new TypeDescription[] { config.anno(), config.resolveSuperType(actual) };
 			return checkMethod(parameters).map(m -> {
 				var supportedType = m.getParameterTypes()[1];
-				if (supportedType.isAssignableFrom(actual)) {
+				if (new TypeDescription.ForLoadedType(supportedType).isAssignableFrom(actual)) {
 					return m;
 				}
 				throw annotationOnTypeNotValid(parameters[0], actual, List.of(supportedType.getName()));
 			}).orElseThrow(() -> unsupportedType(parameters));
 		}
 
-		private IllegalStateException unsupportedType(Class<?>... parameters) {
+		private IllegalStateException unsupportedType(TypeDescription... parameters) {
 			assert parameters.length >= 2 : "Expected to get 2 parameters, got " + Arrays.toString(parameters);
 			var supported = this.codeFragmentMethods.stream() //
 					.filter(this::isCheckMethod) //
 					.filter(m -> m.getParameterCount() > 1) //
-					.filter(m -> m.getParameterTypes()[0] == parameters[0]) //
+					.filter(m -> TypeDescription.ForLoadedType.of(m.getParameterTypes()[0]) == parameters[0]) //
 					.map(m -> m.getParameterTypes()[1].getName()) //
 					.collect(toList());
 			return annotationOnTypeNotValid(parameters[0], parameters[1], supported);
 		}
 
-		private Optional<Method> checkMethod(Class<?>... parameters) {
-			return codeFragmentMethods.stream().filter(this::isCheckMethod)
-					.filter(m -> Arrays.equals(m.getParameterTypes(), parameters)).findFirst();
+		private Optional<Method> checkMethod(TypeDescription... parameters) {
+			return codeFragmentMethods
+					.stream().filter(this::isCheckMethod).filter(m -> Arrays.equals(Stream.of(m.getParameterTypes())
+							.map(TypeDescription.ForLoadedType::of).toArray(TypeDescription[]::new), parameters))
+					.findFirst();
 		}
 
 		private boolean isCheckMethod(Method method) {
