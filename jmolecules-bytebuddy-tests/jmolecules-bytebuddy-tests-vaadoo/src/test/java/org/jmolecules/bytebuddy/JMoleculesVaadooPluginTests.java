@@ -124,7 +124,7 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void doesNotThrowExceptionOnNonNullValueAndAssignsValues() {
-		String value = "notNull";
+		String value = "not null and not empty";
 		assertThat(new SampleValueObject(value).getValue()).isEqualTo(value);
 	}
 
