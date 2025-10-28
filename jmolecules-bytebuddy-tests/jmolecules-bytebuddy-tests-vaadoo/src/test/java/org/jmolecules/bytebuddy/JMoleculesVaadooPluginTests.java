@@ -72,7 +72,8 @@ class JMoleculesVaadooPluginTests {
 		Class<?> transformedClass = transformedClass(ValueObjectWithAttribute.class, outputFolder);
 		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage("someString must not be null"));
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
+						.hasMessage("someString must not be null"));
 	}
 
 	private Class<?> transformedClass(Class<?> clazz, File outputFolder) throws Exception {
@@ -117,8 +118,14 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	@Test
-	void doesNotThrowExceptionOnNonNullValue() {
-		assertThatNoException().isThrownBy(() -> new SampleValueObject("test"));
+	void throwsExceptionOnEmptyValue() {
+		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject("")).withMessage("value must not be empty");
+	}
+
+	@Test
+	void doesNotThrowExceptionOnNonNullValueAndAssignsValues() {
+		String value = "notNull";
+		assertThat(new SampleValueObject(value).getValue()).isEqualTo(value);
 	}
 
 	@Test

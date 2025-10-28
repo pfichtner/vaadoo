@@ -17,14 +17,19 @@ package example;
 
 import org.jmolecules.ddd.types.ValueObject;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 public class SampleValueObject implements ValueObject {
 
 	private final String value;
 
-	public SampleValueObject(@NotNull String value) {
+	public SampleValueObject(@NotNull @NotEmpty String value) {
 		this.value = value;
+	}
+
+	public String getValue() {
+		return value;
 	}
 
 }
