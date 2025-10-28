@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.jmolecules.bytebuddy.testclasses.AnnotationDoesNotSupportType;
 import org.jmolecules.bytebuddy.testclasses.ClassWithAttribute;
 import org.jmolecules.bytebuddy.testclasses.ClassWithNotNullAttribute;
 import org.jmolecules.bytebuddy.testclasses.EmptyClass;
@@ -75,6 +76,15 @@ class JMoleculesVaadooPluginTests {
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
 				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
 						.hasMessage("someString must not be null"));
+	}
+
+	@Test
+	void wrongType(@TempDir File outputFolder) {
+		assertThatException().isThrownBy(() -> transformedClass(AnnotationDoesNotSupportType.class, outputFolder))
+				.satisfies(e -> assertThat(e).isInstanceOf(IllegalStateException.class)
+						.hasMessage("Annotation " + "jakarta.validation.constraints.NotEmpty"
+								+ " on type java.lang.Integer not allowed, " + "allowed only on types: "
+								+ "[java.lang.CharSequence, java.util.Collection, java.util.Map, java.lang.Object[]]"));
 	}
 
 	private Class<?> transformedClass(Class<?> clazz, File outputFolder) throws Exception {

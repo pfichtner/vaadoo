@@ -127,7 +127,7 @@ class VaadooImplementor {
 				@Override
 				TypeDescription resolveSuperType(TypeDescription actual) {
 					return superType(actual, validTypes).orElseThrow(() -> annotationOnTypeNotValid(anno(), actual,
-							validTypes.stream().map(TypeDescription::getName).collect(toList())));
+							validTypes.stream().map(TypeDescription::getActualName).collect(toList())));
 				};
 			}, //
 			new ConfigEntry(Size.class) {
@@ -138,7 +138,7 @@ class VaadooImplementor {
 				@Override
 				TypeDescription resolveSuperType(TypeDescription actual) {
 					return superType(actual, validTypes).orElseThrow(() -> annotationOnTypeNotValid(anno(), actual,
-							validTypes.stream().map(TypeDescription::getName).collect(toList())));
+							validTypes.stream().map(TypeDescription::getActualName).collect(toList())));
 				}
 
 			}, //
@@ -240,10 +240,6 @@ class VaadooImplementor {
 				));
 	}
 
-	/**
-	 * Emits static validate(...) method for constructor parameters. For each
-	 * parameter: if null -> throw IllegalStateException("parameter X is null")
-	 */
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
 		private final Parameters parameters;
