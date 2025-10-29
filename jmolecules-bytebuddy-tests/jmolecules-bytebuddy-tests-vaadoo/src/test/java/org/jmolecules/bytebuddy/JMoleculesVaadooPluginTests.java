@@ -50,6 +50,12 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ByteArrayClassLoader;
+import net.bytebuddy.jar.asm.ClassReader;
+import net.bytebuddy.jar.asm.ClassWriter;
+import net.bytebuddy.pool.TypePool;
+import net.bytebuddy.utility.AsmClassReader;
+import net.bytebuddy.utility.AsmClassWriter;
+import net.bytebuddy.utility.AsmClassWriter.Factory;
 
 class JMoleculesVaadooPluginTests {
 
@@ -82,7 +88,11 @@ class JMoleculesVaadooPluginTests {
 	@Test
 	void regex(@TempDir File outputFolder) throws Exception {
 		Class<?> transformedClass = transformedClass(ValueObjectWithRegexAttribute.class, outputFolder);
-		transformedClass.getDeclaredConstructor(String.class).newInstance(42);
+		Constructor<?> constructor = transformedClass.getDeclaredConstructor(String.class);
+		constructor.newInstance("42");
+		assertThatException().isThrownBy(() -> constructor.newInstance("4")).satisfies(e -> assertThat(e.getCause())
+				.isInstanceOf(IllegalArgumentException.class).hasMessage("someTwoDigits must match \"\\d\\d\""));
+
 	}
 
 	@Test
@@ -101,8 +111,74 @@ class JMoleculesVaadooPluginTests {
 
 			plugin.onPreprocess(typeDescription, locator);
 
-//			var builder = new ByteBuddy().redefine(clazz);
-			var builder = new ByteBuddy().rebase(clazz);
+			Factory factory = new AsmClassWriter.Factory() {
+
+				private static final int COMPUTE_FLAGS = ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS;
+
+				class SafeClassWriter extends ClassWriter {
+					private final TypePool typePool;
+
+					SafeClassWriter(ClassReader reader, int flags, TypePool typePool) {
+						super(reader, flags);
+						this.typePool = typePool;
+					}
+
+					SafeClassWriter(int flags, TypePool typePool) {
+						super(flags);
+						this.typePool = typePool;
+					}
+
+					@Override
+					protected String getCommonSuperClass(String type1, String type2) {
+						try {
+							var res1 = typePool.describe(type1.replace('/', '.'));
+							var res2 = typePool.describe(type2.replace('/', '.'));
+							if (!res1.isResolved() || !res2.isResolved()) {
+								return "java/lang/Object";
+							}
+							var t1 = res1.resolve();
+							var t2 = res2.resolve();
+							if (t1.isAssignableTo(t2))
+								return type2;
+							if (t2.isAssignableTo(t1))
+								return type1;
+							return "java/lang/Object";
+						} catch (Throwable e) {
+							return "java/lang/Object";
+						}
+					}
+				}
+
+				private AsmClassWriter makeWriter(ClassReader reader, TypePool pool) {
+					return new AsmClassWriter.ForAsm(reader == null ? new SafeClassWriter(COMPUTE_FLAGS, pool)
+							: new SafeClassWriter(reader, COMPUTE_FLAGS, pool));
+				}
+
+				@Override
+				public AsmClassWriter make(int flags, AsmClassReader classReader, TypePool typePool) {
+					return makeWriter(classReader == null ? null : classReader.unwrap(ClassReader.class), typePool);
+				}
+
+				@Override
+				public AsmClassWriter make(int flags, AsmClassReader classReader) {
+					return makeWriter(classReader == null ? null : classReader.unwrap(ClassReader.class),
+							TypePool.Default.ofSystemLoader());
+				}
+
+				@Override
+				public AsmClassWriter make(int flags, TypePool typePool) {
+					return makeWriter(null, typePool);
+				}
+
+				@Override
+				public AsmClassWriter make(int flags) {
+					return makeWriter(null, TypePool.Default.ofSystemLoader());
+				}
+			};
+
+			var byteBuddy = new ByteBuddy().with(factory);
+			var builder = byteBuddy.rebase(clazz);
+			// var builder = byteBuddy.redefine(clazz);
 			var transformedBuilder = plugin.apply(builder, typeDescription, locator);
 
 			Unloaded<?> dynamicType = transformedBuilder.make();

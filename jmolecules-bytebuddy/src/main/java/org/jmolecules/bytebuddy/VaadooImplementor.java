@@ -282,8 +282,7 @@ class VaadooImplementor {
 			}
 
 			mv.visitInsn(Opcodes.RETURN);
-			int maxStack = 4; // or compute dynamically based on emitted instructions
-			return new Size(maxStack, parameters.count());
+			return new Size(0, parameters.count());
 		}
 
 		private Method checkMethod(ConfigEntry config, TypeDescription actual) {
