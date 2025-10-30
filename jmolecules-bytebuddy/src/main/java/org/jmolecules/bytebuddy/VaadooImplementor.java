@@ -36,6 +36,7 @@ import org.jmolecules.bytebuddy.PluginLogger.Log;
 import org.jmolecules.bytebuddy.vaadoo.Parameters;
 import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
 import org.jmolecules.bytebuddy.vaadoo.ValidationCodeInjector;
+import org.jmolecules.bytebuddy.vaadoo.ValidationCodeInjector.InjectionResult;
 import org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment;
 
 import jakarta.validation.constraints.AssertFalse;
@@ -268,11 +269,13 @@ class VaadooImplementor {
 
 			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
 
+			InjectionResult injectionResult = InjectionResult.NULL;
 			for (Parameter parameter : parameters) {
 				for (TypeDescription annotation : parameter.annotations()) {
 					for (ConfigEntry config : configs) {
 						if (annotation.equals(config.type())) {
-							injector.inject(mv, parameter, checkMethod(config, parameter.type()));
+							injectionResult = injectionResult
+									.merge(injector.inject(mv, parameter, checkMethod(config, parameter.type())));
 						}
 					}
 					// TODO support custom annotations
@@ -282,7 +285,7 @@ class VaadooImplementor {
 			}
 
 			mv.visitInsn(Opcodes.RETURN);
-			return new Size(0, parameters.count());
+			return new Size(injectionResult.freeOffset(), parameters.count());
 		}
 
 		private Method checkMethod(ConfigEntry config, TypeDescription actual) {
