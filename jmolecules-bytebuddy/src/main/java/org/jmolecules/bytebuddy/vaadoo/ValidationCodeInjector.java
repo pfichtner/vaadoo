@@ -15,7 +15,6 @@
  */
 package org.jmolecules.bytebuddy.vaadoo;
 
-import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
@@ -59,30 +58,9 @@ import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
 import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
-import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.jar.asm.Type;
 
 public class ValidationCodeInjector {
-
-	public static class InjectionResult {
-
-		public static final InjectionResult NULL = new InjectionResult(0);
-
-		private final int freeOffset;
-
-		public InjectionResult(int freeOffset) {
-			this.freeOffset = freeOffset;
-		}
-
-		public int freeOffset() {
-			return freeOffset;
-		}
-
-		public InjectionResult merge(InjectionResult other) {
-			return new InjectionResult(max(freeOffset, other.freeOffset));
-		}
-
-	}
 
 	// we remove the first arg (the code inserted has the annotation as it's first
 	// argument)
@@ -101,8 +79,6 @@ public class ValidationCodeInjector {
 		private int srcFirstLocalIndex;
 		private int localIndexOffset;
 		private int argIndexOffset;
-
-		private int freeOffset;
 
 		private ValidationCallCodeInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
 				String signatureOfTargetMethod, Parameter parameter) {
@@ -173,23 +149,8 @@ public class ValidationCodeInjector {
 						// ignore
 					}
 
-					private void updateFreeOffset(int opcode, int offset) {
-						switch (opcode) {
-						case Opcodes.ISTORE:
-						case Opcodes.FSTORE:
-						case Opcodes.ASTORE:
-							Math.max(freeOffset, offset + 1);
-							break;
-						case Opcodes.LSTORE:
-						case Opcodes.DSTORE:
-							freeOffset = Math.max(freeOffset, offset + 2);
-							break;
-						}
-					}
-
 					@Override
 					public void visitVarInsn(int opcode, int var) {
-						updateFreeOffset(opcode, var);
 						boolean opcodeIsLoad = isLoadOpcode(opcode);
 						boolean opcodeIsStore = isStoreOpcode(opcode);
 
@@ -340,11 +301,10 @@ public class ValidationCodeInjector {
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
 	}
 
-	public InjectionResult inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
+	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
 		ValidationCallCodeInjectorClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod,
 				mv, signatureOfTargetMethod, parameter);
 		this.classReader.accept(classVisitor, 0);
-		return new InjectionResult(classVisitor.freeOffset);
 	}
 
 	private static String defaultValue(String className, String name) {

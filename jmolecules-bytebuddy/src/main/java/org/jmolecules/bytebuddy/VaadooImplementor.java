@@ -19,6 +19,8 @@ import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
+import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_FRAMES;
+import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_MAXS;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
@@ -36,7 +38,6 @@ import org.jmolecules.bytebuddy.PluginLogger.Log;
 import org.jmolecules.bytebuddy.vaadoo.Parameters;
 import org.jmolecules.bytebuddy.vaadoo.Parameters.Parameter;
 import org.jmolecules.bytebuddy.vaadoo.ValidationCodeInjector;
-import org.jmolecules.bytebuddy.vaadoo.ValidationCodeInjector.InjectionResult;
 import org.jmolecules.bytebuddy.vaadoo.fragments.impl.JdkOnlyCodeFragment;
 
 import jakarta.validation.constraints.AssertFalse;
@@ -61,6 +62,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
 import net.bytebuddy.description.type.TypeDescription;
@@ -233,10 +235,15 @@ class VaadooImplementor {
 	private Builder<?> addStaticValidationMethod(Builder<?> builder, String validateMethodName, Parameters parameters,
 			Log log) {
 		log.info("Implementing static validate method #{}.", validateMethodName);
-		return markGenerated(
-				builder.defineMethod(validateMethodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
-						.withParameters(parameters.types()).intercept(new Implementation.Simple(
+		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
+				.defineMethod(validateMethodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
+				.withParameters(parameters.types()).intercept( //
+						new Implementation.Simple(
 								new StaticValidateAppender(parameters, validateMethodName, FRAGMENT_CLASS))));
+	}
+
+	private static Builder<?> wrap(Builder<?> builder, int flags) {
+		return builder.visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(flags));
 	}
 
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
@@ -269,13 +276,11 @@ class VaadooImplementor {
 
 			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
 
-			InjectionResult injectionResult = InjectionResult.NULL;
 			for (Parameter parameter : parameters) {
 				for (TypeDescription annotation : parameter.annotations()) {
 					for (ConfigEntry config : configs) {
 						if (annotation.equals(config.type())) {
-							injectionResult = injectionResult
-									.merge(injector.inject(mv, parameter, checkMethod(config, parameter.type())));
+							injector.inject(mv, parameter, checkMethod(config, parameter.type()));
 						}
 					}
 					// TODO support custom annotations
@@ -285,7 +290,7 @@ class VaadooImplementor {
 			}
 
 			mv.visitInsn(Opcodes.RETURN);
-			return new Size(injectionResult.freeOffset(), parameters.count());
+			return Size.ZERO;
 		}
 
 		private Method checkMethod(ConfigEntry config, TypeDescription actual) {
