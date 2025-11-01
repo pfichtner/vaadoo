@@ -19,11 +19,9 @@ import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
-import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.AASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.ANEWARRAY;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;
-import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
@@ -38,6 +36,7 @@ import static net.bytebuddy.jar.asm.Type.getReturnType;
 import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.STRING_TYPE;
 import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.classReader;
 import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.isArray;
+import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.isArrayHandlingOpcode;
 import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.isLoadOpcode;
 import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.isReturnOpcode;
 import static org.jmolecules.bytebuddy.vaadoo.AsmUtil.isStoreOpcode;
@@ -160,7 +159,7 @@ public class ValidationCodeInjector {
 							} else {
 								if (opcodeIsLoad && var == srcFirstArgIndex) {
 									isFirstParamLoad = true;
-								} else if (isArrayHandlingCase(opcode, var)) {
+								} else if (isArrayHandlingOpcode(opcode)) {
 									if (!opcodeIsStore) {
 										super.visitVarInsn(opcode, remapArg(var));
 									}
@@ -171,10 +170,6 @@ public class ValidationCodeInjector {
 						} else {
 							super.visitVarInsn(opcode, var);
 						}
-					}
-
-					private boolean isArrayHandlingCase(int opcode, int var) {
-						return opcode == AALOAD || opcode == ASTORE;
 					}
 
 					private int remapArg(int var) {

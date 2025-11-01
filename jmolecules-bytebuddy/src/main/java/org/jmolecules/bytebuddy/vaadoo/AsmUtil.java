@@ -1,5 +1,6 @@
 package org.jmolecules.bytebuddy.vaadoo;
 
+import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ARETURN;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
@@ -46,6 +47,10 @@ public final class AsmUtil {
 	public static boolean isReturnOpcode(int opcode) {
 		return opcode == RETURN || opcode == ARETURN || opcode == IRETURN //
 				|| opcode == LRETURN || opcode == FRETURN || opcode == DRETURN;
+	}
+
+	public static boolean isArrayHandlingOpcode(int opcode) {
+		return opcode == AALOAD || opcode == ASTORE;
 	}
 
 	public static boolean isArray(Type type) {
