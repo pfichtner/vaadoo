@@ -297,8 +297,8 @@ public class ValidationCodeInjector {
 	}
 
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
-		ValidationCallCodeInjectorClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod,
-				mv, signatureOfTargetMethod, parameter);
+		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
+				signatureOfTargetMethod, parameter);
 		this.classReader.accept(classVisitor, 0);
 	}
 
