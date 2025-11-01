@@ -23,6 +23,7 @@ import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_FRAMES;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_MAXS;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
+import static net.bytebuddy.jar.asm.Type.VOID_TYPE;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
@@ -273,7 +274,7 @@ class VaadooImplementor {
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
+			String methodDescriptor = Type.getMethodDescriptor(VOID_TYPE, parameters.types().stream()
 					.map(TypeDescription::getName).map(Type::getObjectType).toArray(Type[]::new));
 
 			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
@@ -282,7 +283,7 @@ class VaadooImplementor {
 				for (TypeDescription annotation : parameter.annotations()) {
 					for (ConfigEntry config : configs) {
 						if (annotation.equals(config.type())) {
-							injector.inject(mv, parameter, checkMethod(config, parameter.type()));
+							injector.inject(mv, parameter, codeFragmentMethod(config, parameter.type()));
 						}
 					}
 					// TODO support custom annotations
@@ -295,9 +296,9 @@ class VaadooImplementor {
 			return Size.ZERO;
 		}
 
-		private Method checkMethod(ConfigEntry config, TypeDescription actual) {
+		private Method codeFragmentMethod(ConfigEntry config, TypeDescription actual) {
 			TypeDescription[] parameters = new TypeDescription[] { config.anno(), config.resolveSuperType(actual) };
-			return checkMethod(parameters).map(m -> {
+			return codeFragmentMethod(parameters).map(m -> {
 				var supportedType = m.getParameterTypes()[1];
 				if (actual.isAssignableTo(supportedType)) {
 					return m;
@@ -309,7 +310,7 @@ class VaadooImplementor {
 		private IllegalStateException unsupportedType(TypeDescription... parameters) {
 			assert parameters.length >= 2 : "Expected to get 2 parameters, got " + Arrays.toString(parameters);
 			var supported = this.codeFragmentMethods.stream() //
-					.filter(this::isCheckMethod) //
+					.filter(StaticValidateAppender::isCodeFragmentMethod) //
 					.filter(m -> m.getParameterCount() > 1) //
 					.filter(m -> parameters[0].represents(m.getParameterTypes()[0])) //
 					.map(m -> m.getParameterTypes()[1].getName()) //
@@ -317,19 +318,19 @@ class VaadooImplementor {
 			return annotationOnTypeNotValid(parameters[0], parameters[1], supported);
 		}
 
-		private Optional<Method> checkMethod(TypeDescription... parameters) {
+		private Optional<Method> codeFragmentMethod(TypeDescription... parameters) {
 			return codeFragmentMethods.stream() //
-					.filter(this::isCheckMethod) //
-					.filter(m -> representsAll(parameters, m.getParameterTypes())) //
+					.filter(StaticValidateAppender::isCodeFragmentMethod) //
+					.filter(m -> equals(parameters, m.getParameterTypes())) //
 					.findFirst();
 		}
 
-		private static boolean representsAll(TypeDescription[] descriptions, Class<?>[] classes) {
+		private static boolean equals(TypeDescription[] descriptions, Class<?>[] classes) {
 			return classes.length == descriptions.length && range(0, classes.length) //
 					.allMatch(i -> descriptions[i].represents(classes[i]));
 		}
 
-		private boolean isCheckMethod(Method method) {
+		private static boolean isCodeFragmentMethod(Method method) {
 			return "check".equals(method.getName());
 		}
 

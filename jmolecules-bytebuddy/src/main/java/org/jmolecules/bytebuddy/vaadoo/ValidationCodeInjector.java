@@ -244,7 +244,7 @@ public class ValidationCodeInjector {
 						} else if (BOOLEAN_TYPE.equals(returnType)) {
 							return Boolean.valueOf(stringValue);
 						}
-						throw new IllegalStateException("Unsupported type " + returnType);
+						throw new IllegalStateException(format("Unsupported type %s", returnType));
 					}
 
 					private Object valueFromClass(Parameter parameter, String owner, String name) {
