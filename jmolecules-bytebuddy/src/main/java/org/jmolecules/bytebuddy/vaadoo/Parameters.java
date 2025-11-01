@@ -39,6 +39,14 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.StackSize;
 import net.bytebuddy.jar.asm.Type;
 
+/**
+ * Represents an ordered list of method or constructor parameters.
+ * <p>
+ * This class provides access to individual {@link Parameter} instances,
+ * allowing inspection of their type, name, annotations, and stack offset. It
+ * implements {@link Iterable}, so parameters can be iterated in declaration
+ * order.
+ */
 public class Parameters implements Iterable<Parameter> {
 
 	public static Parameters of(ParameterList<InDefinedShape> parameterList) {
@@ -48,18 +56,66 @@ public class Parameters implements Iterable<Parameter> {
 	private final List<Parameter> values;
 	private final ParameterList<InDefinedShape> parameterList;
 
+	/**
+	 * Represents a single parameter.
+	 */
 	public static interface Parameter {
 
+		/**
+		 * Returns the position of this parameter within the declaring method's
+		 * parameter list.
+		 *
+		 * @return the zero-based index of this parameter
+		 */
 		int index();
 
+		/**
+		 * Returns the name of this parameter.
+		 *
+		 * @return the parameter's name, or {@code null} if the name is not available
+		 */
 		String name();
 
+		/**
+		 * Returns the type of this parameter.
+		 *
+		 * @return a {@link TypeDescription} representing the parameter's type
+		 */
 		TypeDescription type();
 
+		/**
+		 * Computes the stack offset of this parameter within its declaring method.
+		 * <p>
+		 * The offset is determined by summing the stack sizes of all parameters
+		 * declared before this one. If this parameter is the first (index {@code 0}),
+		 * its offset is {@code 0}.
+		 *
+		 * @return The total stack offset of this parameter relative to the start of the
+		 *         parameter list.
+		 */
 		int offset();
 
+		/**
+		 * Returns all annotations present on this parameter.
+		 *
+		 * @return an array of {@link TypeDescription} representing the parameter's
+		 *         annotations, or an empty array if no annotations are present
+		 */
 		TypeDescription[] annotations();
 
+		/**
+		 * Retrieves the value of a specified attribute from the given annotation type.
+		 * <p>
+		 * This method returns the value associated with the attribute identified by
+		 * {@code name} from the provided {@code annotation}. If the attribute does not
+		 * exist or cannot be accessed, the behavior is implementation-dependent.
+		 *
+		 * @param annotation the annotation type from which to retrieve the attribute
+		 *                   value
+		 * @param name       the name of the attribute whose value should be returned
+		 * @return the value of the specified annotation attribute, or {@code null} if
+		 *         unavailable
+		 */
 		Object annotationValue(Type annotation, String name);
 
 	}
@@ -138,7 +194,7 @@ public class Parameters implements Iterable<Parameter> {
 		this.values = range(0, parameterList.size()).<Parameter>mapToObj(ParameterWrapper::new).collect(toList());
 	}
 
-	public Parameter param(int index) {
+	public Parameter parameter(int index) {
 		return values.get(index);
 	}
 
