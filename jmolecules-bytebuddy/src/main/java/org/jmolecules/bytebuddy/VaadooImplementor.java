@@ -21,6 +21,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_FRAMES;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_MAXS;
+import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
+import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.jmolecules.bytebuddy.PluginUtils.markGenerated;
@@ -236,7 +238,7 @@ class VaadooImplementor {
 			Log log) {
 		log.info("Implementing static validate method #{}.", validateMethodName);
 		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
-				.defineMethod(validateMethodName, void.class, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)
+				.defineMethod(validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
 				.withParameters(parameters.types()).intercept( //
 						new Implementation.Simple(
 								new StaticValidateAppender(parameters, validateMethodName, FRAGMENT_CLASS))));
