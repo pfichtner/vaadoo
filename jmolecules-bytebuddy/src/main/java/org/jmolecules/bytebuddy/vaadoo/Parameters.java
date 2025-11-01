@@ -45,8 +45,8 @@ public class Parameters implements Iterable<Parameter> {
 		return new Parameters(parameterList);
 	}
 
-	private List<Parameter> values;
-	private ParameterList<InDefinedShape> parameterList;
+	private final List<Parameter> values;
+	private final ParameterList<InDefinedShape> parameterList;
 
 	public static interface Parameter {
 
