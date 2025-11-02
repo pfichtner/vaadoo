@@ -18,6 +18,7 @@ package com.github.pfichtner.vaadoo;
 import static java.lang.String.format;
 import static java.util.regex.Matcher.quoteReplacement;
 import static java.util.regex.Pattern.compile;
+import static lombok.AccessLevel.PRIVATE;
 
 import java.util.Map;
 import java.util.Objects;
@@ -26,8 +27,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
 public final class NamedPlaceholders {
 
+	@RequiredArgsConstructor
 	private static class ExpressionEvaluator {
 
 		private static class Ternary {
@@ -43,6 +49,7 @@ public final class NamedPlaceholders {
 			}
 		}
 
+		@RequiredArgsConstructor
 		private static enum Operator {
 			EQ("==") {
 				@Override
@@ -61,10 +68,6 @@ public final class NamedPlaceholders {
 
 			private final String sign;
 
-			private Operator(String sign) {
-				this.sign = sign;
-			}
-
 			private static Operator operator(String condition) {
 				return Stream.of(values()).filter(op -> condition.contains(op.sign)).findFirst().orElseThrow(
 						() -> new IllegalArgumentException(format("Unsupported operator in condition: %s", condition)));
@@ -79,10 +82,6 @@ public final class NamedPlaceholders {
 		}
 
 		private final Function<String, Object> resolver;
-
-		private ExpressionEvaluator(Function<String, Object> resolver) {
-			this.resolver = resolver;
-		}
 
 		private String evaluate(String expression) {
 			expression = expression.trim();
@@ -146,10 +145,6 @@ public final class NamedPlaceholders {
 	}
 
 	private static final Pattern placeholderPattern = compile("(\\$)?\\{([^}]+)\\}");
-
-	private NamedPlaceholders() {
-		super();
-	}
 
 	public static String replace(String template, Map<String, Object> replacements) {
 		return replace(template, k -> replacements.getOrDefault(k, k));

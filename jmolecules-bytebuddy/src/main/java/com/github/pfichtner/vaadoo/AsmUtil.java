@@ -15,6 +15,7 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static lombok.AccessLevel.PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ARETURN;
@@ -38,16 +39,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Stream;
 
+import lombok.NoArgsConstructor;
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.Type;
 
+@NoArgsConstructor(access = PRIVATE)
 public final class AsmUtil {
 
 	public static final Type STRING_TYPE = Type.getType(String.class);
-
-	private AsmUtil() {
-		super();
-	}
 
 	public static boolean isLoadOpcode(int opcode) {
 		return opcode == ALOAD || opcode == ILOAD || opcode == LLOAD //

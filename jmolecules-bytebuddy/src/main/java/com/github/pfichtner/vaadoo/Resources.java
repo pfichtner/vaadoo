@@ -17,6 +17,7 @@ package com.github.pfichtner.vaadoo;
 
 import static java.util.Collections.enumeration;
 import static java.util.stream.Collectors.toMap;
+import static lombok.AccessLevel.PRIVATE;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +28,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor(access = PRIVATE)
 public final class Resources {
 
 	private static class MergingResourceBundleControl extends ResourceBundle.Control {
@@ -68,10 +72,6 @@ public final class Resources {
 	}
 
 	private static final Map<String, String> messages = loadMessages();
-
-	private Resources() {
-		super();
-	}
 
 	public static String message(String key) {
 		return messages.getOrDefault(key, key);
