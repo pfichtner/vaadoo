@@ -17,16 +17,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<archunit.version>1.4.1</archunit.version>
-		<bytebuddy.version>1.17.7</bytebuddy.version>
+		<bytebuddy.version>1.17.8</bytebuddy.version>
+		<jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
 		<java.version>11</java.version>
-		<jmolecules.version>1.10.0</jmolecules.version>
-		<jmolecules-next.version>2.0.0-RC2</jmolecules-next.version>
 		<kotlin.version>2.2.10</kotlin.version>
 		<module.name>github.io.pfichtner.integrations</module.name>
-		<spring-boot.version>2.7.18</spring-boot.version>
-		<spring-boot3.version>3.5.6</spring-boot3.version>
-		<spring-boot4.version>4.0.0-M3</spring-boot4.version>
 	</properties>
 
 	<licenses>
@@ -120,11 +115,19 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring-boot.version}</version>
-				<scope>import</scope>
-				<type>pom</type>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${bytebuddy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${bytebuddy.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jakarta.validation</groupId>
+				<artifactId>jakarta.validation-api</artifactId>
+				<version>${jakarta.validation-api.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -133,20 +136,24 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<version>1.18.42</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<version>2.0.17</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
+			<version>5.12.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
+			<version>3.27.6</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

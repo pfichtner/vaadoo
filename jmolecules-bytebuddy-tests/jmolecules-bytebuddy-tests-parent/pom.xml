@@ -19,8 +19,8 @@
 			<artifactId>byte-buddy</artifactId>
 		</dependency>
 	    <dependency>
-	            <groupId>jakarta.validation</groupId>
-	            <artifactId>jakarta.validation-api</artifactId>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
 	    </dependency>
 
 		<dependency>
