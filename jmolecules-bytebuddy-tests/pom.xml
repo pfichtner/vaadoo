@@ -12,8 +12,6 @@
 	<name>jMolecules - ByteBuddy - Tests</name>
 
 	<properties>
-		<byte-buddy.version>${bytebuddy.version}</byte-buddy.version>
-		<spring-boot.version>${spring-boot3.version}</spring-boot.version>
 		<maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
 
@@ -51,7 +49,6 @@
 				<plugin>
 					<groupId>net.bytebuddy</groupId>
 					<artifactId>byte-buddy-maven-plugin</artifactId>
-					<version>${byte-buddy.version}</version>
 					<configuration>
 						<classPathDiscovery>true</classPathDiscovery>
 					</configuration>
