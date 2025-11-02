@@ -1,0 +1,68 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
+
+import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+
+import java.util.stream.Stream;
+
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
+
+import net.bytebuddy.description.annotation.AnnotationList;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeDescription.Generic;
+import net.bytebuddy.dynamic.ClassFileLocator;
+import net.bytebuddy.dynamic.DynamicType.Builder;
+
+class VaadooPlugin implements LoggingPlugin {
+
+	private static final VaadooImplementor VAADOO_IMPLEMENTOR = new VaadooImplementor();
+
+	@Override
+	public boolean matches(TypeDescription target) {
+		if (target.isAnnotation() || PluginUtils.isCglibProxyType(target)) {
+			return false;
+		}
+
+		if (!target.getInterfaces().filter(nameStartsWith("org.jmolecules")).isEmpty()) {
+			return true;
+		}
+		if (hasAnyJMoleculesAnnotation(target)) {
+			return true;
+		}
+
+		Generic superType = target.getSuperClass();
+		return target.isRecord()
+				|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
+	}
+
+	private boolean hasAnyJMoleculesAnnotation(TypeDescription target) {
+		return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
+				.flatMap(AnnotationList::stream)
+				.anyMatch(it -> it.getAnnotationType().getName().startsWith("org.jmolecules"));
+	}
+
+	@Override
+	public Builder<?> apply(Builder<?> builder, TypeDescription type, ClassFileLocator classFileLocator) {
+		Log log = PluginLogger.INSTANCE.getLog(type, "vaadoo");
+		return JMoleculesTypeBuilder.of(log, builder).map(__ -> true, this::handleEntity).conclude();
+	}
+
+	private JMoleculesTypeBuilder handleEntity(JMoleculesTypeBuilder type) {
+		return type.map(VAADOO_IMPLEMENTOR::implementVaadoo);
+	}
+
+}
