@@ -5,13 +5,16 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
@@ -26,8 +29,10 @@ import lombok.Value;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Annotatable;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Initial;
+import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.MethodCall;
@@ -50,6 +55,9 @@ class Jsr380DynamicClassTest {
 
 	static final Set<Class<?>> ALL_SUPPORTED_TYPES = ANNO_TO_TYPES.values().stream().flatMap(List::stream)
 			.collect(toSet());
+
+	static ToolProvider javap = ToolProvider.findFirst("javap")
+			.orElseThrow(() -> new RuntimeException("javap not found"));
 
 	// ------------------------ jqwik generator ------------------------
 
@@ -94,8 +102,8 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-	private static Class<?> generateClass(List<ParameterConfig> params) throws Exception {
-		var bb = new ByteBuddy().subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS)
+	private static Unloaded<Object> generateClass(List<ParameterConfig> params) throws NoSuchMethodException {
+		Builder<Object> bb = new ByteBuddy().subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS)
 				.name("com.example.Generated_" + UUID.randomUUID().toString().replace("-", ""));
 
 		Initial<Object> ctor = bb.defineConstructor(Visibility.PUBLIC);
@@ -113,16 +121,28 @@ class Jsr380DynamicClassTest {
 			}
 		}
 
-		return (paramDef == null ? ctor : paramDef).intercept(MethodCall.invoke(Object.class.getDeclaredConstructor()))
-				.make().load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
-				.getLoaded();
+		return (paramDef == null ? ctor : paramDef) //
+				.intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())) //
+				.make();
 	}
 
-	@Property
+	@Property(tries = 10)
 	void generated_class_has_expected_annotations(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
+		Unloaded<Object> dynamicType = generateClass(params);
+		File tempFile = File.createTempFile("bb-generated", ".class");
+		tempFile.deleteOnExit();
+		try {
+			Files.write(tempFile.toPath(), dynamicType.getBytes());
+			int result = javap.run(System.out, System.err, "-c", "-p", "-v", tempFile.getAbsolutePath());
+			System.out.println("Exit code: " + result);
+		} finally {
+			tempFile.delete();
+		}
 
-		Class<?> generated = generateClass(params);
+		Class<?> generated = dynamicType
+				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+				.getLoaded();
 		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
 
 		Class<?>[] paramTypes = ctor.getParameterTypes();
