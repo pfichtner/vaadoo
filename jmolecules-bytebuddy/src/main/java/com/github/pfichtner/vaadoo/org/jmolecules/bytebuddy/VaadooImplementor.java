@@ -15,8 +15,8 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
+import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
-import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
@@ -28,43 +28,20 @@ import static net.bytebuddy.jar.asm.Type.VOID_TYPE;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.github.pfichtner.vaadoo.Jsr380Annos;
+import com.github.pfichtner.vaadoo.Jsr380Annos.ConfigEntry;
 import com.github.pfichtner.vaadoo.Parameters;
-import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
+import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 
-import jakarta.validation.constraints.AssertFalse;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Negative;
-import jakarta.validation.constraints.NegativeOrZero;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.validation.constraints.Size;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
@@ -82,124 +59,7 @@ class VaadooImplementor {
 
 	private static final String VALIDATE_METHOD_BASE_NAME = "validate";
 
-	private static class ConfigEntry {
-
-		private final TypeDescription anno;
-		private final TypeDescription type;
-
-		public ConfigEntry(Class<? extends Annotation> anno) {
-			this.anno = type(anno);
-			this.type = type(anno);
-		}
-
-		TypeDescription anno() {
-			return anno;
-		}
-
-		TypeDescription type() {
-			return type;
-		}
-
-		TypeDescription resolveSuperType(TypeDescription actual) {
-			return actual;
-		}
-
-		static TypeDescription type(Class<?> clazz) {
-			return TypeDescription.ForLoadedType.of(clazz);
-		}
-
-		static List<TypeDescription> descriptors(Class<?>... classses) {
-			return Stream.of(classses).map(ConfigEntry::type).collect(toList());
-		}
-
-	}
-
-	// TODO Possible checks during compile time: (but all these checks could be a
-	// separate project as well,
-	// https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator-annotation-processor)
-	// errors
-	// - Annotations on unsupported types, e.g. @Past on String <-- TODO already
-	// handled, right!?
-	// - @Pattern: Is the pattern valid (compile it)
-	// - @Size: Is min >= 0
-	// - @Min: Is there a @Max that is < @Min's value
-	// - @Max: Is there a @Min that is < @Max's value
-	// - @NotNull: Is there also @Null
-	// - @Null: Is there also @NotNull
-	// warnings
-	// - @NotNull: Annotations that checks for null as well like @NotBlank @NotEmpty
-	// - @Null: most (all?) other annotations doesn't make sense
-	private static final List<ConfigEntry> configs = List.of( //
-			new FixedClassConfigEntry(Null.class, Object.class), //
-			new FixedClassConfigEntry(NotNull.class, Object.class), //
-			new FixedClassConfigEntry(NotBlank.class, CharSequence.class), //
-			new ConfigEntry(NotEmpty.class) {
-				List<TypeDescription> validTypes = descriptors(CharSequence.class, Collection.class, Map.class,
-						Object[].class);
-
-				@Override
-				TypeDescription resolveSuperType(TypeDescription actual) {
-					return superType(actual, validTypes).orElseThrow(() -> annotationOnTypeNotValid(anno(), actual,
-							validTypes.stream().map(TypeDescription::getActualName).collect(toList())));
-				};
-			}, //
-			new ConfigEntry(Size.class) {
-				List<TypeDescription> validTypes = descriptors(CharSequence.class, Collection.class, Map.class,
-						Object[].class);
-
-				@Override
-				TypeDescription resolveSuperType(TypeDescription actual) {
-					return superType(actual, validTypes).orElseThrow(() -> annotationOnTypeNotValid(anno(), actual,
-							validTypes.stream().map(TypeDescription::getActualName).collect(toList())));
-				}
-
-			}, //
-			new FixedClassConfigEntry(Pattern.class, CharSequence.class), //
-			new FixedClassConfigEntry(Email.class, CharSequence.class), //
-			new ConfigEntry(AssertTrue.class), //
-			new ConfigEntry(AssertFalse.class), //
-			new ConfigEntry(Min.class), //
-			new ConfigEntry(Max.class), //
-			new ConfigEntry(Digits.class), //
-			new ConfigEntry(Positive.class), //
-			new ConfigEntry(PositiveOrZero.class), //
-			new ConfigEntry(Negative.class), //
-			new ConfigEntry(NegativeOrZero.class), //
-			new ConfigEntry(DecimalMin.class), //
-			new ConfigEntry(DecimalMax.class), //
-			new ConfigEntry(Future.class), //
-			new ConfigEntry(FutureOrPresent.class), //
-			new ConfigEntry(Past.class), //
-			new ConfigEntry(PastOrPresent.class) //
-	);
-
 	private static final Class<? extends Jsr380CodeFragment> FRAGMENT_CLASS = com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment.class;
-
-	private static Optional<TypeDescription> superType(TypeDescription classToCheck, List<TypeDescription> superTypes) {
-		return superTypes.stream().filter(t -> t.isAssignableFrom(classToCheck)).findFirst();
-	}
-
-	private static IllegalStateException annotationOnTypeNotValid(TypeDescription anno, TypeDescription type,
-			List<String> valids) {
-		return new IllegalStateException(format("Annotation %s on type %s not allowed, allowed only on types: %s",
-				anno.getName(), type.getName(), valids));
-	}
-
-	private static class FixedClassConfigEntry extends ConfigEntry {
-
-		private final TypeDescription superType;
-
-		public FixedClassConfigEntry(Class<? extends Annotation> anno, Class<?> superType) {
-			super(anno);
-			this.superType = TypeDescription.ForLoadedType.of(superType);
-		}
-
-		@Override
-		TypeDescription resolveSuperType(TypeDescription actual) {
-			return superType;
-		}
-
-	}
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
 		TypeDescription typeDescription = type.getTypeDescription();
@@ -281,7 +141,7 @@ class VaadooImplementor {
 
 			for (Parameter parameter : parameters) {
 				for (TypeDescription annotation : parameter.annotations()) {
-					for (ConfigEntry config : configs) {
+					for (ConfigEntry config : Jsr380Annos.configs) {
 						if (annotation.equals(config.type())) {
 							injector.inject(mv, parameter, codeFragmentMethod(config, parameter.type()));
 						}
