@@ -37,6 +37,11 @@
 			<version>1.10.0</version>
             <scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>net.jqwik</groupId>
+			<artifactId>jqwik</artifactId>
+			<version>1.9.3</version>
+		</dependency>
 
 	</dependencies>
 
