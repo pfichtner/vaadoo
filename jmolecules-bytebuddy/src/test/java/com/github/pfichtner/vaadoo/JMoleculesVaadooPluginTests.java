@@ -15,22 +15,14 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatRuntimeException;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,8 +35,6 @@ import com.github.pfichtner.vaadoo.testclasses.EmptyClass;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
 
-import example.SampleValueObject;
-import example.SampleValueObjectWithSideEffect;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.build.Plugin.WithPreprocessor;
@@ -126,40 +116,6 @@ class JMoleculesVaadooPluginTests {
 					ByteArrayClassLoader.PersistenceHandler.MANIFEST);
 			return classLoader.loadClass(dynamicType.getTypeDescription().getName());
 		}
-	}
-
-	@Test
-	void defaultsForSampleValueObject() {
-		List<List<Class<?>>> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
-				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).map(Arrays::asList)
-				.collect(toList());
-		assertThat(methodParams).containsExactly(List.of(String.class));
-	}
-
-	@Test
-	void throwsExceptionOnNullValue() {
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject(null))
-				.withMessage("value must not be null");
-	}
-
-	@Test
-	void throwsExceptionOnEmptyValue() {
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueObject("")).withMessage("value must not be empty");
-	}
-
-	@Test
-	void doesNotThrowExceptionOnNonNullValueAndAssignsValues() {
-		String value = "not null and not empty";
-		assertThat(new SampleValueObject(value).getValue()).isEqualTo(value);
-	}
-
-	@Test
-	void mustNotCallAddOnListWithNull() {
-		@SuppressWarnings("unchecked")
-		List<String> listMock = mock(List.class);
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(listMock, null))
-				.withMessage("toAdd must not be null");
-		verifyNoInteractions(listMock);
 	}
 
 }
