@@ -27,6 +27,34 @@ import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 
+/**
+ * {@code VaadooPlugin} is a custom {@link LoggingPlugin} that extends the
+ * concept and design principles of the {@code jMolecules} plugin architecture
+ * (e.g. {@code JMoleculesSpringJpaPlugin}, {@code JMoleculesAxonSpringPlugin},
+ * {@code JMoleculesSpringDataPlugin}, etc.).
+ * <p>
+ * This plugin is intentionally maintained as a separate extension that operates
+ * on a local copy of the jMolecules codebase rather than being part of the
+ * official jMolecules project. The goal of this separation is to allow
+ * experimentation and evolution of Vaadoo-specific functionality without
+ * introducing dependencies or constraints on the upstream project.
+ * <p>
+ * Conceptually, {@code VaadooPlugin} could be integrated into the jMolecules
+ * ecosystem at any time, should it prove useful or align with jMolecules’
+ * long-term design. However, such integration is not guaranteed or required;
+ * the plugin is designed to function fully on its own.
+ * <p>
+ * The plugin detects types related to {@code org.jmolecules} (e.g. interfaces,
+ * annotations, or inheritance hierarchies) and applies Vaadoo-specific behavior
+ * through {@link VaadooImplementor}. It uses {@link JMoleculesTypeBuilder} to
+ * extend the Byte Buddy transformation pipeline for those identified types.
+ *
+ * <p>
+ * <strong>Note:</strong> This class and the Vaadoo extensions are not part of
+ * the official jMolecules distribution.
+ *
+ * @author Peter Fichtner
+ */
 class VaadooPlugin implements LoggingPlugin {
 
 	private static final VaadooImplementor VAADOO_IMPLEMENTOR = new VaadooImplementor();
