@@ -1,21 +1,31 @@
 package com.github.pfichtner.vaadoo;
 
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static net.jqwik.api.ShrinkingMode.OFF;
+import static org.approvaltests.Approvals.settings;
+import static org.approvaltests.Approvals.verify;
+import static org.approvaltests.namer.NamerFactory.withParameters;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
+
+import org.approvaltests.namer.NamedEnvironment;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
@@ -47,15 +57,37 @@ class Jsr380DynamicClassTest {
 
 	@Value
 	private static class ParameterConfig {
-		private final Class<?> type;
-		private final Set<Class<? extends Annotation>> annotations;
+		Class<?> type;
+		List<Class<? extends Annotation>> annotations;
+
+		public static String stableChecksum(List<ParameterConfig> configs) {
+			return sha256(configs.stream().map(ParameterConfig::asString).collect(joining("|")));
+		}
+
+		private static String asString(ParameterConfig config) {
+			return config.type.getName() + ":"
+					+ config.annotations.stream().map(Class::getName).sorted().collect(joining(","));
+		}
+
+		private static String sha256(String input) {
+			return String.valueOf(Math.abs(input.hashCode()));
+		}
+
 	}
 
-	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = Stream.of(Jsr380CodeFragment.class.getMethods())
-			.collect(groupingBy(m -> m.getParameterTypes()[0], mapping(m -> m.getParameterTypes()[1], toList())));
+	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = //
+			Stream.of(Jsr380CodeFragment.class.getMethods()) //
+					.sorted(comparing(Method::getName)) //
+					.collect(groupingBy( //
+							m -> m.getParameterTypes()[0], //
+							mapping(m -> m.getParameterTypes()[1], toList()) //
+					));
 
-	static final Set<Class<?>> ALL_SUPPORTED_TYPES = ANNO_TO_TYPES.values().stream().flatMap(List::stream)
-			.collect(toSet());
+	static final List<Class<?>> ALL_SUPPORTED_TYPES = ANNO_TO_TYPES.values().stream() //
+			.flatMap(List::stream) //
+			.distinct() //
+			.sorted(comparing(Class::getName)) //
+			.collect(toList());
 
 	static ToolProvider javap = ToolProvider.findFirst("javap")
 			.orElseThrow(() -> new RuntimeException("javap not found"));
@@ -72,11 +104,12 @@ class Jsr380DynamicClassTest {
 		return typeGen.flatMap(type -> {
 			@SuppressWarnings("unchecked")
 			List<Class<? extends Annotation>> applicable = ANNO_TO_TYPES.entrySet().stream()
+					.sorted(Map.Entry.comparingByKey(comparing(Class::getName)))
 					.filter(e -> e.getValue().stream().anyMatch(vt -> vt.isAssignableFrom(type) || vt.equals(type)))
 					.map(e -> (Class<? extends Annotation>) e.getKey()).collect(toList());
 
-			Arbitrary<Set<Class<? extends Annotation>>> annosGen = Arbitraries.of(applicable).set().ofMinSize(0)
-					.ofMaxSize(applicable.size());
+			Arbitrary<List<Class<? extends Annotation>>> annosGen = Arbitraries.of(applicable).list().uniqueElements()
+					.ofMinSize(0).ofMaxSize(applicable.size());
 
 			return annosGen.map(annos -> new ParameterConfig(type, annos));
 		});
@@ -102,9 +135,10 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-	private static Unloaded<Object> generateClass(List<ParameterConfig> params) throws NoSuchMethodException {
+	private static Unloaded<Object> generateClass(List<ParameterConfig> params, String random)
+			throws NoSuchMethodException {
 		Builder<Object> bb = new ByteBuddy().subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS)
-				.name("com.example.Generated_" + UUID.randomUUID().toString().replace("-", ""));
+				.name("com.example.Generated_" + random);
 
 		Initial<Object> ctor = bb.defineConstructor(Visibility.PUBLIC);
 
@@ -129,10 +163,13 @@ class Jsr380DynamicClassTest {
 	@Property(tries = 10)
 	void camLoadClassAreCallCOnstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
-		Class<?> generated = generateClass(params)
+		String random = UUID.randomUUID().toString().replace("-", "");
+		Class<?> generated = generateClass(params, random)
 				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
 				.getLoaded();
 		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
+
+		// TODO call constructor, verify exception caught (or none if none)
 
 		Class<?>[] paramTypes = ctor.getParameterTypes();
 		Annotation[][] paramAnnos = ctor.getParameterAnnotations();
@@ -142,9 +179,9 @@ class Jsr380DynamicClassTest {
 
 		for (int i = 0; i < paramTypes.length; i++) {
 			Class<?> paramType = paramTypes[i];
-			Set<Class<? extends Annotation>> expectedAnnos = params.get(i).getAnnotations();
+			List<Class<? extends Annotation>> expectedAnnos = params.get(i).getAnnotations();
 
-			Set<Class<?>> actualAnnos = Arrays.stream(paramAnnos[i]).map(Annotation::annotationType).collect(toSet());
+			List<Class<?>> actualAnnos = Arrays.stream(paramAnnos[i]).map(Annotation::annotationType).collect(toList());
 
 			// All expected annotations are attached
 			assert actualAnnos.containsAll(expectedAnnos);
@@ -159,46 +196,70 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-	@Property(tries = 10)
-	void writePlayBook(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
-		Unloaded<Object> dynamicType = generateClass(params);
-		File tempFile = File.createTempFile("bb-generated", ".class");
+	@Value
+	static class Storyboad {
+		List<ParameterConfig> params;
+		JavapResult javapResult;
+
+		@Override
+		public String toString() {
+			String br = "-".repeat(64);
+			FirstSectionScrubber scrubber = new FirstSectionScrubber();
+			return String.join("\n", //
+					List.of(br, //
+							"params annotations\n"
+									+ params.stream().map(Object::toString).map("- "::concat).collect(joining("\n")), //
+							br, //
+							"rc\n" + javapResult.getResult(), //
+							br, //
+							scrubber.scrub(javapResult.getStdout()), //
+							br, //
+							javapResult.getStderr(), //
+							br //
+					) //
+			);
+		}
+	}
+
+	private static final String FIXED_SEED = "-1787866974758305853";
+
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 3)
+	void storyboard(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
+		settings().allowMultipleVerifyCallsForThisClass();
+		settings().allowMultipleVerifyCallsForThisMethod();
+		String checksum = ParameterConfig.stableChecksum(params);
+		try (NamedEnvironment env = withParameters(checksum)) {
+			verify(new Storyboad(params, dumpClassByteCode(generateClass(params, checksum))));
+		}
+	}
+
+	@Value
+	static class JavapResult {
+		int result;
+		String stdout;
+		String stderr;
+	}
+
+	private static JavapResult dumpClassByteCode(Unloaded<Object> dynamicType) throws IOException {
+		File tempFile = File.createTempFile("bytebuddy-generated", ".class");
 		tempFile.deleteOnExit();
 		try {
 			Files.write(tempFile.toPath(), dynamicType.getBytes());
-			int result = javap.run(System.out, System.err, "-c", "-p", "-v", tempFile.getAbsolutePath());
-			System.out.println("Exit code: " + result);
+			try (ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+					ByteArrayOutputStream stderr = new ByteArrayOutputStream()) {
+				int result = javap.run(new PrintStream(stdout), new PrintStream(stderr), "-c", "-p", "-v",
+						tempFile.getAbsolutePath());
+				stdout.close();
+				stderr.close();
+				return new JavapResult(result, lines(stdout), lines(stderr));
+			}
 		} finally {
 			tempFile.delete();
 		}
-
-		Class<?> generated = dynamicType
-				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
-				.getLoaded();
-		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
-
-		Class<?>[] paramTypes = ctor.getParameterTypes();
-		Annotation[][] paramAnnos = ctor.getParameterAnnotations();
-
-		assert paramTypes.length == params.size()
-				: "paramTypes.length (" + paramTypes.length + ") != params.size() (" + params.size() + ")";
-
-		for (int i = 0; i < paramTypes.length; i++) {
-			Class<?> paramType = paramTypes[i];
-			Set<Class<? extends Annotation>> expectedAnnos = params.get(i).getAnnotations();
-
-			Set<Class<?>> actualAnnos = Arrays.stream(paramAnnos[i]).map(Annotation::annotationType).collect(toSet());
-
-			// All expected annotations are attached
-			assert actualAnnos.containsAll(expectedAnnos);
-
-			// All attached annotations are compatible with the parameter type
-			for (Class<?> ann : actualAnnos) {
-				List<Class<?>> allowed = ANNO_TO_TYPES.get(ann);
-				assert allowed != null : "allowed is null";
-				boolean valid = allowed.stream().anyMatch(t -> t.isAssignableFrom(paramType) || t.equals(paramType));
-				assert valid : "Annotation " + ann.getSimpleName() + " not valid for type " + paramType.getSimpleName();
-			}
-		}
 	}
+
+	static String lines(ByteArrayOutputStream stdout) {
+		return new String(stdout.toByteArray());
+	}
+
 }

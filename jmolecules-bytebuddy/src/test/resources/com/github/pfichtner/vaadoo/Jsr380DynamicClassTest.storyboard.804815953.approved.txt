@@ -1,0 +1,114 @@
+----------------------------------------------------------------
+params annotations
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.chrono.HijrahDate, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.PastOrPresent])
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.Year, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Null])
+- Jsr380DynamicClassTest.ParameterConfig(type=interface java.util.Map, annotations=[interface jakarta.validation.constraints.NotEmpty])
+- Jsr380DynamicClassTest.ParameterConfig(type=boolean, annotations=[interface jakarta.validation.constraints.AssertFalse])
+- Jsr380DynamicClassTest.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
+----------------------------------------------------------------
+rc
+0
+----------------------------------------------------------------
+public class com.example.Generated_804815953
+  minor version: 0
+  major version: 55
+  flags: (0x0021) ACC_PUBLIC, ACC_SUPER
+  this_class: #2                          // com/example/Generated_804815953
+  super_class: #4                         // java/lang/Object
+  interfaces: 0, fields: 0, methods: 1, attributes: 0
+Constant pool:
+   #1 = Utf8               com/example/Generated_804815953
+   #2 = Class              #1             // com/example/Generated_804815953
+   #3 = Utf8               java/lang/Object
+   #4 = Class              #3             // java/lang/Object
+   #5 = Utf8               <init>
+   #6 = Utf8               (Ljava/time/chrono/HijrahDate;Ljava/time/Year;Ljava/util/Map;Z[Ljava/lang/Object;)V
+   #7 = Utf8               arg0
+   #8 = Utf8               arg1
+   #9 = Utf8               arg2
+  #10 = Utf8               arg3
+  #11 = Utf8               arg4
+  #12 = Utf8               Ljakarta/validation/constraints/Past;
+  #13 = Utf8               groups
+  #14 = Utf8               message
+  #15 = Utf8               {jakarta.validation.constraints.Past.message}
+  #16 = Utf8               payload
+  #17 = Utf8               Ljakarta/validation/constraints/PastOrPresent;
+  #18 = Utf8               {jakarta.validation.constraints.PastOrPresent.message}
+  #19 = Utf8               Ljakarta/validation/constraints/Null;
+  #20 = Utf8               {jakarta.validation.constraints.Null.message}
+  #21 = Utf8               Ljakarta/validation/constraints/NotEmpty;
+  #22 = Utf8               {jakarta.validation.constraints.NotEmpty.message}
+  #23 = Utf8               Ljakarta/validation/constraints/AssertFalse;
+  #24 = Utf8               {jakarta.validation.constraints.AssertFalse.message}
+  #25 = Utf8               ()V
+  #26 = NameAndType        #5:#25         // "<init>":()V
+  #27 = Methodref          #4.#26         // java/lang/Object."<init>":()V
+  #28 = Utf8               Code
+  #29 = Utf8               RuntimeVisibleParameterAnnotations
+  #30 = Utf8               MethodParameters
+{
+  public com.example.Generated_804815953(java.time.chrono.HijrahDate, java.time.Year, java.util.Map, boolean, java.lang.Object[]);
+    descriptor: (Ljava/time/chrono/HijrahDate;Ljava/time/Year;Ljava/util/Map;Z[Ljava/lang/Object;)V
+    flags: (0x0001) ACC_PUBLIC
+    Code:
+      stack=2, locals=6, args_size=6
+         0: aload_0
+         1: dup
+         2: invokespecial #27                 // Method java/lang/Object."<init>":()V
+         5: pop
+         6: return
+    RuntimeVisibleParameterAnnotations:
+      parameter 0:
+        0: #12(#13=[],#14=s#15,#16=[])
+          jakarta.validation.constraints.Past(
+            groups=[]
+            message="{jakarta.validation.constraints.Past.message}"
+            payload=[]
+          )
+        1: #17(#13=[],#14=s#18,#16=[])
+          jakarta.validation.constraints.PastOrPresent(
+            groups=[]
+            message="{jakarta.validation.constraints.PastOrPresent.message}"
+            payload=[]
+          )
+      parameter 1:
+        0: #17(#13=[],#14=s#18,#16=[])
+          jakarta.validation.constraints.PastOrPresent(
+            groups=[]
+            message="{jakarta.validation.constraints.PastOrPresent.message}"
+            payload=[]
+          )
+        1: #19(#13=[],#14=s#20,#16=[])
+          jakarta.validation.constraints.Null(
+            groups=[]
+            message="{jakarta.validation.constraints.Null.message}"
+            payload=[]
+          )
+      parameter 2:
+        0: #21(#13=[],#14=s#22,#16=[])
+          jakarta.validation.constraints.NotEmpty(
+            groups=[]
+            message="{jakarta.validation.constraints.NotEmpty.message}"
+            payload=[]
+          )
+      parameter 3:
+        0: #23(#13=[],#14=s#24,#16=[])
+          jakarta.validation.constraints.AssertFalse(
+            groups=[]
+            message="{jakarta.validation.constraints.AssertFalse.message}"
+            payload=[]
+          )
+      parameter 4:
+    MethodParameters:
+      Name                           Flags
+      arg0
+      arg1
+      arg2
+      arg3
+      arg4
+}
+
+----------------------------------------------------------------
+
+----------------------------------------------------------------

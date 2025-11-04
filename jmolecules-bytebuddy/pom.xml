@@ -42,7 +42,11 @@
 			<artifactId>jqwik</artifactId>
 			<version>1.9.3</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.approvaltests</groupId>
+			<artifactId>approvaltests</artifactId>
+			<version>25.6.0</version>
+		</dependency>
 	</dependencies>
 
 </project>
