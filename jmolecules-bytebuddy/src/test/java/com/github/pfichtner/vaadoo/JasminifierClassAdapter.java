@@ -67,7 +67,7 @@ import org.objectweb.asm.util.Printer;
  * visits in Jasmin assembler format. This class visitor can be used alone (see
  * the {@link #main main} method) to disassemble a class. It can also be used in
  * the middle of class visitor chain to trace the class that is visited at a
- * given point in this chain. This may be uselful for debugging purposes.
+ * given point in this chain. This may be useful for debugging purposes.
  * <p>
  * The trace printed when visiting the <tt>Hello</tt> class is the following:
  * <p>
@@ -232,11 +232,7 @@ public class JasminifierClassAdapter extends ClassVisitor {
 		this.pw.print(' ');
 		this.className = cn.name;
 		this.pw.println(cn.name);
-		if (cn.superName == null) { // TODO Jasmin bug workaround
-			println(".super ", "java/lang/Object");
-		} else {
-			println(".super ", cn.superName);
-		}
+		println(".super ", cn.superName == null ? "java/lang/Object" : cn.superName);
 		for (int i = 0; i < cn.interfaces.size(); ++i) {
 			println(".implements ", (String) cn.interfaces.get(i));
 		}
