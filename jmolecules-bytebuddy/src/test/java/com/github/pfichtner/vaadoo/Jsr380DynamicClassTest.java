@@ -9,15 +9,15 @@ import static net.jqwik.api.ShrinkingMode.OFF;
 import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.Approvals.verify;
 import static org.approvaltests.namer.NamerFactory.withParameters;
+import static org.objectweb.asm.ClassReader.EXPAND_FRAMES;
+import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +26,7 @@ import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
 import org.approvaltests.namer.NamedEnvironment;
+import org.objectweb.asm.ClassReader;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
@@ -199,22 +200,17 @@ class Jsr380DynamicClassTest {
 	@Value
 	static class Storyboad {
 		List<ParameterConfig> params;
-		JavapResult javapResult;
+		String jasmin;
 
 		@Override
 		public String toString() {
 			String br = "-".repeat(64);
-			FirstSectionScrubber scrubber = new FirstSectionScrubber();
 			return String.join("\n", //
 					List.of(br, //
 							"params annotations\n"
 									+ params.stream().map(Object::toString).map("- "::concat).collect(joining("\n")), //
 							br, //
-							"rc\n" + javapResult.getResult(), //
-							br, //
-							scrubber.scrub(javapResult.getStdout()), //
-							br, //
-							javapResult.getStderr(), //
+							jasmin, //
 							br //
 					) //
 			);
@@ -229,33 +225,21 @@ class Jsr380DynamicClassTest {
 		settings().allowMultipleVerifyCallsForThisMethod();
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			verify(new Storyboad(params, dumpClassByteCode(generateClass(params, checksum))));
+			verify(new Storyboad(params, toJasmin(generateClass(params, checksum))));
 		}
 	}
 
-	@Value
-	static class JavapResult {
-		int result;
-		String stdout;
-		String stderr;
+	private static String toJasmin(byte[] bytes) throws IOException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		try (PrintWriter pw = new PrintWriter(os)) {
+			new ClassReader(bytes).accept(new JasminifierClassAdapter(pw, null).setSortAnnotationValues(true),
+					SKIP_DEBUG | EXPAND_FRAMES);
+		}
+		return os.toString();
 	}
 
-	private static JavapResult dumpClassByteCode(Unloaded<Object> dynamicType) throws IOException {
-		File tempFile = File.createTempFile("bytebuddy-generated", ".class");
-		tempFile.deleteOnExit();
-		try {
-			Files.write(tempFile.toPath(), dynamicType.getBytes());
-			try (ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-					ByteArrayOutputStream stderr = new ByteArrayOutputStream()) {
-				int result = javap.run(new PrintStream(stdout), new PrintStream(stderr), "-c", "-p", "-v",
-						tempFile.getAbsolutePath());
-				stdout.close();
-				stderr.close();
-				return new JavapResult(result, lines(stdout), lines(stderr));
-			}
-		} finally {
-			tempFile.delete();
-		}
+	private static String toJasmin(Unloaded<Object> dynamicType) throws IOException {
+		return toJasmin(dynamicType.getBytes());
 	}
 
 	static String lines(ByteArrayOutputStream stdout) {

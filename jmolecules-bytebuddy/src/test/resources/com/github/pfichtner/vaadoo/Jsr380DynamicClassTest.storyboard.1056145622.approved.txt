@@ -2,99 +2,51 @@
 params annotations
 - Jsr380DynamicClassTest.ParameterConfig(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.FutureOrPresent, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Past])
 ----------------------------------------------------------------
-rc
-0
-----------------------------------------------------------------
-public class com.example.Generated_1056145622
-  minor version: 0
-  major version: 55
-  flags: (0x0021) ACC_PUBLIC, ACC_SUPER
-  this_class: #2                          // com/example/Generated_1056145622
-  super_class: #4                         // java/lang/Object
-  interfaces: 0, fields: 0, methods: 1, attributes: 0
-Constant pool:
-   #1 = Utf8               com/example/Generated_1056145622
-   #2 = Class              #1             // com/example/Generated_1056145622
-   #3 = Utf8               java/lang/Object
-   #4 = Class              #3             // java/lang/Object
-   #5 = Utf8               <init>
-   #6 = Utf8               (Ljava/time/chrono/JapaneseDate;)V
-   #7 = Utf8               arg0
-   #8 = Utf8               Ljakarta/validation/constraints/FutureOrPresent;
-   #9 = Utf8               groups
-  #10 = Utf8               message
-  #11 = Utf8               {jakarta.validation.constraints.FutureOrPresent.message}
-  #12 = Utf8               payload
-  #13 = Utf8               Ljakarta/validation/constraints/PastOrPresent;
-  #14 = Utf8               {jakarta.validation.constraints.PastOrPresent.message}
-  #15 = Utf8               Ljakarta/validation/constraints/Future;
-  #16 = Utf8               {jakarta.validation.constraints.Future.message}
-  #17 = Utf8               Ljakarta/validation/constraints/Null;
-  #18 = Utf8               {jakarta.validation.constraints.Null.message}
-  #19 = Utf8               Ljakarta/validation/constraints/NotNull;
-  #20 = Utf8               {jakarta.validation.constraints.NotNull.message}
-  #21 = Utf8               Ljakarta/validation/constraints/Past;
-  #22 = Utf8               {jakarta.validation.constraints.Past.message}
-  #23 = Utf8               ()V
-  #24 = NameAndType        #5:#23         // "<init>":()V
-  #25 = Methodref          #4.#24         // java/lang/Object."<init>":()V
-  #26 = Utf8               Code
-  #27 = Utf8               RuntimeVisibleParameterAnnotations
-  #28 = Utf8               MethodParameters
-{
-  public com.example.Generated_1056145622(java.time.chrono.JapaneseDate);
-    descriptor: (Ljava/time/chrono/JapaneseDate;)V
-    flags: (0x0001) ACC_PUBLIC
-    Code:
-      stack=2, locals=2, args_size=2
-         0: aload_0
-         1: dup
-         2: invokespecial #25                 // Method java/lang/Object."<init>":()V
-         5: pop
-         6: return
-    RuntimeVisibleParameterAnnotations:
-      parameter 0:
-        0: #8(#9=[],#10=s#11,#12=[])
-          jakarta.validation.constraints.FutureOrPresent(
-            groups=[]
-            message="{jakarta.validation.constraints.FutureOrPresent.message}"
-            payload=[]
-          )
-        1: #13(#9=[],#10=s#14,#12=[])
-          jakarta.validation.constraints.PastOrPresent(
-            groups=[]
-            message="{jakarta.validation.constraints.PastOrPresent.message}"
-            payload=[]
-          )
-        2: #15(#9=[],#10=s#16,#12=[])
-          jakarta.validation.constraints.Future(
-            groups=[]
-            message="{jakarta.validation.constraints.Future.message}"
-            payload=[]
-          )
-        3: #17(#9=[],#10=s#18,#12=[])
-          jakarta.validation.constraints.Null(
-            groups=[]
-            message="{jakarta.validation.constraints.Null.message}"
-            payload=[]
-          )
-        4: #19(#9=[],#10=s#20,#12=[])
-          jakarta.validation.constraints.NotNull(
-            groups=[]
-            message="{jakarta.validation.constraints.NotNull.message}"
-            payload=[]
-          )
-        5: #21(#9=[],#10=s#22,#12=[])
-          jakarta.validation.constraints.Past(
-            groups=[]
-            message="{jakarta.validation.constraints.Past.message}"
-            payload=[]
-          )
-    MethodParameters:
-      Name                           Flags
-      arg0
-}
+.bytecode 55.0
+.class public synchronized com/example/Generated_1056145622
+.super java/lang/Object
 
-----------------------------------------------------------------
+.method public <init>(Ljava/time/chrono/JapaneseDate;)V
+.annotation visible Ljakarta/validation/constraints/FutureOrPresent;
+groups ; empty array annotation value
+message s = "{jakarta.validation.constraints.FutureOrPresent.message}"
+payload ; empty array annotation value
+.end annotation
+.annotation visible Ljakarta/validation/constraints/PastOrPresent;
+groups ; empty array annotation value
+message s = "{jakarta.validation.constraints.PastOrPresent.message}"
+payload ; empty array annotation value
+.end annotation
+.annotation visible Ljakarta/validation/constraints/Future;
+groups ; empty array annotation value
+message s = "{jakarta.validation.constraints.Future.message}"
+payload ; empty array annotation value
+.end annotation
+.annotation visible Ljakarta/validation/constraints/Null;
+groups ; empty array annotation value
+message s = "{jakarta.validation.constraints.Null.message}"
+payload ; empty array annotation value
+.end annotation
+.annotation visible Ljakarta/validation/constraints/NotNull;
+groups ; empty array annotation value
+message s = "{jakarta.validation.constraints.NotNull.message}"
+payload ; empty array annotation value
+.end annotation
+.annotation visible Ljakarta/validation/constraints/Past;
+groups ; empty array annotation value
+message s = "{jakarta.validation.constraints.Past.message}"
+payload ; empty array annotation value
+.end annotation
+aload 0
+dup
+invokespecial java/lang/Object/<init>()V
+pop
+return
+.limit locals 2
+.limit stack 2
+.end method
+.dep java/lang/Object;<init>
+.provide com/example/Generated_1056145622;<init>
+.desc ()V
 
 ----------------------------------------------------------------
