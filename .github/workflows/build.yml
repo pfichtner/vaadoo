@@ -21,7 +21,7 @@ jobs:
       run: echo "version=$(cat .java-version)" >> $GITHUB_OUTPUT
     
     - name: Set up JDK ${{ steps.read-version.outputs.version }}
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: ${{ steps.read-version.outputs.version }}
