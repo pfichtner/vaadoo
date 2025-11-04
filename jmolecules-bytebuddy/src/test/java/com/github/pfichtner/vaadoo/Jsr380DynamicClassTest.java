@@ -42,6 +42,7 @@ import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 
+// TODO create arguments that are compatible, e.g. List, Set for Collection, String[], Integer[], Foo[] for Object[], e.g. 
 class Jsr380DynamicClassTest {
 
 	@Value
@@ -68,7 +69,6 @@ class Jsr380DynamicClassTest {
 
 	private Arbitrary<ParameterConfig> parameterConfigGen() {
 		Arbitrary<Class<?>> typeGen = Arbitraries.of(ALL_SUPPORTED_TYPES);
-
 		return typeGen.flatMap(type -> {
 			@SuppressWarnings("unchecked")
 			List<Class<? extends Annotation>> applicable = ANNO_TO_TYPES.entrySet().stream()
@@ -127,8 +127,40 @@ class Jsr380DynamicClassTest {
 	}
 
 	@Property(tries = 10)
-	void generated_class_has_expected_annotations(@ForAll("constructorParameters") List<ParameterConfig> params)
+	void camLoadClassAreCallCOnstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
+		Class<?> generated = generateClass(params)
+				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+				.getLoaded();
+		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
+
+		Class<?>[] paramTypes = ctor.getParameterTypes();
+		Annotation[][] paramAnnos = ctor.getParameterAnnotations();
+
+		assert paramTypes.length == params.size()
+				: "paramTypes.length (" + paramTypes.length + ") != params.size() (" + params.size() + ")";
+
+		for (int i = 0; i < paramTypes.length; i++) {
+			Class<?> paramType = paramTypes[i];
+			Set<Class<? extends Annotation>> expectedAnnos = params.get(i).getAnnotations();
+
+			Set<Class<?>> actualAnnos = Arrays.stream(paramAnnos[i]).map(Annotation::annotationType).collect(toSet());
+
+			// All expected annotations are attached
+			assert actualAnnos.containsAll(expectedAnnos);
+
+			// All attached annotations are compatible with the parameter type
+			for (Class<?> ann : actualAnnos) {
+				List<Class<?>> allowed = ANNO_TO_TYPES.get(ann);
+				assert allowed != null : "allowed is null";
+				boolean valid = allowed.stream().anyMatch(t -> t.isAssignableFrom(paramType) || t.equals(paramType));
+				assert valid : "Annotation " + ann.getSimpleName() + " not valid for type " + paramType.getSimpleName();
+			}
+		}
+	}
+
+	@Property(tries = 10)
+	void writePlayBook(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
 		Unloaded<Object> dynamicType = generateClass(params);
 		File tempFile = File.createTempFile("bb-generated", ".class");
 		tempFile.deleteOnExit();
