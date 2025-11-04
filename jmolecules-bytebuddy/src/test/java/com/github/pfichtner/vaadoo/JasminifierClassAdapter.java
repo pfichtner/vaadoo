@@ -1,5 +1,6 @@
 package com.github.pfichtner.vaadoo;
 
+import static java.util.Comparator.comparing;
 import static org.objectweb.asm.Opcodes.ASM9;
 
 /***
@@ -34,7 +35,6 @@ import static org.objectweb.asm.Opcodes.ASM9;
 
 import java.io.FileInputStream;
 import java.io.PrintWriter;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -733,22 +734,16 @@ public class JasminifierClassAdapter extends ClassVisitor {
 			this.pw.print(n.desc);
 		}
 		this.pw.println();
+		Stream<Entry<Object, Object>> entries = IntStream.range(0, n.values.size() / 2)
+				.mapToObj(i -> Map.entry(n.values.get(2 * i), n.values.get(2 * i + 1)));
 		if (sortAnnotationValues) {
-			IntStream.range(0, n.values.size() / 2)
-					.mapToObj(i -> Map.<Object, Object>entry(n.values.get(2 * i), n.values.get(2 * i + 1)))
-					.sorted(Comparator.comparing(Map.Entry::getKey, Comparator.comparing(Object::toString)))
-					.forEach(m -> {
-						this.pw.print(m.getKey());
-						this.pw.print(' ');
-						printAnnotationValue(m.getValue());
-					});
-		} else {
-			for (int i = 0; i < n.values.size(); i += 2) {
-				this.pw.print(n.values.get(i));
-				this.pw.print(' ');
-				printAnnotationValue(n.values.get(i + 1));
-			}
+			entries = entries.sorted(comparing(Map.Entry::getKey, comparing(Object::toString)));
 		}
+		entries.forEach(m -> {
+			this.pw.print(m.getKey());
+			this.pw.print(' ');
+			printAnnotationValue(m.getValue());
+		});
 		this.pw.println(".end annotation");
 	}
 
