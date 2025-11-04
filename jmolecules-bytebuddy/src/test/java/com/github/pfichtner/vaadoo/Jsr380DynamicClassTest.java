@@ -1,5 +1,6 @@
 package com.github.pfichtner.vaadoo;
 
+import static java.lang.Math.abs;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
@@ -62,16 +63,13 @@ class Jsr380DynamicClassTest {
 		List<Class<? extends Annotation>> annotations;
 
 		public static String stableChecksum(List<ParameterConfig> configs) {
-			return sha256(configs.stream().map(ParameterConfig::asString).collect(joining("|")));
+			String stringValue = configs.stream().map(ParameterConfig::asString).collect(joining("|"));
+			return String.valueOf(abs(stringValue.hashCode()));
 		}
 
 		private static String asString(ParameterConfig config) {
 			return config.type.getName() + ":"
 					+ config.annotations.stream().map(Class::getName).sorted().collect(joining(","));
-		}
-
-		private static String sha256(String input) {
-			return String.valueOf(Math.abs(input.hashCode()));
 		}
 
 	}
