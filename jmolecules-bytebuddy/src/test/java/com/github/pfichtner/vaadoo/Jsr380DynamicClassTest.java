@@ -227,6 +227,10 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
+	private static String toJasmin(Unloaded<Object> dynamicType) throws IOException {
+		return toJasmin(dynamicType.getBytes());
+	}
+
 	private static String toJasmin(byte[] bytes) throws IOException {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		try (PrintWriter pw = new PrintWriter(os)) {
@@ -234,14 +238,6 @@ class Jsr380DynamicClassTest {
 					SKIP_DEBUG | EXPAND_FRAMES);
 		}
 		return os.toString();
-	}
-
-	private static String toJasmin(Unloaded<Object> dynamicType) throws IOException {
-		return toJasmin(dynamicType.getBytes());
-	}
-
-	static String lines(ByteArrayOutputStream stdout) {
-		return new String(stdout.toByteArray());
 	}
 
 }
