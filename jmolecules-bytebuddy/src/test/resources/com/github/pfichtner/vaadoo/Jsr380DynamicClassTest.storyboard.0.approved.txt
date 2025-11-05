@@ -5,18 +5,41 @@ params annotations
 .bytecode 55.0
 .class public synchronized com/example/Generated_0
 .super java/lang/Object
+.implements org/jmolecules/ddd/types/ValueObject
 
 .method public <init>()V
+invokestatic com/example/Generated_0/validate()V
+aload 0
+aconst_null
+invokespecial com/example/Generated_0/<init>(Lcom/example/Generated_0$auxiliary$[AUXILIARY_1];)V
+return
+.limit locals 1
+.limit stack 2
+.end method
+.dep com/example/Generated_0;<init>
+.dep com/example/Generated_0;validate
+.provide com/example/Generated_0;<init>
+.desc ()V
+.desc (Lcom/example/Generated_0$auxiliary$[AUXILIARY_1];)V
+
+.method private synthetic <init>(Lcom/example/Generated_0$auxiliary$[AUXILIARY_1];)V
 aload 0
 dup
 invokespecial java/lang/Object/<init>()V
 pop
 return
-.limit locals 1
+.limit locals 2
 .limit stack 2
 .end method
 .dep java/lang/Object;<init>
 .provide com/example/Generated_0;<init>
 .desc ()V
+
+.method private static validate()V
+return
+.limit locals 0
+.limit stack 0
+.end method
+.provide com/example/Generated_0;validate
 
 ----------------------------------------------------------------

@@ -5,6 +5,7 @@ params annotations
 .bytecode 55.0
 .class public synchronized com/example/Generated_1056145622
 .super java/lang/Object
+.implements org/jmolecules/ddd/types/ValueObject
 
 .method public <init>(Ljava/time/chrono/JapaneseDate;)V
 .annotation visible Ljakarta/validation/constraints/FutureOrPresent;
@@ -37,16 +38,130 @@ groups ; empty array annotation value
 message s = "{jakarta.validation.constraints.Past.message}"
 payload ; empty array annotation value
 .end annotation
+aload 1
+invokestatic com/example/Generated_1056145622/validate(Ljava/time/chrono/JapaneseDate;)V
+aload 0
+aload 1
+aconst_null
+invokespecial com/example/Generated_1056145622/<init>(Ljava/time/chrono/JapaneseDate;Lcom/example/Generated_1056145622$auxiliary$[AUXILIARY_1];)V
+return
+.limit locals 2
+.limit stack 3
+.end method
+.dep com/example/Generated_1056145622;<init>
+.dep com/example/Generated_1056145622;validate
+.provide com/example/Generated_1056145622;<init>
+.desc (Ljava/time/chrono/JapaneseDate;)V
+.desc (Ljava/time/chrono/JapaneseDate;Lcom/example/Generated_1056145622$auxiliary$[AUXILIARY_1];)V
+
+.method private synthetic <init>(Ljava/time/chrono/JapaneseDate;Lcom/example/Generated_1056145622$auxiliary$[AUXILIARY_1];)V
 aload 0
 dup
 invokespecial java/lang/Object/<init>()V
 pop
 return
-.limit locals 2
+.limit locals 3
 .limit stack 2
 .end method
 .dep java/lang/Object;<init>
 .provide com/example/Generated_1056145622;<init>
 .desc ()V
+
+.method private static validate(Ljava/time/chrono/JapaneseDate;)V
+aload 0
+ifnull L0
+aload 0
+invokestatic java/time/chrono/JapaneseDate/now()Ljava/time/chrono/JapaneseDate;
+invokevirtual java/time/chrono/JapaneseDate/isBefore(Ljava/time/chrono/ChronoLocalDate;)Z
+ifeq L0
+new java/lang/IllegalArgumentException
+dup
+ldc "arg0 must be a date in the present or in the future"
+invokespecial java/lang/IllegalArgumentException/<init>(Ljava/lang/String;)V
+athrow
+L0:
+.stack
+locals Object java/time/chrono/JapaneseDate
+.end stack
+aload 0
+ifnull L1
+aload 0
+invokestatic java/time/chrono/JapaneseDate/now()Ljava/time/chrono/JapaneseDate;
+invokevirtual java/time/chrono/JapaneseDate/isAfter(Ljava/time/chrono/ChronoLocalDate;)Z
+ifeq L1
+new java/lang/IllegalArgumentException
+dup
+ldc "arg0 must be a date in the past or in the present"
+invokespecial java/lang/IllegalArgumentException/<init>(Ljava/lang/String;)V
+athrow
+L1:
+.stack
+locals Object java/time/chrono/JapaneseDate
+.end stack
+aload 0
+ifnull L2
+aload 0
+invokestatic java/time/chrono/JapaneseDate/now()Ljava/time/chrono/JapaneseDate;
+invokevirtual java/time/chrono/JapaneseDate/isAfter(Ljava/time/chrono/ChronoLocalDate;)Z
+ifne L2
+new java/lang/IllegalArgumentException
+dup
+ldc "arg0 must be a future date"
+invokespecial java/lang/IllegalArgumentException/<init>(Ljava/lang/String;)V
+athrow
+L2:
+.stack
+locals Object java/time/chrono/JapaneseDate
+.end stack
+aload 0
+ifnull L3
+new java/lang/IllegalArgumentException
+dup
+ldc "arg0 must be null"
+invokespecial java/lang/IllegalArgumentException/<init>(Ljava/lang/String;)V
+athrow
+L3:
+.stack
+locals Object java/time/chrono/JapaneseDate
+.end stack
+aload 0
+ifnonnull L4
+new java/lang/NullPointerException
+dup
+ldc "arg0 must not be null"
+invokespecial java/lang/NullPointerException/<init>(Ljava/lang/String;)V
+athrow
+L4:
+.stack
+locals Object java/time/chrono/JapaneseDate
+.end stack
+aload 0
+ifnull L5
+aload 0
+invokestatic java/time/chrono/JapaneseDate/now()Ljava/time/chrono/JapaneseDate;
+invokevirtual java/time/chrono/JapaneseDate/isBefore(Ljava/time/chrono/ChronoLocalDate;)Z
+ifne L5
+new java/lang/IllegalArgumentException
+dup
+ldc "arg0 must be a past date"
+invokespecial java/lang/IllegalArgumentException/<init>(Ljava/lang/String;)V
+athrow
+L5:
+.stack
+locals Object java/time/chrono/JapaneseDate
+.end stack
+return
+.limit locals 1
+.limit stack 3
+.end method
+.dep java/lang/NullPointerException;<init>
+.dep java/time/chrono/JapaneseDate;isBefore
+.dep java/time/chrono/JapaneseDate;now
+.dep java/lang/IllegalArgumentException;<init>
+.dep java/time/chrono/JapaneseDate;isAfter
+.provide com/example/Generated_1056145622;validate
+.desc ()Ljava/time/chrono/JapaneseDate;
+.desc (Ljava/lang/String;)V
+.desc (Ljava/time/chrono/ChronoLocalDate;)Z
 
 ----------------------------------------------------------------

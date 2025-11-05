@@ -14,6 +14,7 @@ import static org.objectweb.asm.ClassReader.EXPAND_FRAMES;
 import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
@@ -26,10 +27,14 @@ import java.util.UUID;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
+import org.approvaltests.core.Options;
 import org.approvaltests.namer.NamedEnvironment;
+import org.approvaltests.scrubbers.RegExScrubber;
+import org.lambda.functions.Function1;
 import org.objectweb.asm.ClassReader;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -39,8 +44,12 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import lombok.Value;
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.build.Plugin.WithPreprocessor;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.dynamic.ClassFileLocator;
+import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Annotatable;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Initial;
@@ -91,8 +100,6 @@ class Jsr380DynamicClassTest {
 	static ToolProvider javap = ToolProvider.findFirst("javap")
 			.orElseThrow(() -> new RuntimeException("javap not found"));
 
-	// ------------------------ jqwik generator ------------------------
-
 	@Provide
 	Arbitrary<List<ParameterConfig>> constructorParameters() {
 		return parameterConfigGen().list().ofMinSize(0).ofMaxSize(5);
@@ -134,20 +141,39 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
+	private Unloaded<Object> transformedClass(File outputFolder, DynamicType unloaded) throws Exception {
+		try (WithPreprocessor plugin = new JMoleculesPlugin(outputFolder)) {
+			TypeDescription typeDescription = unloaded.getTypeDescription();
+			ClassFileLocator locator = ClassFileLocator.Simple.of(typeDescription.getName(), unloaded.getBytes());
+			plugin.onPreprocess(typeDescription, locator);
+
+			var byteBuddy = new ByteBuddy();
+			var builder = byteBuddy.rebase(unloaded.getTypeDescription(), locator);
+			var transformedBuilder = plugin.apply(builder, typeDescription, locator);
+
+			@SuppressWarnings("unchecked")
+			DynamicType.Unloaded<Object> transformed = (DynamicType.Unloaded<Object>) transformedBuilder.make();
+			return transformed;
+		}
+	}
+
 	private static Unloaded<Object> generateClass(List<ParameterConfig> params, String random)
 			throws NoSuchMethodException {
-		Builder<Object> bb = new ByteBuddy().subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS)
+		Builder<Object> bb = new ByteBuddy() //
+				.subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS) //
+				.implement(TypeDescription.ForLoadedType.of(org.jmolecules.ddd.types.ValueObject.class)) //
 				.name("com.example.Generated_" + random);
 
 		Initial<Object> ctor = bb.defineConstructor(Visibility.PUBLIC);
 
 		Annotatable<Object> paramDef = null;
 		for (int i = 0; i < params.size(); i++) {
-			ParameterConfig p = params.get(i);
-			paramDef = (paramDef == null ? ctor : paramDef).withParameter((Class<?>) p.getType(), "arg" + i);
+			ParameterConfig parameterConfig = params.get(i);
+			paramDef = (paramDef == null ? ctor : paramDef).withParameter((Class<?>) parameterConfig.getType(),
+					"arg" + i);
 
-			for (Class<? extends Annotation> ann : p.getAnnotations()) {
-				AnnotationDescription desc = buildAnnotation(ann, p.getType());
+			for (Class<? extends Annotation> ann : parameterConfig.getAnnotations()) {
+				AnnotationDescription desc = buildAnnotation(ann, parameterConfig.getType());
 				if (desc != null) {
 					paramDef = paramDef.annotateParameter(desc);
 				}
@@ -223,7 +249,12 @@ class Jsr380DynamicClassTest {
 		settings().allowMultipleVerifyCallsForThisMethod();
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			verify(new Storyboad(params, toJasmin(generateClass(params, checksum))));
+			Options o = new Options().withScrubber(new RegExScrubber("\\$auxiliary\\$.{8}",
+					(Function1<Integer, String>) i -> "$auxiliary$[AUXILIARY_" + i + "]"));
+			verify(new Storyboad(params,
+					toJasmin(
+							transformedClass(new File("jmolecules-bytebuddy-tests"), generateClass(params, checksum)))),
+					o);
 		}
 	}
 
@@ -234,7 +265,7 @@ class Jsr380DynamicClassTest {
 	private static String toJasmin(byte[] bytes) throws IOException {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		try (PrintWriter pw = new PrintWriter(os)) {
-			new ClassReader(bytes).accept(new JasminifierClassAdapter(pw, null).setSortAnnotationValues(true),
+			new ClassReader(bytes).accept(new JasminifierClassAdapter(pw, null).deterministic(),
 					SKIP_DEBUG | EXPAND_FRAMES);
 		}
 		return os.toString();
