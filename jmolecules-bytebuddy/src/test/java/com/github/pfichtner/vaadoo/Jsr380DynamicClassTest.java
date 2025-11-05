@@ -220,7 +220,7 @@ class Jsr380DynamicClassTest {
 	}
 
 	@Value
-	static class Storyboad {
+	static class Storyboard {
 		List<ParameterConfig> params;
 		String source;
 		String transformed;
@@ -257,7 +257,7 @@ class Jsr380DynamicClassTest {
 			Options options = new Options().withScrubber(new MultiScrubber(List.of(scrubber1, scrubber2)));
 			Unloaded<Object> generatedClass = generateClass(params, checksum);
 			Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
-			verify(new Storyboad(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
+			verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
 					options);
 		}
 	}
