@@ -130,6 +130,7 @@ public class JasminifierClassAdapter extends ClassVisitor {
 	protected final Map<Label, String> labelNames = new HashMap<>();
 	private String className;
 	private boolean sortAnnotationValues;
+	private boolean sortDescriptors;
 
 	private static final Map<Integer, String> accessMapping = createAccessMap();
 
@@ -175,8 +176,17 @@ public class JasminifierClassAdapter extends ClassVisitor {
 		}
 	}
 
+	public JasminifierClassAdapter deterministic() {
+		return setSortAnnotationValues(true).setSortDescriptors(true);
+	}
+
 	public JasminifierClassAdapter setSortAnnotationValues(boolean sortAnnotationValues) {
 		this.sortAnnotationValues = sortAnnotationValues;
+		return this;
+	}
+
+	public JasminifierClassAdapter setSortDescriptors(boolean sortDescriptors) {
+		this.sortDescriptors = sortDescriptors;
 		return this;
 	}
 
@@ -636,10 +646,12 @@ public class JasminifierClassAdapter extends ClassVisitor {
 
 		}
 
-		for (String el : this.descriptors) {
-			this.pw.println(".desc " + el);
-
-		}
+		(sortDescriptors 
+				? this.descriptors.stream().sorted() 
+						: this.descriptors.stream()) 
+		.forEach(d -> {
+			this.pw.println(".desc " + d);
+		});
 		this.dependencies.clear();
 		this.provides.clear();
 		this.descriptors.clear();
