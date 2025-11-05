@@ -77,11 +77,11 @@ class VaadooImplementor {
 			String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
 
 			// Add static validate method
-			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, parameters, log));
+			type = type.mapBuilder(t -> addStaticValidateMethod(t, validateMethodName, parameters, log));
 
 			// Inject call into this constructor
-			type = type
-					.mapBuilder(t -> injectValidationIntoConstructor(t, constructor, validateMethodName, parameters));
+			type = type.mapBuilder(
+					t -> injectCallToValidateIntoConstructor(t, constructor, validateMethodName, parameters));
 		}
 
 		return type;
@@ -97,7 +97,7 @@ class VaadooImplementor {
 				.get(); // safe because stream is infinite, will always find a free name
 	}
 
-	private Builder<?> addStaticValidationMethod(Builder<?> builder, String validateMethodName, Parameters parameters,
+	private Builder<?> addStaticValidateMethod(Builder<?> builder, String validateMethodName, Parameters parameters,
 			Log log) {
 		log.info("Implementing static validate method #{}.", validateMethodName);
 		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
@@ -111,8 +111,8 @@ class VaadooImplementor {
 		return builder.visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(flags));
 	}
 
-	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
-			String validateMethodName, Parameters parameters) {
+	private Builder<?> injectCallToValidateIntoConstructor(Builder<?> builder,
+			MethodDescription.InDefinedShape constructor, String validateMethodName, Parameters parameters) {
 		return builder.constructor(is(constructor)) //
 				.intercept( //
 						MethodCall.invoke(named(validateMethodName).and(takesArguments(parameters.types()))) //
