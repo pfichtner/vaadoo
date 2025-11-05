@@ -9,6 +9,30 @@ params annotations
 Analysing type com.example.Generated_804815953
 /*
  * Decompiled with CFR 0.152.
+ */
+package com.example;
+
+import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import java.time.Year;
+import java.time.chrono.HijrahDate;
+import java.util.Map;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_804815953
+implements ValueObject {
+    public Generated_804815953(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) HijrahDate hijrahDate, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) Year year, @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) Map map, @AssertFalse(groups={}, message="{jakarta.validation.constraints.AssertFalse.message}", payload={}) boolean bl, Object[] objectArray) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_804815953
+/*
+ * Decompiled with CFR 0.152.
  * 
  * Could not load the following classes:
  *  com.example.Generated_804815953$auxiliary$[AUX2_1]

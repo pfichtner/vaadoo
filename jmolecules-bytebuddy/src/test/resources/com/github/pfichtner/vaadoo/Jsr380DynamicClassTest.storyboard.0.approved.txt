@@ -5,6 +5,20 @@ params annotations
 Analysing type com.example.Generated_0
 /*
  * Decompiled with CFR 0.152.
+ */
+package com.example;
+
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_0
+implements ValueObject {
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_0
+/*
+ * Decompiled with CFR 0.152.
  * 
  * Could not load the following classes:
  *  com.example.Generated_0$auxiliary$[AUX2_1]

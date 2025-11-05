@@ -222,7 +222,8 @@ class Jsr380DynamicClassTest {
 	@Value
 	static class Storyboad {
 		List<ParameterConfig> params;
-		String jasmin;
+		String source;
+		String transformed;
 
 		@Override
 		public String toString() {
@@ -232,7 +233,9 @@ class Jsr380DynamicClassTest {
 							"params annotations\n"
 									+ params.stream().map(Object::toString).map("- "::concat).collect(joining("\n")), //
 							br, //
-							jasmin, //
+							source, //
+							br, //
+							transformed, //
 							br //
 					) //
 			);
@@ -252,8 +255,10 @@ class Jsr380DynamicClassTest {
 			Scrubber scrubber2 = new RegExScrubber("\\$auxiliary\\$.{8}",
 					(Function1<Integer, String>) i -> format("$auxiliary$[AUX2_%d]", i));
 			Options options = new Options().withScrubber(new MultiScrubber(List.of(scrubber1, scrubber2)));
-			verify(new Storyboad(params,
-					decompile(transformedClass(dummyRoot(), generateClass(params, checksum)).getBytes())), options);
+			Unloaded<Object> generatedClass = generateClass(params, checksum);
+			Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
+			verify(new Storyboad(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
+					options);
 		}
 	}
 
