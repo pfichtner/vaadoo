@@ -18,6 +18,7 @@ package com.github.pfichtner.vaadoo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -32,6 +33,8 @@ import com.github.pfichtner.vaadoo.testclasses.AnnotationDoesNotSupportType;
 import com.github.pfichtner.vaadoo.testclasses.ClassWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ClassWithNotNullAttribute;
 import com.github.pfichtner.vaadoo.testclasses.EmptyClass;
+import com.github.pfichtner.vaadoo.testclasses.TwoConstructorsValueObject;
+import com.github.pfichtner.vaadoo.testclasses.UselessValueObject;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
 
@@ -69,6 +72,29 @@ class JMoleculesVaadooPluginTests {
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
 				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
 						.hasMessage("someString must not be null"));
+	}
+
+	@Test
+	void valueObjectWithoutAttributes(@TempDir File outputFolder) throws Exception {
+		Class<?> transformedClass = transformedClass(UselessValueObject.class, outputFolder);
+		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor();
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance());
+	}
+
+	@Test
+	void valueObjectWithTwoConstructors(@TempDir File outputFolder) throws Exception {
+		Class<?> transformedClass = transformedClass(TwoConstructorsValueObject.class, outputFolder);
+		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor(String.class);
+		Constructor<?> stringBooleanArgConstructor = transformedClass.getDeclaredConstructor(String.class,
+				boolean.class);
+		assertSoftly(c -> {
+			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
+					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
+							.hasMessage("a must not be null"));
+			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance((String) null, true))
+					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
+							.hasMessage("a must not be null"));
+		});
 	}
 
 	@Test

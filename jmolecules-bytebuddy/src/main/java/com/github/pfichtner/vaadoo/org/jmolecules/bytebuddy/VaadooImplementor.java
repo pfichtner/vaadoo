@@ -27,6 +27,7 @@ import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 import static net.bytebuddy.jar.asm.Type.VOID_TYPE;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -45,7 +46,9 @@ import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
+import net.bytebuddy.description.method.ParameterList;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeList.Generic;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodCall;
@@ -54,6 +57,8 @@ import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.jar.asm.Type;
+import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatchers;
 
 class VaadooImplementor {
 
@@ -112,9 +117,13 @@ class VaadooImplementor {
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
 			String validateMethodName) {
 		return builder.constructor(is(constructor)) //
-				.intercept(MethodCall.invoke(named(validateMethodName)).withAllArguments().andThen( //
-						SuperMethodCall.INSTANCE //
-				));
+				.intercept( //
+						MethodCall
+								.invoke(named(validateMethodName)
+										.and(takesArguments(Parameters.of(constructor.getParameters()).types()))) //
+								.withAllArguments().andThen( //
+										SuperMethodCall.INSTANCE //
+								));
 	}
 
 	private static class StaticValidateAppender implements ByteCodeAppender {

@@ -40,6 +40,7 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
 /**
  * @author Oliver Drotbohm
  * @author Simon Zambrovski
+ * @author Peter Fichtner
  */
 @Slf4j
 public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
