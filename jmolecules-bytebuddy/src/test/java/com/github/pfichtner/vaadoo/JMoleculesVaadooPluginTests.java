@@ -15,6 +15,7 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -71,7 +72,7 @@ class JMoleculesVaadooPluginTests {
 		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
 				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
-						.hasMessage("someString must not be null"));
+						.hasMessage(notNull("someString")));
 	}
 
 	@Test
@@ -88,12 +89,11 @@ class JMoleculesVaadooPluginTests {
 		Constructor<?> stringBooleanArgConstructor = transformedClass.getDeclaredConstructor(String.class,
 				boolean.class);
 		assertSoftly(c -> {
-			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
-					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
-							.hasMessage("a must not be null"));
+			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null)).satisfies(
+					e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage(notNull("a")));
 			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance((String) null, true))
 					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
-							.hasMessage("a must not be null"));
+							.hasMessage(notNull("a")));
 		});
 	}
 
@@ -103,7 +103,7 @@ class JMoleculesVaadooPluginTests {
 		Constructor<?> constructor = transformedClass.getDeclaredConstructor(String.class);
 		constructor.newInstance("42");
 		assertThatException().isThrownBy(() -> constructor.newInstance("4")).satisfies(e -> assertThat(e.getCause())
-				.isInstanceOf(IllegalArgumentException.class).hasMessage("someTwoDigits must match \"\\d\\d\""));
+				.isInstanceOf(IllegalArgumentException.class).hasMessage(mustMatch("someTwoDigits", "\"\\d\\d\"")));
 
 	}
 
@@ -114,6 +114,14 @@ class JMoleculesVaadooPluginTests {
 						.hasMessage("Annotation " + "jakarta.validation.constraints.NotEmpty"
 								+ " on type java.lang.Integer not allowed, " + "allowed only on types: "
 								+ "[java.lang.CharSequence, java.util.Collection, java.util.Map, java.lang.Object[]]"));
+	}
+
+	static String notNull(String paramName) {
+		return format("%s must not be null", paramName);
+	}
+
+	static String mustMatch(String paramName, String regexp) {
+		return format("%s must match %s", paramName, regexp);
 	}
 
 	private Class<?> transformedClass(Class<?> clazz, File outputFolder) throws Exception {
