@@ -1,0 +1,91 @@
+----------------------------------------------------------------
+params annotations
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future])
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.LocalDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future])
+- Jsr380DynamicClassTest.ParameterConfig(type=short, annotations=[])
+- Jsr380DynamicClassTest.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.chrono.HijrahDate, annotations=[])
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.ZonedDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.chrono.HijrahDate, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.FutureOrPresent])
+----------------------------------------------------------------
+Analysing type com.example.Generated_909726943
+/*
+ * Decompiled with CFR 0.152.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.time.chrono.HijrahDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_909726943
+implements ValueObject {
+    public Generated_909726943(@PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) HijrahDate hijrahDate2) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_909726943
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  com.example.Generated_909726943$auxiliary$[AUX2_1]
+ */
+package com.example;
+
+import com.example.Generated_909726943;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.time.chrono.HijrahDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_909726943
+implements ValueObject {
+    public Generated_909726943(@PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) HijrahDate hijrahDate2) {
+        Generated_909726943.validate(offsetDateTime, localDateTime, s, objectArray, hijrahDate, zonedDateTime, hijrahDate2);
+        this(offsetDateTime, localDateTime, s, objectArray, hijrahDate, zonedDateTime, hijrahDate2, null);
+    }
+
+    private /* synthetic */ Generated_909726943(OffsetDateTime offsetDateTime, LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, ZonedDateTime zonedDateTime, HijrahDate hijrahDate2, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(OffsetDateTime offsetDateTime, LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, ZonedDateTime zonedDateTime, HijrahDate hijrahDate2) {
+        if (offsetDateTime != null && offsetDateTime.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("arg0 must be a date in the past or in the present");
+        }
+        if (offsetDateTime != null && !offsetDateTime.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("arg0 must be a future date");
+        }
+        if (localDateTime != null && localDateTime.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("arg1 must be a date in the past or in the present");
+        }
+        if (localDateTime != null && !localDateTime.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("arg1 must be a future date");
+        }
+        if (zonedDateTime != null && zonedDateTime.isAfter(ZonedDateTime.now())) {
+            throw new IllegalArgumentException("arg5 must be a date in the past or in the present");
+        }
+        if (hijrahDate2 != null && !hijrahDate2.isBefore(HijrahDate.now())) {
+            throw new IllegalArgumentException("arg6 must be a past date");
+        }
+        if (hijrahDate2 != null && hijrahDate2.isBefore(HijrahDate.now())) {
+            throw new IllegalArgumentException("arg6 must be a date in the present or in the future");
+        }
+    }
+}
+
+
+----------------------------------------------------------------

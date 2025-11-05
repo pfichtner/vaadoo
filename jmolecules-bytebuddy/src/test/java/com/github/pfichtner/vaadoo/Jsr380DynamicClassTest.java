@@ -2,7 +2,9 @@ package com.github.pfichtner.vaadoo;
 
 import static com.github.pfichtner.vaadoo.Decompiler.decompile;
 import static java.lang.Math.abs;
+import static java.lang.Math.min;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
@@ -14,6 +16,7 @@ import static org.approvaltests.Approvals.verify;
 import static org.approvaltests.namer.NamerFactory.withParameters;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -21,12 +24,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Scrubber;
 import org.approvaltests.namer.NamedEnvironment;
+import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
 import org.approvaltests.scrubbers.MultiScrubber;
 import org.approvaltests.scrubbers.RegExScrubber;
 import org.lambda.functions.Function1;
@@ -57,9 +63,11 @@ import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.MethodCall;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
+import net.jqwik.api.Example;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
+import net.jqwik.api.Tuple;
 
 // TODO create arguments that are compatible, e.g. List, Set for Collection, String[], Integer[], Foo[] for Object[], e.g. 
 class Jsr380DynamicClassTest {
@@ -100,7 +108,7 @@ class Jsr380DynamicClassTest {
 
 	@Provide
 	Arbitrary<List<ParameterConfig>> constructorParameters() {
-		return parameterConfigGen().list().ofMinSize(0).ofMaxSize(5);
+		return parameterConfigGen().list().ofMinSize(1).ofMaxSize(10);
 	}
 
 	private Arbitrary<ParameterConfig> parameterConfigGen() {
@@ -112,10 +120,17 @@ class Jsr380DynamicClassTest {
 					.filter(e -> e.getValue().stream().anyMatch(vt -> vt.isAssignableFrom(type) || vt.equals(type)))
 					.map(e -> (Class<? extends Annotation>) e.getKey()).collect(toList());
 
-			Arbitrary<List<Class<? extends Annotation>>> annosGen = Arbitraries.of(applicable).list().uniqueElements()
-					.ofMinSize(0).ofMaxSize(applicable.size());
-
-			return annosGen.map(annos -> new ParameterConfig(type, annos));
+			int maxSize = applicable.size();
+			IntUnaryOperator cap = n -> min(n, maxSize);
+			Arbitrary<List<Class<? extends Annotation>>> frequency = Arbitraries.frequency(
+					Tuple.of(15, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(0))),
+					Tuple.of(30, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(1))),
+					Tuple.of(30, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(2))),
+					Tuple.of(20, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(3))),
+					Tuple.of(5, Arbitraries.of(applicable).list().uniqueElements().ofMinSize(cap.applyAsInt(4))
+							.ofMaxSize(maxSize)))
+					.flatMap(Function.identity());
+			return frequency.map(annos -> new ParameterConfig(type, annos));
 		});
 	}
 
@@ -244,17 +259,27 @@ class Jsr380DynamicClassTest {
 
 	private static final String FIXED_SEED = "-1787866974758305853";
 
-	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 3)
+	@Example
+	void storyboardNoArg() throws Exception {
+		approve(emptyList());
+	}
+
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void storyboard(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
 		settings().allowMultipleVerifyCallsForThisClass();
 		settings().allowMultipleVerifyCallsForThisMethod();
+		approve(params);
+	}
+
+	private void approve(List<ParameterConfig> params) throws NoSuchMethodException, Exception, IOException {
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Scrubber scrubber1 = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
 					(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 			Scrubber scrubber2 = new RegExScrubber("\\$auxiliary\\$.{8}",
 					(Function1<Integer, String>) i -> format("$auxiliary$[AUX2_%d]", i));
-			Options options = new Options().withScrubber(new MultiScrubber(List.of(scrubber1, scrubber2)));
+			Options options = new Options().withScrubber(new MultiScrubber(List.of(scrubber1, scrubber2)))
+					.withReporter(new AutoApproveWhenEmptyReporter());
 			Unloaded<Object> generatedClass = generateClass(params, checksum);
 			Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
 			verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),

@@ -1,0 +1,48 @@
+----------------------------------------------------------------
+params annotations
+- Jsr380DynamicClassTest.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1879941443
+/*
+ * Decompiled with CFR 0.152.
+ */
+package com.example;
+
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1879941443
+implements ValueObject {
+    public Generated_1879941443(Object[] objectArray) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1879941443
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  com.example.Generated_1879941443$auxiliary$[AUX2_1]
+ */
+package com.example;
+
+import com.example.Generated_1879941443;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1879941443
+implements ValueObject {
+    public Generated_1879941443(Object[] objectArray) {
+        Generated_1879941443.validate(objectArray);
+        this(objectArray, null);
+    }
+
+    private /* synthetic */ Generated_1879941443(Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Object[] objectArray) {
+    }
+}
+
+
+----------------------------------------------------------------

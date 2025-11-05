@@ -1,0 +1,82 @@
+----------------------------------------------------------------
+params annotations
+- Jsr380DynamicClassTest.ParameterConfig(type=byte, annotations=[interface jakarta.validation.constraints.Negative])
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.time.Year, annotations=[])
+- Jsr380DynamicClassTest.ParameterConfig(type=class java.lang.Short, annotations=[interface jakarta.validation.constraints.Digits, interface jakarta.validation.constraints.NotNull])
+- Jsr380DynamicClassTest.ParameterConfig(type=boolean, annotations=[interface jakarta.validation.constraints.AssertTrue, interface jakarta.validation.constraints.AssertFalse])
+----------------------------------------------------------------
+Analysing type com.example.Generated_989767385
+/*
+ * Decompiled with CFR 0.152.
+ */
+package com.example;
+
+import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Negative;
+import jakarta.validation.constraints.NotNull;
+import java.time.Year;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_989767385
+implements ValueObject {
+    public Generated_989767385(@Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) byte by, Year year, @Digits(fraction=0, groups={}, integer=0, message="{jakarta.validation.constraints.Digits.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Short s, @AssertTrue(groups={}, message="{jakarta.validation.constraints.AssertTrue.message}", payload={}) @AssertFalse(groups={}, message="{jakarta.validation.constraints.AssertFalse.message}", payload={}) boolean bl) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_989767385
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  com.example.Generated_989767385$auxiliary$[AUX2_1]
+ */
+package com.example;
+
+import com.example.Generated_989767385;
+import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Negative;
+import jakarta.validation.constraints.NotNull;
+import java.time.Year;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_989767385
+implements ValueObject {
+    public Generated_989767385(@Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) byte by, Year year, @Digits(fraction=0, groups={}, integer=0, message="{jakarta.validation.constraints.Digits.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Short s, @AssertTrue(groups={}, message="{jakarta.validation.constraints.AssertTrue.message}", payload={}) @AssertFalse(groups={}, message="{jakarta.validation.constraints.AssertFalse.message}", payload={}) boolean bl) {
+        Generated_989767385.validate(by, year, s, bl);
+        this(by, year, s, bl, null);
+    }
+
+    private /* synthetic */ Generated_989767385(byte by, Year year, Short s, boolean bl, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(byte by, Year year, Short s, boolean bl) {
+        if (by >= 0) {
+            throw new IllegalArgumentException("arg0 must be less than 0");
+        }
+        if (s != null) {
+            int n;
+            int n2 = n = s == 0 ? 1 : (int)Math.log10(Math.abs(s.shortValue())) + 1;
+            if (n > 0) {
+                throw new IllegalArgumentException("arg2 numeric value out of bounds (<0 digits>.<0 digits> expected)");
+            }
+        }
+        if (s == null) {
+            throw new NullPointerException("arg2 must not be null");
+        }
+        if (!bl) {
+            throw new IllegalArgumentException("arg3 must be true");
+        }
+        if (bl) {
+            throw new IllegalArgumentException("arg3 must be false");
+        }
+    }
+}
+
+
+----------------------------------------------------------------

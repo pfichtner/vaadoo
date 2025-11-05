@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.benf.cfr.reader.api.CfrDriver;
 import org.benf.cfr.reader.api.OutputSinkFactory;
@@ -30,7 +29,7 @@ public final class Decompiler {
 		Files.write(tempClass, bytes);
 
 		try {
-			StringBuilder decompiled = new StringBuilder();
+			StringBuilder source = new StringBuilder();
 			CfrDriver driver = new CfrDriver.Builder().withOutputSink(new OutputSinkFactory() {
 				@Override
 				public List<SinkClass> getSupportedSinks(SinkType sinkType, Collection<SinkClass> collection) {
@@ -39,11 +38,11 @@ public final class Decompiler {
 
 				@Override
 				public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
-					return s -> decompiled.append(s).append("\n");
+					return s -> source.append(s).append("\n");
 				}
 			}).build();
 			driver.analyse(singletonList(tempClass.toString()));
-			return normalizeAnnotations(decompiled.toString());
+			return normalizeAnnotations(source.toString());
 		} finally {
 			Files.delete(tempClass);
 		}
