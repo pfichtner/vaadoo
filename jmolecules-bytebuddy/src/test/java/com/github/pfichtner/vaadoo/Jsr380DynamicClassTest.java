@@ -170,12 +170,12 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-	private static Unloaded<Object> generateClass(List<ParameterConfig> params, String random)
+	private static Unloaded<Object> generateClass(List<ParameterConfig> params, String classname)
 			throws NoSuchMethodException {
 		Builder<Object> bb = new ByteBuddy() //
 				.subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS) //
 				.implement(TypeDescription.ForLoadedType.of(org.jmolecules.ddd.types.ValueObject.class)) //
-				.name("com.example.Generated_" + random);
+				.name(classname);
 
 		Initial<Object> ctor = bb.defineConstructor(Visibility.PUBLIC);
 
@@ -202,7 +202,7 @@ class Jsr380DynamicClassTest {
 	void camLoadClassAreCallCOnstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
 		String random = UUID.randomUUID().toString().replace("-", "");
-		Class<?> generated = generateClass(params, random)
+		Class<?> generated = generateClass(params, "com.example.Generated_" + random)
 				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
 				.getLoaded();
 		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
@@ -277,7 +277,7 @@ class Jsr380DynamicClassTest {
 			Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
 					(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 			Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
-			Unloaded<Object> generatedClass = generateClass(params, checksum);
+			Unloaded<Object> generatedClass = generateClass(params, "com.example.Generated_" + checksum);
 			Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
 			verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
 					options);
