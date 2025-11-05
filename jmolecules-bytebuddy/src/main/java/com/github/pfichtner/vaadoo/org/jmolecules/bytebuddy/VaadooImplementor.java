@@ -46,9 +46,7 @@ import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
-import net.bytebuddy.description.method.ParameterList;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.description.type.TypeList.Generic;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodCall;
@@ -57,8 +55,6 @@ import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.jar.asm.Type;
-import net.bytebuddy.matcher.ElementMatcher;
-import net.bytebuddy.matcher.ElementMatchers;
 
 class VaadooImplementor {
 
@@ -84,7 +80,8 @@ class VaadooImplementor {
 			type = type.mapBuilder(t -> addStaticValidationMethod(t, validateMethodName, parameters, log));
 
 			// Inject call into this constructor
-			type = type.mapBuilder(t -> injectValidationIntoConstructor(t, constructor, validateMethodName));
+			type = type
+					.mapBuilder(t -> injectValidationIntoConstructor(t, constructor, validateMethodName, parameters));
 		}
 
 		return type;
@@ -115,12 +112,10 @@ class VaadooImplementor {
 	}
 
 	private Builder<?> injectValidationIntoConstructor(Builder<?> builder, MethodDescription.InDefinedShape constructor,
-			String validateMethodName) {
+			String validateMethodName, Parameters parameters) {
 		return builder.constructor(is(constructor)) //
 				.intercept( //
-						MethodCall
-								.invoke(named(validateMethodName)
-										.and(takesArguments(Parameters.of(constructor.getParameters()).types()))) //
+						MethodCall.invoke(named(validateMethodName).and(takesArguments(parameters.types()))) //
 								.withAllArguments().andThen( //
 										SuperMethodCall.INSTANCE //
 								));
