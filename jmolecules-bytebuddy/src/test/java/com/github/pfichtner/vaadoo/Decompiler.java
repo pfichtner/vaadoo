@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,17 +31,19 @@ public final class Decompiler {
 
 		try {
 			StringBuilder source = new StringBuilder();
-			CfrDriver driver = new CfrDriver.Builder().withOutputSink(new OutputSinkFactory() {
-				@Override
-				public List<SinkClass> getSupportedSinks(SinkType sinkType, Collection<SinkClass> collection) {
-					return List.of(SinkClass.STRING);
-				}
+			CfrDriver driver = new CfrDriver.Builder() //
+					.withOptions(Map.of("comments", "false", "showversion", "false")) //
+					.withOutputSink(new OutputSinkFactory() {
+						@Override
+						public List<SinkClass> getSupportedSinks(SinkType sinkType, Collection<SinkClass> collection) {
+							return List.of(SinkClass.STRING);
+						}
 
-				@Override
-				public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
-					return s -> source.append(s).append("\n");
-				}
-			}).build();
+						@Override
+						public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
+							return s -> source.append(s).append("\n");
+						}
+					}).build();
 			driver.analyse(singletonList(tempClass.toString()));
 			return normalizeAnnotations(source.toString());
 		} finally {

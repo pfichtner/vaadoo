@@ -274,12 +274,9 @@ class Jsr380DynamicClassTest {
 	private void approve(List<ParameterConfig> params) throws NoSuchMethodException, Exception, IOException {
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			Scrubber scrubber1 = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
+			Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
 					(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
-			Scrubber scrubber2 = new RegExScrubber("\\$auxiliary\\$.{8}",
-					(Function1<Integer, String>) i -> format("$auxiliary$[AUX2_%d]", i));
-			Options options = new Options().withScrubber(new MultiScrubber(List.of(scrubber1, scrubber2)))
-					.withReporter(new AutoApproveWhenEmptyReporter());
+			Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
 			Unloaded<Object> generatedClass = generateClass(params, checksum);
 			Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
 			verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),

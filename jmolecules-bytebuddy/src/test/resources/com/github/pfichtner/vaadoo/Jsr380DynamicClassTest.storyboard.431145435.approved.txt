@@ -9,7 +9,7 @@ params annotations
 ----------------------------------------------------------------
 Analysing type com.example.Generated_431145435
 /*
- * Decompiled with CFR 0.152.
+ * Decompiled with CFR.
  */
 package com.example;
 
@@ -33,10 +33,7 @@ implements ValueObject {
 ----------------------------------------------------------------
 Analysing type com.example.Generated_431145435
 /*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.example.Generated_431145435$auxiliary$[AUX2_1]
+ * Decompiled with CFR.
  */
 package com.example;
 
