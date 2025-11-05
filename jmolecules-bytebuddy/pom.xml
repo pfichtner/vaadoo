@@ -51,15 +51,9 @@
 		</dependency>
 		<!-- for disassembling -->
 		<dependency>
-			<groupId>org.ow2.asm</groupId>
-			<artifactId>asm-tree</artifactId>
-			<version>9.9</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.ow2.asm</groupId>
-			<artifactId>asm-util</artifactId>
-			<version>9.9</version>
+			<groupId>org.benf</groupId>
+			<artifactId>cfr</artifactId>
+			<version>0.152</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

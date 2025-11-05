@@ -1,6 +1,8 @@
 package com.github.pfichtner.vaadoo;
 
+import static com.github.pfichtner.vaadoo.Decompiler.decompile;
 import static java.lang.Math.abs;
+import static java.lang.String.format;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
@@ -10,13 +12,8 @@ import static net.jqwik.api.ShrinkingMode.OFF;
 import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.Approvals.verify;
 import static org.approvaltests.namer.NamerFactory.withParameters;
-import static org.objectweb.asm.ClassReader.EXPAND_FRAMES;
-import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -28,10 +25,11 @@ import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
 import org.approvaltests.core.Options;
+import org.approvaltests.core.Scrubber;
 import org.approvaltests.namer.NamedEnvironment;
+import org.approvaltests.scrubbers.MultiScrubber;
 import org.approvaltests.scrubbers.RegExScrubber;
 import org.lambda.functions.Function1;
-import org.objectweb.asm.ClassReader;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
@@ -249,26 +247,18 @@ class Jsr380DynamicClassTest {
 		settings().allowMultipleVerifyCallsForThisMethod();
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			Options o = new Options().withScrubber(new RegExScrubber("\\$auxiliary\\$.{8}",
-					(Function1<Integer, String>) i -> "$auxiliary$[AUXILIARY_" + i + "]"));
+			Scrubber scrubber1 = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
+					(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
+			Scrubber scrubber2 = new RegExScrubber("\\$auxiliary\\$.{8}",
+					(Function1<Integer, String>) i -> format("$auxiliary$[AUX2_%d]", i));
+			Options options = new Options().withScrubber(new MultiScrubber(List.of(scrubber1, scrubber2)));
 			verify(new Storyboad(params,
-					toJasmin(
-							transformedClass(new File("jmolecules-bytebuddy-tests"), generateClass(params, checksum)))),
-					o);
+					decompile(transformedClass(dummyRoot(), generateClass(params, checksum)).getBytes())), options);
 		}
 	}
 
-	private static String toJasmin(Unloaded<Object> dynamicType) throws IOException {
-		return toJasmin(dynamicType.getBytes());
-	}
-
-	private static String toJasmin(byte[] bytes) throws IOException {
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		try (PrintWriter pw = new PrintWriter(os)) {
-			new ClassReader(bytes).accept(new JasminifierClassAdapter(pw, null).deterministic(),
-					SKIP_DEBUG | EXPAND_FRAMES);
-		}
-		return os.toString();
+	private File dummyRoot() {
+		return new File("jmolecules-bytebuddy-tests");
 	}
 
 }
