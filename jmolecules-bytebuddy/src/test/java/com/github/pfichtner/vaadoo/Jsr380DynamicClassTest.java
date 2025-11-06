@@ -15,7 +15,6 @@ import static org.approvaltests.Approvals.verify;
 import static org.approvaltests.namer.NamerFactory.withParameters;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -35,6 +34,7 @@ import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
 import org.approvaltests.scrubbers.RegExScrubber;
 import org.lambda.functions.Function1;
 
+import com.github.pfichtner.vaadoo.TestClassBuilder.MethodConfig;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterConfig;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
@@ -177,29 +177,46 @@ class Jsr380DynamicClassTest {
 	private static final String FIXED_SEED = "-1787866974758305853";
 
 	@Example
-	void storyboardNoArg() throws Exception {
-		approve(emptyList());
+	void nsoArg() throws Exception {
+		List<ParameterConfig> params = emptyList();
+		String checksum = ParameterConfig.stableChecksum(params);
+		try (NamedEnvironment env = withParameters(checksum)) {
+			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
+					.generateClass();
+			approve(params, testClass);
+		}
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void storyboard(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
 		settings().allowMultipleVerifyCallsForThisClass();
 		settings().allowMultipleVerifyCallsForThisMethod();
-		approve(params);
-	}
-
-	private void approve(List<ParameterConfig> params) throws NoSuchMethodException, Exception, IOException {
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
-					(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
-			Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
-			Unloaded<Object> generatedClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.constructors(params).generateClass();
-			Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
-			verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
-					options);
+			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
+					.generateClass();
+			approve(params, testClass);
 		}
+	}
+
+//	@Example
+	void alreadyHasValidateMethod() throws Exception {
+		List<ParameterConfig> params = emptyList();
+		String checksum = ParameterConfig.stableChecksum(params);
+		try (NamedEnvironment env = withParameters(checksum)) {
+			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
+					.method(new MethodConfig("validate", emptyList())).generateClass();
+			approve(params, testClass);
+		}
+	}
+
+	private void approve(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
+		Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
+				(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
+		Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
+		Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
+		verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
+				options);
 	}
 
 	private File dummyRoot() {

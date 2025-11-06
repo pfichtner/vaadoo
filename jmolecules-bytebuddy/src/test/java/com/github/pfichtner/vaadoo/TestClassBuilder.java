@@ -26,6 +26,7 @@ import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefin
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.jar.asm.Type;
 
 public class TestClassBuilder {
 
@@ -63,9 +64,9 @@ public class TestClassBuilder {
 	}
 
 	@Value
-	private static class MethodConfig {
+	public static class MethodConfig {
 		String methodname;
-		ParameterConfig parameterConfig;
+		List<ParameterConfig> parameterConfig;
 	}
 
 	private final Builder<Object> bb;
@@ -90,26 +91,29 @@ public class TestClassBuilder {
 
 	public TestClassBuilder method(MethodConfig config) {
 		this.methods.add(config);
-		assert false : "methods not yet supported";
 		return this;
 	}
 
 	public Unloaded<Object> generateClass() throws NoSuchMethodException {
 
-		Initial<Object> ctor = bb.defineConstructor(Visibility.PUBLIC);
+		Initial<Object> builder = bb.defineConstructor(Visibility.PUBLIC);
 
 		Annotatable<Object> paramDef = null;
 		NameMaker nameMaker = new NameMaker();
 		for (ParameterConfig parameterConfig : constructors) {
-			paramDef = addConstructor(ctor, paramDef, nameMaker.makeName(parameterConfig.type), parameterConfig);
+			paramDef = addAnnotation(builder, paramDef, nameMaker.makeName(parameterConfig.type), parameterConfig);
 		}
 
-		return (paramDef == null ? ctor : paramDef) //
+		for (MethodConfig methodConfig : methods) {
+			builder = bb.defineMethod(methodConfig.getMethodname(), Void.class.getGenericSuperclass());
+		}
+
+		return (paramDef == null ? builder : paramDef) //
 				.intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())) //
 				.make();
 	}
 
-	private Annotatable<Object> addConstructor(Initial<Object> ctor, Annotatable<Object> paramDef, String paramName,
+	private Annotatable<Object> addAnnotation(Initial<Object> ctor, Annotatable<Object> paramDef, String paramName,
 			ParameterConfig parameterConfig) {
 		paramDef = (paramDef == null ? ctor : paramDef).withParameter((Class<?>) parameterConfig.getType(), paramName);
 		for (Class<? extends Annotation> anno : parameterConfig.getAnnotations()) {
