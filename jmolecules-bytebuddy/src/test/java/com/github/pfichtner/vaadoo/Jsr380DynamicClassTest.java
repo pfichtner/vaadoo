@@ -39,6 +39,7 @@ import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterConfig;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Value;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.build.Plugin.WithPreprocessor;
@@ -177,7 +178,7 @@ class Jsr380DynamicClassTest {
 	private static final String FIXED_SEED = "-1787866974758305853";
 
 	@Example
-	void nsoArg() throws Exception {
+	void noArg() throws Exception {
 		List<ParameterConfig> params = emptyList();
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
@@ -199,15 +200,13 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-//	@Example
+	@Example
 	void alreadyHasValidateMethod() throws Exception {
-		List<ParameterConfig> params = emptyList();
+		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
 		String checksum = ParameterConfig.stableChecksum(params);
-		try (NamedEnvironment env = withParameters(checksum)) {
-			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
-					.method(new MethodConfig("validate", emptyList())).generateClass();
-			approve(params, testClass);
-		}
+		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
+				.method(new MethodConfig("validate", emptyList())).generateClass();
+		approve(params, testClass);
 	}
 
 	private void approve(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {

@@ -18,6 +18,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Value;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.description.modifier.Ownership;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.description.type.TypeDescription.ForLoadedType;
 import net.bytebuddy.dynamic.DynamicType.Builder;
@@ -26,7 +27,7 @@ import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefin
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.MethodCall;
-import net.bytebuddy.jar.asm.Type;
+import net.bytebuddy.implementation.StubMethod;
 
 public class TestClassBuilder {
 
@@ -104,18 +105,21 @@ public class TestClassBuilder {
 			paramDef = addAnnotation(builder, paramDef, nameMaker.makeName(parameterConfig.type), parameterConfig);
 		}
 
+		Builder<Object> built = (paramDef == null ? builder : paramDef)
+				.intercept(MethodCall.invoke(Object.class.getDeclaredConstructor()));
+
 		for (MethodConfig methodConfig : methods) {
-			builder = bb.defineMethod(methodConfig.getMethodname(), Void.class.getGenericSuperclass());
+			built = built.defineMethod(methodConfig.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC) //
+					.withParameter(Object.class, "someArgName") //
+					.intercept(StubMethod.INSTANCE);
 		}
 
-		return (paramDef == null ? builder : paramDef) //
-				.intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())) //
-				.make();
+		return built.make();
 	}
 
 	private Annotatable<Object> addAnnotation(Initial<Object> ctor, Annotatable<Object> paramDef, String paramName,
 			ParameterConfig parameterConfig) {
-		paramDef = (paramDef == null ? ctor : paramDef).withParameter((Class<?>) parameterConfig.getType(), paramName);
+		paramDef = (paramDef == null ? ctor : paramDef).withParameter(parameterConfig.getType(), paramName);
 		for (Class<? extends Annotation> anno : parameterConfig.getAnnotations()) {
 			return paramDef.annotateParameter(buildAnnotation(anno, parameterConfig.getType()));
 		}
