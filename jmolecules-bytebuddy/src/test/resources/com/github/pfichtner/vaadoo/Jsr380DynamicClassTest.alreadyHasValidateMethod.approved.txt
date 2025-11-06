@@ -1,0 +1,56 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.ParameterConfig(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1885570832
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotNull;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1885570832
+implements ValueObject {
+    public Generated_1885570832(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
+    }
+
+    private static void validate(Object object) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1885570832
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1885570832;
+import jakarta.validation.constraints.NotNull;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1885570832
+implements ValueObject {
+    public Generated_1885570832(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
+        Generated_1885570832.validate_1(object);
+        this(object, null);
+    }
+
+    private /* synthetic */ Generated_1885570832(Object object, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Object object) {
+    }
+
+    private static void validate_1(Object object) {
+        if (object == null) {
+            throw new NullPointerException("object must not be null");
+        }
+    }
+}
+
+
+----------------------------------------------------------------
