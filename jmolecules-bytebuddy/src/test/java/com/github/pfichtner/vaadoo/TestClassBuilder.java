@@ -30,7 +30,7 @@ import net.bytebuddy.implementation.StubMethod;
 
 public class TestClassBuilder {
 
-	public static class NameMaker {
+	private static class NameMaker {
 
 		private final Set<String> names = new HashSet<>();
 

@@ -32,7 +32,6 @@ import org.approvaltests.core.Scrubber;
 import org.approvaltests.namer.NamedEnvironment;
 import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
 import org.approvaltests.scrubbers.RegExScrubber;
-import org.lambda.functions.Function1;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorConfig;
 import com.github.pfichtner.vaadoo.TestClassBuilder.MethodConfig;
@@ -213,7 +212,7 @@ class Jsr380DynamicClassTest {
 
 	private void approve(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
 		Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
-				(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
+				i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 		Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
 		Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
