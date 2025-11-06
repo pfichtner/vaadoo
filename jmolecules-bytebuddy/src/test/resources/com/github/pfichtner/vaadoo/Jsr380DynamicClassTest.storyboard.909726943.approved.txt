@@ -14,6 +14,8 @@ Analysing type com.example.Generated_909726943
  */
 package com.example;
 
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import java.time.LocalDateTime;
@@ -24,7 +26,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_909726943
 implements ValueObject {
-    public Generated_909726943(@PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) HijrahDate hijrahDate2) {
+    public Generated_909726943(@PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) HijrahDate hijrahDate2) {
     }
 }
 
@@ -37,6 +39,8 @@ Analysing type com.example.Generated_909726943
 package com.example;
 
 import com.example.Generated_909726943;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import java.time.LocalDateTime;
@@ -47,7 +51,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_909726943
 implements ValueObject {
-    public Generated_909726943(@PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) HijrahDate hijrahDate2) {
+    public Generated_909726943(@PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) LocalDateTime localDateTime, short s, Object[] objectArray, HijrahDate hijrahDate, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) HijrahDate hijrahDate2) {
         Generated_909726943.validate(offsetDateTime, localDateTime, s, objectArray, hijrahDate, zonedDateTime, hijrahDate2);
         this(offsetDateTime, localDateTime, s, objectArray, hijrahDate, zonedDateTime, hijrahDate2, null);
     }
@@ -59,14 +63,23 @@ implements ValueObject {
         if (offsetDateTime != null && offsetDateTime.isAfter(OffsetDateTime.now())) {
             throw new IllegalArgumentException("offsetDateTime must be a date in the past or in the present");
         }
+        if (offsetDateTime != null && !offsetDateTime.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("offsetDateTime must be a future date");
+        }
         if (localDateTime != null && localDateTime.isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("localDateTime must be a date in the past or in the present");
+        }
+        if (localDateTime != null && !localDateTime.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("localDateTime must be a future date");
         }
         if (zonedDateTime != null && zonedDateTime.isAfter(ZonedDateTime.now())) {
             throw new IllegalArgumentException("zonedDateTime must be a date in the past or in the present");
         }
         if (hijrahDate2 != null && !hijrahDate2.isBefore(HijrahDate.now())) {
             throw new IllegalArgumentException("hijrahDate1 must be a past date");
+        }
+        if (hijrahDate2 != null && hijrahDate2.isBefore(HijrahDate.now())) {
+            throw new IllegalArgumentException("hijrahDate1 must be a date in the present or in the future");
         }
     }
 }

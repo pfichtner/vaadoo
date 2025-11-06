@@ -13,6 +13,9 @@ Analysing type com.example.Generated_431145435
  */
 package com.example;
 
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import java.time.Instant;
@@ -22,7 +25,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_431145435
 implements ValueObject {
-    public Generated_431145435(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay, short s, Object[] objectArray, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) Instant instant, short s2, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) ZonedDateTime zonedDateTime) {
+    public Generated_431145435(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MonthDay monthDay, short s, Object[] objectArray, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) Instant instant, short s2, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) ZonedDateTime zonedDateTime) {
     }
 }
 
@@ -35,6 +38,9 @@ Analysing type com.example.Generated_431145435
 package com.example;
 
 import com.example.Generated_431145435;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import java.time.Instant;
@@ -44,7 +50,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_431145435
 implements ValueObject {
-    public Generated_431145435(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay, short s, Object[] objectArray, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) Instant instant, short s2, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) ZonedDateTime zonedDateTime) {
+    public Generated_431145435(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MonthDay monthDay, short s, Object[] objectArray, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) Instant instant, short s2, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) ZonedDateTime zonedDateTime) {
         Generated_431145435.validate(monthDay, s, objectArray, instant, s2, zonedDateTime);
         this(monthDay, s, objectArray, instant, s2, zonedDateTime, null);
     }
@@ -56,8 +62,23 @@ implements ValueObject {
         if (monthDay != null && !monthDay.isBefore(MonthDay.now())) {
             throw new IllegalArgumentException("monthDay must be a past date");
         }
+        if (monthDay != null && monthDay.isBefore(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay must be a date in the present or in the future");
+        }
+        if (monthDay != null && monthDay.isAfter(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay must be a date in the past or in the present");
+        }
+        if (monthDay != null && !monthDay.isAfter(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay must be a future date");
+        }
         if (instant != null && instant.isAfter(Instant.now())) {
             throw new IllegalArgumentException("instant must be a date in the past or in the present");
+        }
+        if (instant == null) {
+            throw new NullPointerException("instant must not be null");
+        }
+        if (instant != null && !instant.isAfter(Instant.now())) {
+            throw new IllegalArgumentException("instant must be a future date");
         }
         if (zonedDateTime != null && !zonedDateTime.isBefore(ZonedDateTime.now())) {
             throw new IllegalArgumentException("zonedDateTime must be a past date");

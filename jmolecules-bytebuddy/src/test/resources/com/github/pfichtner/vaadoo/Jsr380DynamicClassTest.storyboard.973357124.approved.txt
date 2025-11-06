@@ -10,13 +10,15 @@ Analysing type com.example.Generated_973357124
 package com.example;
 
 import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import java.time.Year;
 import java.time.chrono.HijrahDate;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_973357124
 implements ValueObject {
-    public Generated_973357124(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, Year year) {
+    public Generated_973357124(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) HijrahDate hijrahDate, Year year) {
     }
 }
 
@@ -30,13 +32,15 @@ package com.example;
 
 import com.example.Generated_973357124;
 import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import java.time.Year;
 import java.time.chrono.HijrahDate;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_973357124
 implements ValueObject {
-    public Generated_973357124(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, Year year) {
+    public Generated_973357124(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) HijrahDate hijrahDate, Year year) {
         Generated_973357124.validate(hijrahDate, year);
         this(hijrahDate, year, null);
     }
@@ -47,6 +51,12 @@ implements ValueObject {
     private static void validate(HijrahDate hijrahDate, Year year) {
         if (hijrahDate != null) {
             throw new IllegalArgumentException("hijrahDate must be null");
+        }
+        if (hijrahDate != null && !hijrahDate.isBefore(HijrahDate.now())) {
+            throw new IllegalArgumentException("hijrahDate must be a past date");
+        }
+        if (hijrahDate != null && hijrahDate.isAfter(HijrahDate.now())) {
+            throw new IllegalArgumentException("hijrahDate must be a date in the past or in the present");
         }
     }
 }

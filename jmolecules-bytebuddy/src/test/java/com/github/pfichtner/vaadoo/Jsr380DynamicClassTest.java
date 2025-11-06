@@ -34,6 +34,7 @@ import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
 import org.approvaltests.scrubbers.RegExScrubber;
 import org.lambda.functions.Function1;
 
+import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorConfig;
 import com.github.pfichtner.vaadoo.TestClassBuilder.MethodConfig;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterConfig;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
@@ -125,7 +126,7 @@ class Jsr380DynamicClassTest {
 			throws Exception {
 		String random = UUID.randomUUID().toString().replace("-", "");
 		TestClassBuilder tcb = new TestClassBuilder("com.example.Generated_" + random);
-		Class<?> generated = tcb.constructors(params).generateClass()
+		Class<?> generated = tcb.constructor(new ConstructorConfig(params)).generateClass()
 				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
 				.getLoaded();
 		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
@@ -182,8 +183,8 @@ class Jsr380DynamicClassTest {
 		List<ParameterConfig> params = emptyList();
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
-					.generateClass();
+			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
+					.constructor(new ConstructorConfig(params)).generateClass();
 			approve(params, testClass);
 		}
 	}
@@ -194,8 +195,8 @@ class Jsr380DynamicClassTest {
 		settings().allowMultipleVerifyCallsForThisMethod();
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
-					.generateClass();
+			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
+					.constructor(new ConstructorConfig(params)).generateClass();
 			approve(params, testClass);
 		}
 	}
@@ -204,8 +205,9 @@ class Jsr380DynamicClassTest {
 	void alreadyHasValidateMethod() throws Exception {
 		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
 		String checksum = ParameterConfig.stableChecksum(params);
-		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum).constructors(params)
-				.method(new MethodConfig("validate", emptyList())).generateClass();
+		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
+				.constructor(new ConstructorConfig(params)).method(new MethodConfig("validate", emptyList()))
+				.generateClass();
 		approve(params, testClass);
 	}
 

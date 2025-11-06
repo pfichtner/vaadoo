@@ -14,8 +14,12 @@ Analysing type com.example.Generated_1302055308
 package com.example;
 
 import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 import java.math.BigInteger;
 import java.time.Year;
 import java.util.Date;
@@ -24,7 +28,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_1302055308
 implements ValueObject {
-    public Generated_1302055308(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) Date date, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") BigInteger bigInteger, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Year year, Object[] objectArray, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Map map, short s) {
+    public Generated_1302055308(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) Date date, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") BigInteger bigInteger, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) Year year, Object[] objectArray, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Map map, short s) {
     }
 }
 
@@ -38,8 +42,12 @@ package com.example;
 
 import com.example.Generated_1302055308;
 import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Year;
@@ -49,7 +57,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_1302055308
 implements ValueObject {
-    public Generated_1302055308(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) Date date, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") BigInteger bigInteger, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Year year, Object[] objectArray, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Map map, short s) {
+    public Generated_1302055308(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) Date date, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") BigInteger bigInteger, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) Year year, Object[] objectArray, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Map map, short s) {
         Generated_1302055308.validate(date, bigInteger, year, objectArray, map, s);
         this(date, bigInteger, year, objectArray, map, s, null);
     }
@@ -61,14 +69,32 @@ implements ValueObject {
         if (date != null) {
             throw new IllegalArgumentException("date must be null");
         }
+        if (date != null && date.getTime() > System.currentTimeMillis()) {
+            throw new IllegalArgumentException("date must be a date in the past or in the present");
+        }
+        if (date != null && date.getTime() <= System.currentTimeMillis()) {
+            throw new IllegalArgumentException("date must be a future date");
+        }
         if (bigInteger != null && new BigDecimal(bigInteger).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
             throw new IllegalArgumentException("bigInteger must be less than or equal to 0");
         }
         if (year == null) {
             throw new NullPointerException("year must not be null");
         }
+        if (year != null && year.isAfter(Year.now())) {
+            throw new IllegalArgumentException("year must be a date in the past or in the present");
+        }
         if (map == null) {
             throw new NullPointerException("map must not be null");
+        }
+        if (map == null) {
+            throw new NullPointerException("map must not be empty");
+        }
+        if (map.size() <= 0) {
+            throw new IllegalArgumentException("map must not be empty");
+        }
+        if (map != null && (map.size() < 0 || map.size() > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException("size of map must be between 0 and 2147483647");
         }
     }
 }

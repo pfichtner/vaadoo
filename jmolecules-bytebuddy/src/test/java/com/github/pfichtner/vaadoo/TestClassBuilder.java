@@ -26,7 +26,6 @@ import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefin
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Initial;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.StubMethod;
 
 public class TestClassBuilder {
@@ -65,13 +64,18 @@ public class TestClassBuilder {
 	}
 
 	@Value
+	public static class ConstructorConfig {
+		List<ParameterConfig> parameterConfig;
+	}
+
+	@Value
 	public static class MethodConfig {
 		String methodname;
 		List<ParameterConfig> parameterConfig;
 	}
 
 	private final Builder<Object> bb;
-	private final List<ParameterConfig> constructors = new ArrayList<>();
+	private final List<ConstructorConfig> constructors = new ArrayList<>();
 	private final List<MethodConfig> methods = new ArrayList<>();
 
 	public TestClassBuilder(String classname) {
@@ -81,52 +85,45 @@ public class TestClassBuilder {
 				.name(classname);
 	}
 
-	public TestClassBuilder constructor(ParameterConfig config) {
-		this.constructors.add(config);
+	public TestClassBuilder constructor(ConstructorConfig constructor) {
+		this.constructors.add(constructor);
 		return this;
 	}
 
-	public TestClassBuilder constructors(List<ParameterConfig> params) {
-		return params.stream().reduce(this, TestClassBuilder::constructor, (x, __) -> x);
-	}
-
-	public TestClassBuilder method(MethodConfig config) {
-		this.methods.add(config);
+	public TestClassBuilder method(MethodConfig method) {
+		this.methods.add(method);
 		return this;
 	}
 
 	public Unloaded<Object> generateClass() throws NoSuchMethodException {
-
-		Initial<Object> builder = bb.defineConstructor(Visibility.PUBLIC);
-
-		Annotatable<Object> paramDef = null;
+		Builder<Object> built = bb;
 		NameMaker nameMaker = new NameMaker();
-		for (ParameterConfig parameterConfig : constructors) {
-			paramDef = addAnnotation(builder, paramDef, nameMaker.makeName(parameterConfig.type), parameterConfig);
+
+		for (ConstructorConfig constructorConfig : constructors) {
+			Initial<Object> ctorInitial = built.defineConstructor(Visibility.PUBLIC);
+
+			Annotatable<Object> paramDef = null;
+			for (ParameterConfig parameterConfig : constructorConfig.getParameterConfig()) {
+				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameterConfig.getType(),
+						nameMaker.makeName(parameterConfig.getType()));
+				for (Class<? extends Annotation> anno : parameterConfig.getAnnotations()) {
+					paramDef = paramDef.annotateParameter(createAnnotation(anno));
+				}
+			}
+
+			built = (paramDef == null ? ctorInitial : paramDef)
+					.intercept(net.bytebuddy.implementation.MethodCall.invoke(Object.class.getDeclaredConstructor()));
 		}
 
-		Builder<Object> built = (paramDef == null ? builder : paramDef)
-				.intercept(MethodCall.invoke(Object.class.getDeclaredConstructor()));
-
 		for (MethodConfig methodConfig : methods) {
-			built = built.defineMethod(methodConfig.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC) //
-					.withParameter(Object.class, "someArgName") //
-					.intercept(StubMethod.INSTANCE);
+			built = built.defineMethod(methodConfig.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC)
+					.withParameter(Object.class, "someArgName").intercept(StubMethod.INSTANCE);
 		}
 
 		return built.make();
 	}
 
-	private Annotatable<Object> addAnnotation(Initial<Object> ctor, Annotatable<Object> paramDef, String paramName,
-			ParameterConfig parameterConfig) {
-		paramDef = (paramDef == null ? ctor : paramDef).withParameter(parameterConfig.getType(), paramName);
-		for (Class<? extends Annotation> anno : parameterConfig.getAnnotations()) {
-			return paramDef.annotateParameter(buildAnnotation(anno, parameterConfig.getType()));
-		}
-		return paramDef;
-	}
-
-	private static AnnotationDescription buildAnnotation(Class<? extends Annotation> ann, Class<?> paramType) {
+	private static AnnotationDescription createAnnotation(Class<? extends Annotation> ann) {
 		try {
 			AnnotationDescription.Builder builder = AnnotationDescription.Builder.ofType(ann);
 			if (ann.equals(Min.class) || ann.equals(Max.class)) {
