@@ -5,6 +5,8 @@ import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
+import static java.util.Map.Entry.comparingByKey;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
@@ -21,7 +23,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
@@ -54,6 +55,7 @@ import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import net.jqwik.api.Tuple;
+import net.jqwik.api.arbitraries.ListArbitrary;
 
 // TODO create arguments that are compatible, e.g. List, Set for Collection, String[], Integer[], Foo[] for Object[], e.g. 
 class Jsr380DynamicClassTest {
@@ -85,22 +87,26 @@ class Jsr380DynamicClassTest {
 		return typeGen.flatMap(type -> {
 			@SuppressWarnings("unchecked")
 			List<Class<? extends Annotation>> applicable = ANNO_TO_TYPES.entrySet().stream()
-					.sorted(Map.Entry.comparingByKey(comparing(Class::getName)))
-					.filter(e -> e.getValue().stream().anyMatch(vt -> vt.isAssignableFrom(type) || vt.equals(type)))
+					.sorted(comparingByKey(comparing(Class::getName)))
+					.filter(e -> e.getValue().stream().anyMatch(vt -> vt.isAssignableFrom(type)))
 					.map(e -> (Class<? extends Annotation>) e.getKey()).collect(toList());
 
 			int maxSize = applicable.size();
 			IntUnaryOperator cap = n -> min(n, maxSize);
-			Arbitrary<List<Class<? extends Annotation>>> frequency = Arbitraries.frequency(
-					Tuple.of(15, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(0))),
-					Tuple.of(30, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(1))),
-					Tuple.of(30, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(2))),
-					Tuple.of(20, Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(3))),
-					Tuple.of(5, Arbitraries.of(applicable).list().uniqueElements().ofMinSize(cap.applyAsInt(4))
-							.ofMaxSize(maxSize)))
-					.flatMap(Function.identity());
+			Arbitrary<List<Class<? extends Annotation>>> frequency = Arbitraries.frequency( //
+					Tuple.of(15, uniquesOfMin(applicable, cap, 0)), //
+					Tuple.of(30, uniquesOfMin(applicable, cap, 1)), //
+					Tuple.of(30, uniquesOfMin(applicable, cap, 2)), //
+					Tuple.of(20, uniquesOfMin(applicable, cap, 3)), //
+					Tuple.of(5, uniquesOfMin(applicable, cap, 4).ofMaxSize(maxSize))) //
+					.flatMap(identity());
 			return frequency.map(annos -> new ParameterConfig(type, annos));
 		});
+	}
+
+	private static ListArbitrary<Class<? extends Annotation>> uniquesOfMin(List<Class<? extends Annotation>> applicable,
+			IntUnaryOperator cap, int i) {
+		return Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(i));
 	}
 
 	private Unloaded<Object> transformedClass(File outputFolder, DynamicType unloaded) throws Exception {
