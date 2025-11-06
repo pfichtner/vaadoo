@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
 params annotations
-- Jsr380DynamicClassTest.ParameterConfig(type=short, annotations=[])
+- TestClassBuilder.ParameterConfig(type=short, annotations=[])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_903148738
 /*

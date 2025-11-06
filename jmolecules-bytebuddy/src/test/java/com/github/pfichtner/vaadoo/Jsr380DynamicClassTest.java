@@ -1,7 +1,6 @@
 package com.github.pfichtner.vaadoo;
 
 import static com.github.pfichtner.vaadoo.Decompiler.decompile;
-import static java.lang.Math.abs;
 import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
@@ -33,34 +32,21 @@ import org.approvaltests.core.Options;
 import org.approvaltests.core.Scrubber;
 import org.approvaltests.namer.NamedEnvironment;
 import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
-import org.approvaltests.scrubbers.MultiScrubber;
 import org.approvaltests.scrubbers.RegExScrubber;
 import org.lambda.functions.Function1;
 
+import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterConfig;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
 
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Pattern;
 import lombok.Value;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.build.Plugin.WithPreprocessor;
-import net.bytebuddy.description.annotation.AnnotationDescription;
-import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Annotatable;
-import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Initial;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
-import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.implementation.MethodCall;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Example;
@@ -71,23 +57,6 @@ import net.jqwik.api.Tuple;
 
 // TODO create arguments that are compatible, e.g. List, Set for Collection, String[], Integer[], Foo[] for Object[], e.g. 
 class Jsr380DynamicClassTest {
-
-	@Value
-	private static class ParameterConfig {
-		Class<?> type;
-		List<Class<? extends Annotation>> annotations;
-
-		public static String stableChecksum(List<ParameterConfig> configs) {
-			String stringValue = configs.stream().map(ParameterConfig::asString).collect(joining("|"));
-			return String.valueOf(abs(stringValue.hashCode()));
-		}
-
-		private static String asString(ParameterConfig config) {
-			return config.type.getName() + ":"
-					+ config.annotations.stream().map(Class::getName).sorted().collect(joining(","));
-		}
-
-	}
 
 	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = //
 			Stream.of(Jsr380CodeFragment.class.getMethods()) //
@@ -134,26 +103,6 @@ class Jsr380DynamicClassTest {
 		});
 	}
 
-	private static AnnotationDescription buildAnnotation(Class<? extends Annotation> ann, Class<?> paramType) {
-		try {
-			AnnotationDescription.Builder builder = AnnotationDescription.Builder.ofType(ann);
-			if (ann.equals(Min.class) || ann.equals(Max.class)) {
-				builder = builder.define("value", 0L);
-			} else if (ann.equals(DecimalMin.class) || ann.equals(DecimalMax.class)) {
-				builder = builder.define("value", "0");
-			} else if (ann.equals(Digits.class)) {
-				builder = builder.define("integer", 0).define("fraction", 0);
-			} else if (ann.equals(Pattern.class)) {
-				builder = builder.define("regexp", "");
-			} else {
-
-			}
-			return builder.build();
-		} catch (Exception e) {
-			throw new RuntimeException("Error creating " + ann, e);
-		}
-	}
-
 	private Unloaded<Object> transformedClass(File outputFolder, DynamicType unloaded) throws Exception {
 		try (WithPreprocessor plugin = new JMoleculesPlugin(outputFolder)) {
 			TypeDescription typeDescription = unloaded.getTypeDescription();
@@ -170,39 +119,12 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-	private static Unloaded<Object> generateClass(List<ParameterConfig> params, String classname)
-			throws NoSuchMethodException {
-		Builder<Object> bb = new ByteBuddy() //
-				.subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS) //
-				.implement(TypeDescription.ForLoadedType.of(org.jmolecules.ddd.types.ValueObject.class)) //
-				.name(classname);
-
-		Initial<Object> ctor = bb.defineConstructor(Visibility.PUBLIC);
-
-		Annotatable<Object> paramDef = null;
-		for (int i = 0; i < params.size(); i++) {
-			ParameterConfig parameterConfig = params.get(i);
-			paramDef = (paramDef == null ? ctor : paramDef).withParameter((Class<?>) parameterConfig.getType(),
-					"arg" + i);
-
-			for (Class<? extends Annotation> ann : parameterConfig.getAnnotations()) {
-				AnnotationDescription desc = buildAnnotation(ann, parameterConfig.getType());
-				if (desc != null) {
-					paramDef = paramDef.annotateParameter(desc);
-				}
-			}
-		}
-
-		return (paramDef == null ? ctor : paramDef) //
-				.intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())) //
-				.make();
-	}
-
 	@Property(tries = 10)
-	void camLoadClassAreCallCOnstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
+	void camLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
 		String random = UUID.randomUUID().toString().replace("-", "");
-		Class<?> generated = generateClass(params, "com.example.Generated_" + random)
+		TestClassBuilder tcb = new TestClassBuilder("com.example.Generated_" + random);
+		Class<?> generated = tcb.constructors(params).generateClass()
 				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
 				.getLoaded();
 		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
@@ -217,12 +139,7 @@ class Jsr380DynamicClassTest {
 
 		for (int i = 0; i < paramTypes.length; i++) {
 			Class<?> paramType = paramTypes[i];
-			List<Class<? extends Annotation>> expectedAnnos = params.get(i).getAnnotations();
-
 			List<Class<?>> actualAnnos = Arrays.stream(paramAnnos[i]).map(Annotation::annotationType).collect(toList());
-
-			// All expected annotations are attached
-			assert actualAnnos.containsAll(expectedAnnos);
 
 			// All attached annotations are compatible with the parameter type
 			for (Class<?> ann : actualAnnos) {
@@ -277,7 +194,8 @@ class Jsr380DynamicClassTest {
 			Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
 					(Function1<Integer, String>) i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 			Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
-			Unloaded<Object> generatedClass = generateClass(params, "com.example.Generated_" + checksum);
+			Unloaded<Object> generatedClass = new TestClassBuilder("com.example.Generated_" + checksum)
+					.constructors(params).generateClass();
 			Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
 			verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
 					options);

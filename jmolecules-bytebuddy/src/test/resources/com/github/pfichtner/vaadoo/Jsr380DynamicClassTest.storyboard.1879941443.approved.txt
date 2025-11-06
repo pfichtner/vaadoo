@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
 params annotations
-- Jsr380DynamicClassTest.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_1879941443
 /*
