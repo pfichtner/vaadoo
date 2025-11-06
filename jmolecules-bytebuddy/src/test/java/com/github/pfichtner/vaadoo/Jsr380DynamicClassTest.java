@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.spi.ToolProvider;
@@ -123,12 +122,9 @@ class Jsr380DynamicClassTest {
 	@Property(tries = 10)
 	void camLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
-		String random = UUID.randomUUID().toString().replace("-", "");
-		TestClassBuilder tcb = new TestClassBuilder("com.example.Generated_" + random);
-		Class<?> generated = tcb.constructor(new ConstructorConfig(params)).generateClass()
-				.load(Jsr380DynamicClassTest.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
-				.getLoaded();
-		Constructor<?> ctor = generated.getDeclaredConstructors()[0];
+		Constructor<?> ctor = new TestClassBuilder("com.example.Generated").constructor(new ConstructorConfig(params))
+				.make().load(new ClassLoader() {
+				}, ClassLoadingStrategy.Default.INJECTION).getLoaded().getDeclaredConstructors()[0];
 
 		// TODO call constructor, verify exception caught (or none if none)
 
@@ -183,7 +179,7 @@ class Jsr380DynamicClassTest {
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.constructor(new ConstructorConfig(params)).generateClass();
+					.constructor(new ConstructorConfig(params)).make();
 			approve(params, testClass);
 		}
 	}
@@ -195,7 +191,7 @@ class Jsr380DynamicClassTest {
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.constructor(new ConstructorConfig(params)).generateClass();
+					.constructor(new ConstructorConfig(params)).make();
 			approve(params, testClass);
 		}
 	}
@@ -205,8 +201,7 @@ class Jsr380DynamicClassTest {
 		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
 		String checksum = ParameterConfig.stableChecksum(params);
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-				.constructor(new ConstructorConfig(params)).method(new MethodConfig("validate", emptyList()))
-				.generateClass();
+				.constructor(new ConstructorConfig(params)).method(new MethodConfig("validate", emptyList())).make();
 		approve(params, testClass);
 	}
 

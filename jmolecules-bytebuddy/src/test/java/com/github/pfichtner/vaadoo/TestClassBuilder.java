@@ -95,7 +95,7 @@ public class TestClassBuilder {
 		return this;
 	}
 
-	public Unloaded<Object> generateClass() throws NoSuchMethodException {
+	public Unloaded<Object> make() throws NoSuchMethodException {
 		Builder<Object> built = bb;
 		NameMaker nameMaker = new NameMaker();
 
