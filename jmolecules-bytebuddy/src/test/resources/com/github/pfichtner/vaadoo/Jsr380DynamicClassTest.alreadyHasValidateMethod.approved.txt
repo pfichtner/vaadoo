@@ -2,7 +2,7 @@
 params annotations
 - TestClassBuilder.ParameterConfig(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull])
 ----------------------------------------------------------------
-Analysing type com.example.Generated_1885570832
+Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
  */
@@ -11,9 +11,9 @@ package com.example;
 import jakarta.validation.constraints.NotNull;
 import org.jmolecules.ddd.types.ValueObject;
 
-public class Generated_1885570832
+public class Generated
 implements ValueObject {
-    public Generated_1885570832(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
+    public Generated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
     }
 
     private static void validate(Object object) {
@@ -22,24 +22,24 @@ implements ValueObject {
 
 
 ----------------------------------------------------------------
-Analysing type com.example.Generated_1885570832
+Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
  */
 package com.example;
 
-import com.example.Generated_1885570832;
+import com.example.Generated;
 import jakarta.validation.constraints.NotNull;
 import org.jmolecules.ddd.types.ValueObject;
 
-public class Generated_1885570832
+public class Generated
 implements ValueObject {
-    public Generated_1885570832(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
-        Generated_1885570832.validate_1(object);
+    public Generated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
+        Generated.validate_1(object);
         this(object, null);
     }
 
-    private /* synthetic */ Generated_1885570832(Object object, auxiliary.[AUX1_1 AUX1_1] {
+    private /* synthetic */ Generated(Object object, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate(Object object) {

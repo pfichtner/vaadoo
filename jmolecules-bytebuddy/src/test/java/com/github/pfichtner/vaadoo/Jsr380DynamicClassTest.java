@@ -109,8 +109,8 @@ class Jsr380DynamicClassTest {
 		return Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(i));
 	}
 
-	private Unloaded<Object> transformedClass(File outputFolder, DynamicType unloaded) throws Exception {
-		try (WithPreprocessor plugin = new JMoleculesPlugin(outputFolder)) {
+	private Unloaded<Object> transformClass(DynamicType unloaded) throws Exception {
+		try (WithPreprocessor plugin = new JMoleculesPlugin(dummyRoot())) {
 			TypeDescription typeDescription = unloaded.getTypeDescription();
 			ClassFileLocator locator = ClassFileLocator.Simple.of(typeDescription.getName(), unloaded.getBytes());
 			plugin.onPreprocess(typeDescription, locator);
@@ -181,13 +181,10 @@ class Jsr380DynamicClassTest {
 
 	@Example
 	void noArg() throws Exception {
-		List<ParameterConfig> params = emptyList();
-		String checksum = ParameterConfig.stableChecksum(params);
-		try (NamedEnvironment env = withParameters(checksum)) {
-			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.constructor(new ConstructorConfig(params)).make();
-			approve(params, testClass);
-		}
+		List<ParameterConfig> noParams = emptyList();
+		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated")
+				.constructor(new ConstructorConfig(noParams)).make();
+		approve(noParams, testClass);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -205,8 +202,7 @@ class Jsr380DynamicClassTest {
 	@Example
 	void alreadyHasValidateMethod() throws Exception {
 		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
-		String checksum = ParameterConfig.stableChecksum(params);
-		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
+		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated")
 				.constructor(new ConstructorConfig(params)).method(new MethodConfig("validate", emptyList())).make();
 		approve(params, testClass);
 	}
@@ -215,7 +211,7 @@ class Jsr380DynamicClassTest {
 		Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
 				i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 		Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
-		Unloaded<Object> transformedClass = transformedClass(dummyRoot(), generatedClass);
+		Unloaded<Object> transformedClass = transformClass(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
 				options);
 	}
