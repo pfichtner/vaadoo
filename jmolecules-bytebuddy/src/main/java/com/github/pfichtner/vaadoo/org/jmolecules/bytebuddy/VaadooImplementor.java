@@ -17,6 +17,7 @@ package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
 import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
+import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
@@ -147,7 +148,13 @@ class VaadooImplementor {
 				for (TypeDescription annotation : parameter.annotations()) {
 					for (ConfigEntry config : Jsr380Annos.configs) {
 						if (annotation.equals(config.type())) {
-							injector.inject(mv, parameter, codeFragmentMethod(config, parameter.type()));
+							Method codeFragmentMethod = codeFragmentMethod(config, parameter.type());
+							try {
+								injector.inject(mv, parameter, codeFragmentMethod);
+							} catch (Exception e) {
+								throw new RuntimeException(
+										format("Error injecting %s for %s", codeFragmentMethod, parameter), e);
+							}
 						}
 					}
 					// TODO support custom annotations
