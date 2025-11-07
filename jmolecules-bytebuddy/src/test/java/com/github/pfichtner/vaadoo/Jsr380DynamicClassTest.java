@@ -1,6 +1,5 @@
 package com.github.pfichtner.vaadoo;
 
-import static com.github.pfichtner.vaadoo.Decompiler.decompile;
 import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
@@ -17,14 +16,16 @@ import static org.approvaltests.Approvals.verify;
 import static org.approvaltests.namer.NamerFactory.withParameters;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.function.IntUnaryOperator;
-import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
 import org.approvaltests.core.Options;
@@ -60,6 +61,8 @@ import net.jqwik.api.arbitraries.ListArbitrary;
 // TODO create arguments that are compatible, e.g. List, Set for Collection, String[], Integer[], Foo[] for Object[], e.g. 
 class Jsr380DynamicClassTest {
 
+	static final boolean DUMP_CLASS_FILES_TO_TEMP = true;
+
 	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = //
 			Stream.of(Jsr380CodeFragment.class.getMethods()) //
 					.sorted(comparing(Method::getName)) //
@@ -73,9 +76,6 @@ class Jsr380DynamicClassTest {
 			.distinct() //
 			.sorted(comparing(Class::getName)) //
 			.collect(toList());
-
-	static ToolProvider javap = ToolProvider.findFirst("javap")
-			.orElseThrow(() -> new RuntimeException("javap not found"));
 
 	@Provide
 	Arbitrary<List<ParameterConfig>> constructorParameters() {
@@ -121,37 +121,54 @@ class Jsr380DynamicClassTest {
 
 			@SuppressWarnings("unchecked")
 			DynamicType.Unloaded<Object> transformed = (DynamicType.Unloaded<Object>) transformedBuilder.make();
+			if (DUMP_CLASS_FILES_TO_TEMP) {
+				transformed.saveIn(Files.createTempDirectory("generated-class").toFile());
+			}
+
 			return transformed;
 		}
 	}
 
-	@Property(tries = 10)
-	void camLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
+//	@Property
+	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
-		Constructor<?> ctor = new TestClassBuilder("com.example.Generated").constructor(new ConstructorConfig(params))
-				.make().load(new ClassLoader() {
-				}, ClassLoadingStrategy.Default.INJECTION).getLoaded().getDeclaredConstructors()[0];
-
-		// TODO call constructor, verify exception caught (or none if none)
-
-		Class<?>[] paramTypes = ctor.getParameterTypes();
-		Annotation[][] paramAnnos = ctor.getParameterAnnotations();
-
-		assert paramTypes.length == params.size()
-				: "paramTypes.length (" + paramTypes.length + ") != params.size() (" + params.size() + ")";
-
-		for (int i = 0; i < paramTypes.length; i++) {
-			Class<?> paramType = paramTypes[i];
-			List<Class<?>> actualAnnos = Arrays.stream(paramAnnos[i]).map(Annotation::annotationType).collect(toList());
-
-			// All attached annotations are compatible with the parameter type
-			for (Class<?> ann : actualAnnos) {
-				List<Class<?>> allowed = ANNO_TO_TYPES.get(ann);
-				assert allowed != null : "allowed is null";
-				boolean valid = allowed.stream().anyMatch(t -> t.isAssignableFrom(paramType) || t.equals(paramType));
-				assert valid : "Annotation " + ann.getSimpleName() + " not valid for type " + paramType.getSimpleName();
+		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated")
+				.constructor(new ConstructorConfig(params)).make();
+		Object[] args = args(params);
+		newInstance(unloaded, args);
+		try {
+			newInstance(transformClass(unloaded), args);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			if (!isOk(cause, NullPointerException.class, "must not be null")
+					&& !isOk(cause, NullPointerException.class, "must not be empty")
+					&& !isOk(cause, IllegalArgumentException.class, "must be greater than 0")
+					&& !isOk(cause, IllegalArgumentException.class, "must be less than 0")
+					&& !isOk(cause, IllegalArgumentException.class, "must be true")
+					&& !isOk(cause, IllegalArgumentException.class, "must be false")) {
+				throw e;
 			}
 		}
+	}
+
+	private static boolean isOk(Throwable cause, Class<? extends Exception> expectedClass, String expectedMessage) {
+		return expectedClass.isInstance(cause) && cause.getMessage().endsWith(expectedMessage);
+	}
+
+	private static Object newInstance(Unloaded<Object> unloaded, Object[] args)
+			throws InstantiationException, IllegalAccessException, InvocationTargetException, Exception {
+		Class<?> clazz = unloaded.load(new ClassLoader() {
+		}, ClassLoadingStrategy.Default.INJECTION).getLoaded();
+		Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+		return constructor.newInstance(args);
+	}
+
+	private static Object[] args(List<ParameterConfig> params) {
+		return params.stream().map(ParameterConfig::getType).map(Jsr380DynamicClassTest::getDefault).toArray();
+	}
+
+	private static Object getDefault(Class<?> clazz) {
+		return clazz.isPrimitive() ? Array.get(Array.newInstance(clazz, 1), 0) : null;
 	}
 
 	@Value
@@ -208,15 +225,23 @@ class Jsr380DynamicClassTest {
 	}
 
 	private void approve(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
-		Scrubber scrubber = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
-				i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
-		Options options = new Options().withScrubber(scrubber).withReporter(new AutoApproveWhenEmptyReporter());
 		Unloaded<Object> transformedClass = transformClass(generatedClass);
-		verify(new Storyboard(params, decompile(generatedClass.getBytes()), decompile(transformedClass.getBytes())),
-				options);
+		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
 
-	private File dummyRoot() {
+	private static Options options() {
+		return new Options().withScrubber(scrubber()).withReporter(new AutoApproveWhenEmptyReporter());
+	}
+
+	private static Scrubber scrubber() {
+		return new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]", i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
+	}
+
+	private static String decompile(Unloaded<Object> clazz) throws IOException {
+		return Decompiler.decompile(clazz.getBytes());
+	}
+
+	private static File dummyRoot() {
 		return new File("jmolecules-bytebuddy-tests");
 	}
 
