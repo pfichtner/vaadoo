@@ -43,7 +43,6 @@ import static net.bytebuddy.jar.asm.Type.getObjectType;
 import static net.bytebuddy.jar.asm.Type.getReturnType;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -51,6 +50,10 @@ import java.util.function.Function;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import lombok.Value;
+import lombok.experimental.Accessors;
 import net.bytebuddy.description.enumeration.EnumerationDescription;
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.ClassVisitor;
@@ -66,7 +69,8 @@ public class ValidationCodeInjector {
 	private static final int REMOVED_PARAMETERS = 1;
 	private static final boolean TARGET_METHOD_IS_STATIC = true;
 
-	private static final class ValidationCallCodeInjectorClassVisitor extends ClassVisitor {
+	@ToString
+	static final class ValidationCallCodeInjectorClassVisitor extends ClassVisitor {
 
 		private final String sourceMethodOwner;
 		private final String sourceMethodName;
@@ -74,10 +78,31 @@ public class ValidationCodeInjector {
 		private final MethodVisitor targetMethodVisitor;
 		private final Parameter targetParam;
 
-		private int srcFirstArgIndex;
-		private int srcFirstLocalIndex;
-		private int localIndexOffset;
-		private int argIndexOffset;
+		private final SlotInfo srcSlot;
+		private final SlotInfo tgtSlot;
+		private SlotInfo offset;
+
+		@Value
+		@RequiredArgsConstructor
+		@Accessors(fluent = true)
+		static class SlotInfo {
+			int firstArg;
+			int firstLocal;
+
+			public SlotInfo(boolean isStatic, Type[] args) {
+				this.firstArg = isStatic ? 0 : 1;
+				this.firstLocal = firstArg + sizeOf(args);
+			}
+
+			public SlotInfo offsetTo(SlotInfo other) {
+				return new SlotInfo(firstArg - other.firstArg, firstLocal - other.firstLocal);
+			}
+
+			public boolean isVariable(int index) {
+				return index >= firstLocal;
+			}
+
+		}
 
 		private ValidationCallCodeInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
 				String signatureOfTargetMethod, Parameter parameter) {
@@ -87,18 +112,13 @@ public class ValidationCodeInjector {
 			this.searchDescriptor = getMethodDescriptor(sourceMethod);
 			this.targetMethodVisitor = targetMethodVisitor;
 			this.targetParam = parameter;
+			this.srcSlot = new SlotInfo(isStatic(sourceMethod.getModifiers()), argTypes(sourceMethod));
+			this.tgtSlot = new SlotInfo(TARGET_METHOD_IS_STATIC, getArgumentTypes(signatureOfTargetMethod));
+			this.offset = srcSlot.offsetTo(tgtSlot);
+		}
 
-			this.srcFirstArgIndex = Modifier.isStatic(sourceMethod.getModifiers()) ? 0 : 1;
-			this.srcFirstLocalIndex = srcFirstArgIndex
-					+ sizeOf(stream(sourceMethod.getParameterTypes()).map(Type::getType));
-
-			int tgtFirstArgIndex = TARGET_METHOD_IS_STATIC ? 0 : 1;
-			int tgtFirstLocalIndex = tgtFirstArgIndex + sizeOf(getArgumentTypes(signatureOfTargetMethod));
-
-			this.localIndexOffset = srcFirstLocalIndex - tgtFirstLocalIndex;
-
-			int argIndexOffset = srcFirstArgIndex - tgtFirstArgIndex;
-			this.argIndexOffset = targetParam.offset() - argIndexOffset - REMOVED_PARAMETERS;
+		private static Type[] argTypes(Method method) {
+			return stream(method.getParameterTypes()).map(Type::getType).toArray(Type[]::new);
 		}
 
 		@Override
@@ -154,10 +174,11 @@ public class ValidationCodeInjector {
 						boolean opcodeIsStore = isStoreOpcode(opcode);
 
 						if (opcodeIsLoad || opcodeIsStore) {
-							if (var >= srcFirstLocalIndex) {
+							if (srcSlot.isVariable(var)) {
 								super.visitVarInsn(opcode, remapLocal(var));
 							} else {
-								if (opcodeIsLoad && var == srcFirstArgIndex) {
+								// argument access
+								if (opcodeIsLoad && var == srcSlot.firstArg()) {
 									isFirstParamLoad = true;
 								} else if (isArrayHandlingOpcode(opcode)) {
 									if (!opcodeIsStore) {
@@ -172,12 +193,12 @@ public class ValidationCodeInjector {
 						}
 					}
 
-					private int remapArg(int var) {
-						return var + argIndexOffset;
+					private int remapArg(int varIndex) {
+						return varIndex - offset.firstArg() + targetParam.offset() - REMOVED_PARAMETERS;
 					}
 
 					private int remapLocal(int varIndex) {
-						return varIndex - localIndexOffset;
+						return varIndex + offset.firstLocal();
 					}
 
 					@Override
