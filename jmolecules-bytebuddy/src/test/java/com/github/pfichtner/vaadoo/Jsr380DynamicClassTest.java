@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.function.IntUnaryOperator;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.approvaltests.core.Options;
@@ -140,19 +141,22 @@ class Jsr380DynamicClassTest {
 			newInstance(transformClass(unloaded), args);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
-			if (!isOk(cause, NullPointerException.class, "must not be null")
-					&& !isOk(cause, NullPointerException.class, "must not be empty")
-					&& !isOk(cause, IllegalArgumentException.class, "must be greater than 0")
-					&& !isOk(cause, IllegalArgumentException.class, "must be less than 0")
-					&& !isOk(cause, IllegalArgumentException.class, "must be true")
-					&& !isOk(cause, IllegalArgumentException.class, "must be false")) {
+			if (Stream.of( //
+					matches(cause, NullPointerException.class, "must not be null"),
+					matches(cause, NullPointerException.class, "must not be empty"),
+					matches(cause, IllegalArgumentException.class, "must be greater than 0"),
+					matches(cause, IllegalArgumentException.class, "must be less than 0"),
+					matches(cause, IllegalArgumentException.class, "must be true"),
+					matches(cause, IllegalArgumentException.class, "must be false") //
+			).map(p -> p.test(cause)).noneMatch(Boolean.TRUE::equals)) {
 				throw e;
 			}
 		}
 	}
 
-	private static boolean isOk(Throwable cause, Class<? extends Exception> expectedClass, String expectedMessage) {
-		return expectedClass.isInstance(cause) && cause.getMessage().endsWith(expectedMessage);
+	private static Predicate<Throwable> matches(Throwable cause, Class<? extends Exception> expectedClass,
+			String expectedMessage) {
+		return e -> expectedClass.isInstance(cause) && cause.getMessage().endsWith(expectedMessage);
 	}
 
 	private static Object newInstance(Unloaded<Object> unloaded, Object[] args)
