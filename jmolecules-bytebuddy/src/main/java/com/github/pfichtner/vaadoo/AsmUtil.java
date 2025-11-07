@@ -17,6 +17,7 @@ package com.github.pfichtner.vaadoo;
 
 import static lombok.AccessLevel.PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
+import static net.bytebuddy.jar.asm.Opcodes.AASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ARETURN;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
@@ -64,7 +65,7 @@ public final class AsmUtil {
 	}
 
 	public static boolean isArrayHandlingOpcode(int opcode) {
-		return opcode == AALOAD || opcode == ASTORE;
+		return opcode == AALOAD || opcode == AASTORE;
 	}
 
 	public static boolean isArray(Type type) {
