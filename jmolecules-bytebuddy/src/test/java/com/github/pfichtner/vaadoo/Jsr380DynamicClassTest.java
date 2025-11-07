@@ -140,23 +140,19 @@ class Jsr380DynamicClassTest {
 		try {
 			newInstance(transformClass(unloaded), args);
 		} catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			if (Stream.of( //
-					matches(cause, NullPointerException.class, "must not be null"),
-					matches(cause, NullPointerException.class, "must not be empty"),
-					matches(cause, IllegalArgumentException.class, "must be greater than 0"),
-					matches(cause, IllegalArgumentException.class, "must be less than 0"),
-					matches(cause, IllegalArgumentException.class, "must be true"),
-					matches(cause, IllegalArgumentException.class, "must be false") //
-			).map(p -> p.test(cause)).noneMatch(Boolean.TRUE::equals)) {
+			if (!isAnExpectedException(e)) {
 				throw e;
 			}
 		}
 	}
 
-	private static Predicate<Throwable> matches(Throwable cause, Class<? extends Exception> expectedClass,
-			String expectedMessage) {
-		return e -> expectedClass.isInstance(cause) && cause.getMessage().endsWith(expectedMessage);
+	private boolean isAnExpectedException(InvocationTargetException e) {
+		Throwable cause = e.getCause();
+		return oks.stream().map(p -> p.test(cause)).anyMatch(Boolean.TRUE::equals);
+	}
+
+	private static Predicate<Throwable> matches(Class<?> expectedClass, String expectedMessage) {
+		return e -> expectedClass.isInstance(e) && e.getMessage().endsWith(expectedMessage);
 	}
 
 	private static Object newInstance(Unloaded<Object> unloaded, Object[] args)
@@ -199,6 +195,15 @@ class Jsr380DynamicClassTest {
 	}
 
 	private static final String FIXED_SEED = "-1787866974758305853";
+
+	private static final List<Predicate<Throwable>> oks = List.of( //
+			matches(NullPointerException.class, "must not be null"),
+			matches(NullPointerException.class, "must not be empty"),
+			matches(IllegalArgumentException.class, "must be greater than 0"),
+			matches(IllegalArgumentException.class, "must be less than 0"),
+			matches(IllegalArgumentException.class, "must be true"),
+			matches(IllegalArgumentException.class, "must be false") //
+	);
 
 	@Example
 	void noArg() throws Exception {
