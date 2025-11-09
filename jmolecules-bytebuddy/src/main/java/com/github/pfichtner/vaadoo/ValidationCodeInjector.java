@@ -176,22 +176,17 @@ public class ValidationCodeInjector {
 
 						if (opcodeIsLoad || opcodeIsStore) {
 							if (srcSlot.isVariable(var)) {
-								super.visitVarInsn(opcode, remapLocal(var));
+								var = remapLocal(var);
 							} else {
 								// argument access
 								if (opcodeIsLoad && var == srcSlot.firstArg()) {
 									isFirstParamLoad = true;
-								} else if (isArrayHandlingOpcode(opcode)) {
-									if (!opcodeIsStore) {
-										super.visitVarInsn(opcode, remapArg(var));
-									}
-								} else {
-									super.visitVarInsn(opcode, remapArg(var));
+									return;
 								}
+								var = remapArg(var);
 							}
-						} else {
-							super.visitVarInsn(opcode, var);
 						}
+						super.visitVarInsn(opcode, var);
 					}
 
 					private int remapArg(int varIndex) {
