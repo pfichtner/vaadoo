@@ -170,7 +170,7 @@ public class ValidationCodeInjector {
 
 					@Override
 					public void visitVarInsn(int opcode, int var) {
-						assert var > 0 : "this not expecected to get accesed";
+						assert var > 0 : "this not expected to get accesed";
 						boolean opcodeIsLoad = isLoadOpcode(opcode);
 						boolean opcodeIsStore = isStoreOpcode(opcode);
 
