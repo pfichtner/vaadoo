@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
@@ -47,9 +48,15 @@ public class TestClassBuilder {
 	}
 
 	@Value
+	@RequiredArgsConstructor
 	public static class ParameterConfig {
 		Class<?> type;
 		List<Class<? extends Annotation>> annotations;
+
+		@SafeVarargs
+		public ParameterConfig(Class<?> type, Class<? extends Annotation>... annotations) {
+			this(type, List.of(annotations));
+		}
 
 		public static String stableChecksum(List<ParameterConfig> configs) {
 			String stringValue = configs.stream().map(ParameterConfig::asString).collect(joining("|"));

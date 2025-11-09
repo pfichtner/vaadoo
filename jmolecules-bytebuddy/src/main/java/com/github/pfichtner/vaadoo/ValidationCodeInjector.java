@@ -170,6 +170,7 @@ public class ValidationCodeInjector {
 
 					@Override
 					public void visitVarInsn(int opcode, int var) {
+						assert var > 0 : "this not expecected to get accesed";
 						boolean opcodeIsLoad = isLoadOpcode(opcode);
 						boolean opcodeIsStore = isStoreOpcode(opcode);
 
@@ -194,11 +195,11 @@ public class ValidationCodeInjector {
 					}
 
 					private int remapArg(int varIndex) {
-						return varIndex - offset.firstArg() + targetParam.offset() - REMOVED_PARAMETERS;
+						return varIndex - offset.firstArg() - REMOVED_PARAMETERS + targetParam.offset();
 					}
 
 					private int remapLocal(int varIndex) {
-						return varIndex + offset.firstLocal();
+						return varIndex - offset.firstLocal();
 					}
 
 					@Override

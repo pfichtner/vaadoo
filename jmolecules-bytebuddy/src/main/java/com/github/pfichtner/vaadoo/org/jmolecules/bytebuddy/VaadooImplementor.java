@@ -139,8 +139,8 @@ class VaadooImplementor {
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			String methodDescriptor = Type.getMethodDescriptor(VOID_TYPE, parameters.types().stream()
-					.map(TypeDescription::getName).map(Type::getObjectType).toArray(Type[]::new));
+			String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
+					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
 
 			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
 

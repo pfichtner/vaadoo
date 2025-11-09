@@ -130,11 +130,16 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-//	@Property
+	@Property
 	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
 		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated")
 				.constructor(new ConstructorConfig(params)).make();
+		createInstances(params, unloaded);
+	}
+
+	private void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded)
+			throws InstantiationException, IllegalAccessException, InvocationTargetException, Exception {
 		Object[] args = args(params);
 		newInstance(unloaded, args);
 		try {
@@ -199,10 +204,12 @@ class Jsr380DynamicClassTest {
 	private static final List<Predicate<Throwable>> oks = List.of( //
 			matches(NullPointerException.class, "must not be null"),
 			matches(NullPointerException.class, "must not be empty"),
+			matches(NullPointerException.class, "must not be blank"),
 			matches(IllegalArgumentException.class, "must be greater than 0"),
 			matches(IllegalArgumentException.class, "must be less than 0"),
 			matches(IllegalArgumentException.class, "must be true"),
-			matches(IllegalArgumentException.class, "must be false") //
+			matches(IllegalArgumentException.class, "must be false"), //
+			matches(IllegalArgumentException.class, "numeric value out of bounds (<0 digits>.<0 digits> expected)") //
 	);
 
 	@Example
