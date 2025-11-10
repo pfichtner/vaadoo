@@ -227,8 +227,7 @@ class Jsr380DynamicClassTest {
 		});
 	}
 
-	private void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded)
-			throws InstantiationException, IllegalAccessException, InvocationTargetException, Exception {
+	private void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded) throws Exception {
 		Object[] args = args(params);
 		newInstance(unloaded, args);
 		try {
@@ -241,12 +240,7 @@ class Jsr380DynamicClassTest {
 	}
 
 	private boolean isAnExpectedException(InvocationTargetException e) {
-		Throwable cause = e.getCause();
-		return oks.stream().map(p -> p.test(cause)).anyMatch(Boolean.TRUE::equals);
-	}
-
-	private static Predicate<Throwable> is(Class<?> expectedClass) {
-		return e -> expectedClass.isInstance(e);
+		return oks.stream().map(p -> p.test(e.getCause())).anyMatch(Boolean.TRUE::equals);
 	}
 
 	private static Predicate<Throwable> endsWith(Function<Throwable, String> mapper, String expectedMessage) {
@@ -339,11 +333,11 @@ class Jsr380DynamicClassTest {
 	);
 
 	private static Predicate<Throwable> isIAE() {
-		return is(IllegalArgumentException.class);
+		return IllegalArgumentException.class::isInstance;
 	}
 
 	private static Predicate<Throwable> isNPE() {
-		return is(NullPointerException.class);
+		return NullPointerException.class::isInstance;
 	}
 
 	@Example
