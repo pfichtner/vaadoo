@@ -108,14 +108,18 @@ class Jsr380DynamicClassTest {
 			entry(LocalDateTime.class, List.of(OffsetDateTime.class, ZonedDateTime.class)) //
 	);
 
-	@SuppressWarnings("unchecked")
 	static final Map<Class<? extends Annotation>, List<Class<?>>> ANNO_TO_TYPES = //
 			Stream.of(Jsr380CodeFragment.class.getMethods()) //
 					.sorted(comparing(Method::getName)) //
 					.collect(groupingBy( //
-							m -> (Class<? extends Annotation>) m.getParameterTypes()[0], //
+							m -> asAnnotation(m.getParameterTypes()[0]), //
 							mapping(m -> m.getParameterTypes()[1], toList()) //
 					));
+
+	@SuppressWarnings("unchecked")
+	static Class<? extends Annotation> asAnnotation(Class<?> clazz) {
+		return (Class<? extends Annotation>) clazz;
+	}
 
 	static final List<Class<?>> ALL_SUPPORTED_TYPES = ANNO_TO_TYPES.values().stream() //
 			.flatMap(List::stream) //
