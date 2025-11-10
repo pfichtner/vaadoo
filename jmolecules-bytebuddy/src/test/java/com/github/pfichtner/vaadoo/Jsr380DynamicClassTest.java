@@ -173,7 +173,16 @@ class Jsr380DynamicClassTest {
 	}
 
 	private static Object getDefault(Class<?> clazz) {
-		return clazz.isPrimitive() ? Array.get(Array.newInstance(clazz, 1), 0) : null;
+		if (clazz.isPrimitive()) {
+			return Array.get(Array.newInstance(clazz, 1), 0);
+		} else if (clazz == java.time.LocalDate.class) {
+			return java.time.LocalDate.now();
+		} else if (clazz == java.time.LocalDateTime.class) {
+			return java.time.LocalDateTime.now();
+		} else if (clazz == java.util.Date.class) {
+			return new java.util.Date();
+		} else
+			return null;
 	}
 
 	@Value
@@ -205,11 +214,15 @@ class Jsr380DynamicClassTest {
 			matches(NullPointerException.class, "must not be null"),
 			matches(NullPointerException.class, "must not be empty"),
 			matches(NullPointerException.class, "must not be blank"),
+			matches(IllegalArgumentException.class, "must be null"),
 			matches(IllegalArgumentException.class, "must be greater than 0"),
 			matches(IllegalArgumentException.class, "must be less than 0"),
 			matches(IllegalArgumentException.class, "must be true"),
 			matches(IllegalArgumentException.class, "must be false"), //
-			matches(IllegalArgumentException.class, "numeric value out of bounds (<0 digits>.<0 digits> expected)") //
+			matches(IllegalArgumentException.class, "numeric value out of bounds (<0 digits>.<0 digits> expected)"), //
+			matches(IllegalArgumentException.class, "must be a future date"), //
+			matches(IllegalArgumentException.class, "must be a date in the present or in the future"), //
+			matches(IllegalArgumentException.class, "must be a past date") //
 	);
 
 	@Example
