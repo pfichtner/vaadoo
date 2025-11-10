@@ -157,7 +157,7 @@ class Jsr380DynamicClassTest {
 		while (!stack.isEmpty()) {
 			Class<?> current = stack.pop();
 			result.add(current);
-			SUPERTYPE_TO_SUBTYPES.getOrDefault(current, List.of()).stream().filter(result::add).forEach(stack::push);
+			SUPERTYPE_TO_SUBTYPES.getOrDefault(current, emptyList()).stream().filter(result::add).forEach(stack::push);
 		}
 		return new ArrayList<>(result);
 	}
