@@ -182,7 +182,7 @@ class VaadooImplementor {
 			var supported = this.codeFragmentMethods.stream() //
 					.filter(StaticValidateAppender::isCodeFragmentMethod) //
 					.filter(m -> m.getParameterCount() > 1) //
-					.filter(m -> parameters[0].represents(m.getParameterTypes()[0])) //
+					.filter(m -> parameters[0].isAssignableTo(m.getParameterTypes()[0])) //
 					.map(m -> m.getParameterTypes()[1].getName()) //
 					.collect(toList());
 			return annotationOnTypeNotValid(parameters[0], parameters[1], supported);
@@ -197,7 +197,7 @@ class VaadooImplementor {
 
 		private static boolean equals(TypeDescription[] descriptions, Class<?>[] classes) {
 			return classes.length == descriptions.length && range(0, classes.length) //
-					.allMatch(i -> descriptions[i].represents(classes[i]));
+					.allMatch(i -> descriptions[i].isAssignableTo(classes[i]));
 		}
 
 		private static boolean isCodeFragmentMethod(Method method) {
