@@ -4,6 +4,7 @@ import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
+import static java.util.Map.entry;
 import static java.util.Map.Entry.comparingByKey;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
@@ -22,9 +23,23 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -59,10 +74,25 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.Tuple;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-// TODO create arguments that are compatible, e.g. List, Set for Collection, String[], Integer[], Foo[] for Object[], e.g. 
 class Jsr380DynamicClassTest {
 
 	static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
+
+	static final Map<Class<?>, List<Class<?>>> SUPERTYPE_TO_SUBTYPES = Map
+			.ofEntries(
+					entry(Object.class,
+							List.of(String.class, StringBuilder.class, StringBuffer.class, Number.class,
+									Comparable.class)),
+					entry(CharSequence.class, List.of(String.class, StringBuilder.class, StringBuffer.class)),
+					entry(Collection.class, List.of(List.class, Set.class)),
+					entry(List.class, List.of(ArrayList.class, LinkedList.class)),
+					entry(Set.class, List.of(HashSet.class, LinkedHashSet.class)),
+					entry(Map.class, List.of(HashMap.class, TreeMap.class, LinkedHashMap.class)),
+					entry(Object[].class, List.of(String[].class, Integer[].class, Long[].class, Object[].class)),
+					entry(Number.class,
+							List.of(Integer.class, Long.class, Double.class, Float.class, BigDecimal.class)),
+					entry(Comparable.class, List.of(String.class, Integer.class, LocalDate.class, LocalDateTime.class)) //
+			);
 
 	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = //
 			Stream.of(Jsr380CodeFragment.class.getMethods()) //
@@ -84,7 +114,8 @@ class Jsr380DynamicClassTest {
 	}
 
 	private Arbitrary<ParameterConfig> parameterConfigGen() {
-		Arbitrary<Class<?>> typeGen = Arbitraries.of(ALL_SUPPORTED_TYPES);
+		Arbitrary<Class<?>> typeGen = Arbitraries.of(ALL_SUPPORTED_TYPES)
+				.flatMap(baseType -> Arbitraries.of(resolveAllSubtypes(baseType)));
 		return typeGen.flatMap(type -> {
 			@SuppressWarnings("unchecked")
 			List<Class<? extends Annotation>> applicable = ANNO_TO_TYPES.entrySet().stream()
@@ -103,6 +134,17 @@ class Jsr380DynamicClassTest {
 					.flatMap(identity());
 			return frequency.map(annos -> new ParameterConfig(type, annos));
 		});
+	}
+
+	private static List<Class<?>> resolveAllSubtypes(Class<?> base) {
+		Set<Class<?>> result = new LinkedHashSet<>();
+		Deque<Class<?>> stack = new ArrayDeque<>(List.of(base));
+		while (!stack.isEmpty()) {
+			Class<?> current = stack.pop();
+			result.add(current);
+			SUPERTYPE_TO_SUBTYPES.getOrDefault(current, List.of()).stream().filter(result::add).forEach(stack::push);
+		}
+		return new ArrayList<>(result);
 	}
 
 	private static ListArbitrary<Class<? extends Annotation>> uniquesOfMin(List<Class<? extends Annotation>> applicable,
@@ -136,6 +178,15 @@ class Jsr380DynamicClassTest {
 		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated")
 				.constructor(new ConstructorConfig(params)).make();
 		createInstances(params, unloaded);
+	}
+
+//	@Property
+	void forAllNotSupportedTypes(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
+		// Annotation jakarta.validation.constraints.DecimalMin on type java.lang.String
+		// not allowed,
+		// allowed only on types: [byte, short, int, long, java.lang.Byte,
+		// java.lang.Short, java.lang.Integer, java.lang.Long, java.math.BigInteger,
+		// java.math.BigDecimal, java.lang.CharSequence]
 	}
 
 	private void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded)
@@ -172,15 +223,30 @@ class Jsr380DynamicClassTest {
 		return params.stream().map(ParameterConfig::getType).map(Jsr380DynamicClassTest::getDefault).toArray();
 	}
 
+	// TODO use Arbitrary to generate value, e.g. null, "", "XXX" for CharSequence, String, ...
 	private static Object getDefault(Class<?> clazz) {
 		if (clazz.isPrimitive()) {
 			return Array.get(Array.newInstance(clazz, 1), 0);
+		} else if (clazz.isArray()) {
+			return Array.newInstance(clazz.getComponentType(), 0);
 		} else if (clazz == java.time.LocalDate.class) {
 			return java.time.LocalDate.now();
 		} else if (clazz == java.time.LocalDateTime.class) {
 			return java.time.LocalDateTime.now();
 		} else if (clazz == java.util.Date.class) {
 			return new java.util.Date();
+		} else if (clazz == List.class || clazz == ArrayList.class) {
+			return new ArrayList<>();
+		} else if (clazz == Set.class || clazz == HashSet.class) {
+			return new HashSet<>();
+		} else if (clazz == Map.class || clazz == HashMap.class) {
+			return new HashMap<>();
+		} else if (clazz == StringBuilder.class) {
+			return new StringBuilder();
+		} else if (clazz == StringBuffer.class) {
+			return new StringBuffer();
+		} else if (clazz == String.class) {
+			return "";
 		} else {
 			return null;
 		}
@@ -216,6 +282,8 @@ class Jsr380DynamicClassTest {
 			matches(NullPointerException.class, "must not be empty"),
 			matches(NullPointerException.class, "must not be blank"),
 			matches(IllegalArgumentException.class, "must be null"),
+			matches(IllegalArgumentException.class, "must not be empty"),
+			matches(IllegalArgumentException.class, "must not be blank"),
 			matches(IllegalArgumentException.class, "must be greater than 0"),
 			matches(IllegalArgumentException.class, "must be less than 0"),
 			matches(IllegalArgumentException.class, "must be true"),
