@@ -171,7 +171,7 @@ class Jsr380DynamicClassTest {
 		return Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(i));
 	}
 
-	private Unloaded<Object> transformClass(DynamicType unloaded) throws Exception {
+	static Unloaded<Object> transformClass(DynamicType unloaded) throws Exception {
 		try (WithPreprocessor plugin = new JMoleculesPlugin(dummyRoot())) {
 			TypeDescription typeDescription = unloaded.getTypeDescription();
 			ClassFileLocator locator = ClassFileLocator.Simple.of(typeDescription.getName(), unloaded.getBytes());
@@ -215,23 +215,19 @@ class Jsr380DynamicClassTest {
 		return invalidParameterConfigGen().list().ofMinSize(1).ofMaxSize(10);
 	}
 
-	private Arbitrary<ParameterConfig> invalidParameterConfigGen() {
+	static Arbitrary<ParameterConfig> invalidParameterConfigGen() {
 		return Arbitraries.of(ANNO_TO_TYPES.keySet()).flatMap(a -> {
 			Set<Class<?>> validTypes = ANNO_TO_TYPES.getOrDefault(a, emptyList()).stream()
 					.flatMap(v -> resolveAllSubtypes(v).stream()).collect(toSet());
-
 			List<Class<?>> invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
 					.filter(t -> validTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
-
-			if (invalidTypes.isEmpty()) {
-				return Arbitraries.of(new ParameterConfig(Object.class));
-			}
-
-			return Arbitraries.of(invalidTypes).map(t -> new ParameterConfig(t, a));
+			return invalidTypes.isEmpty() //
+					? Arbitraries.of(new ParameterConfig(Object.class)) //
+					: Arbitraries.of(invalidTypes).map(t -> new ParameterConfig(t, a));
 		});
 	}
 
-	private void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded) throws Exception {
+	static void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded) throws Exception {
 		Object[] args = args(params);
 		newInstance(unloaded, args);
 		try {
@@ -243,15 +239,15 @@ class Jsr380DynamicClassTest {
 		}
 	}
 
-	private boolean isAnExpectedException(InvocationTargetException e) {
+	static boolean isAnExpectedException(InvocationTargetException e) {
 		return oks.stream().map(p -> p.test(e.getCause())).anyMatch(Boolean.TRUE::equals);
 	}
 
-	private static Predicate<Throwable> endsWith(Function<Throwable, String> mapper, String expectedMessage) {
+	static Predicate<Throwable> endsWith(Function<Throwable, String> mapper, String expectedMessage) {
 		return t -> mapper.apply(t).endsWith(expectedMessage);
 	}
 
-	private static Object newInstance(Unloaded<Object> unloaded, Object[] args)
+	static Object newInstance(Unloaded<Object> unloaded, Object[] args)
 			throws InstantiationException, IllegalAccessException, InvocationTargetException, Exception {
 		Class<?> clazz = unloaded.load(new ClassLoader() {
 		}, ClassLoadingStrategy.Default.INJECTION).getLoaded();
@@ -259,13 +255,13 @@ class Jsr380DynamicClassTest {
 		return constructor.newInstance(args);
 	}
 
-	private static Object[] args(List<ParameterConfig> params) {
+	static Object[] args(List<ParameterConfig> params) {
 		return params.stream().map(ParameterConfig::getType).map(Jsr380DynamicClassTest::getDefault).toArray();
 	}
 
 	// TODO use Arbitrary to generate value, e.g. null, "", "XXX" for CharSequence,
 	// String, ...
-	private static Object getDefault(Class<?> clazz) {
+	static Object getDefault(Class<?> clazz) {
 		if (clazz.isPrimitive()) {
 			return Array.get(Array.newInstance(clazz, 1), 0);
 		} else if (clazz.isArray()) {
@@ -318,7 +314,7 @@ class Jsr380DynamicClassTest {
 
 	private static final String FIXED_SEED = "-1787866974758305853";
 
-	private static final List<Predicate<Throwable>> oks = List.of( //
+	static final List<Predicate<Throwable>> oks = List.of( //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be null")), //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be empty")), //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be blank")), //
@@ -336,11 +332,11 @@ class Jsr380DynamicClassTest {
 			isIAE().and(endsWith(Throwable::getMessage, "must be a past date")) //
 	);
 
-	private static Predicate<Throwable> isIAE() {
+	static Predicate<Throwable> isIAE() {
 		return IllegalArgumentException.class::isInstance;
 	}
 
-	private static Predicate<Throwable> isNPE() {
+	static Predicate<Throwable> isNPE() {
 		return NullPointerException.class::isInstance;
 	}
 
@@ -372,24 +368,24 @@ class Jsr380DynamicClassTest {
 		approve(params, testClass);
 	}
 
-	private void approve(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
+	void approve(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
 		Unloaded<Object> transformedClass = transformClass(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
 
-	private static Options options() {
+	static Options options() {
 		return new Options().withScrubber(scrubber()).withReporter(new AutoApproveWhenEmptyReporter());
 	}
 
-	private static Scrubber scrubber() {
+	static Scrubber scrubber() {
 		return new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]", i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 	}
 
-	private static String decompile(Unloaded<Object> clazz) throws IOException {
+	static String decompile(Unloaded<Object> clazz) throws IOException {
 		return Decompiler.decompile(clazz.getBytes());
 	}
 
-	private static File dummyRoot() {
+	static File dummyRoot() {
 		return new File("jmolecules-bytebuddy-tests");
 	}
 
