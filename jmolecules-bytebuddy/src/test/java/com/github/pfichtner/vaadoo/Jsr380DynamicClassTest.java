@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -247,8 +248,12 @@ class Jsr380DynamicClassTest {
 		return oks.stream().map(p -> p.test(cause)).anyMatch(Boolean.TRUE::equals);
 	}
 
-	private static Predicate<Throwable> matches(Class<?> expectedClass, String expectedMessage) {
-		return e -> expectedClass.isInstance(e) && e.getMessage().endsWith(expectedMessage);
+	private static Predicate<Throwable> is(Class<?> expectedClass) {
+		return e -> expectedClass.isInstance(e);
+	}
+
+	private static Predicate<Throwable> endsWith(Function<Throwable, String> mapper, String expectedMessage) {
+		return t -> mapper.apply(t).endsWith(expectedMessage);
 	}
 
 	private static Object newInstance(Unloaded<Object> unloaded, Object[] args)
@@ -319,21 +324,30 @@ class Jsr380DynamicClassTest {
 	private static final String FIXED_SEED = "-1787866974758305853";
 
 	private static final List<Predicate<Throwable>> oks = List.of( //
-			matches(NullPointerException.class, "must not be null"),
-			matches(NullPointerException.class, "must not be empty"),
-			matches(NullPointerException.class, "must not be blank"),
-			matches(IllegalArgumentException.class, "must be null"),
-			matches(IllegalArgumentException.class, "must not be empty"),
-			matches(IllegalArgumentException.class, "must not be blank"),
-			matches(IllegalArgumentException.class, "must be greater than 0"),
-			matches(IllegalArgumentException.class, "must be less than 0"),
-			matches(IllegalArgumentException.class, "must be true"),
-			matches(IllegalArgumentException.class, "must be false"), //
-			matches(IllegalArgumentException.class, "numeric value out of bounds (<0 digits>.<0 digits> expected)"), //
-			matches(IllegalArgumentException.class, "must be a future date"), //
-			matches(IllegalArgumentException.class, "must be a date in the present or in the future"), //
-			matches(IllegalArgumentException.class, "must be a past date") //
+			isNPE().and(endsWith(Throwable::getMessage, "must not be null")), //
+			isNPE().and(endsWith(Throwable::getMessage, "must not be empty")), //
+			isNPE().and(endsWith(Throwable::getMessage, "must not be blank")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be null")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must not be empty")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must not be blank")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be greater than 0")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be less than 0")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be true")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be false")), //
+			isIAE().and(
+					endsWith(Throwable::getMessage, "numeric value out of bounds (<0 digits>.<0 digits> expected)")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be a future date")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be a date in the present or in the future")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must be a past date")) //
 	);
+
+	private static Predicate<Throwable> isIAE() {
+		return is(IllegalArgumentException.class);
+	}
+
+	private static Predicate<Throwable> isNPE() {
+		return is(NullPointerException.class);
+	}
 
 	@Example
 	void noArg() throws Exception {
