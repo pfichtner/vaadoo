@@ -213,20 +213,17 @@ class Jsr380DynamicClassTest {
 
 	private Arbitrary<ParameterConfig> invalidParameterConfigGen() {
 		return Arbitraries.of(ANNO_TO_TYPES.keySet()).flatMap(a -> {
-			List<Class<?>> validTypes = ANNO_TO_TYPES.getOrDefault(a, List.of());
-			Set<Class<?>> expandedValidTypes = validTypes.stream().flatMap(v -> resolveAllSubtypes(v).stream())
-					.collect(toSet());
+			Set<Class<?>> validTypes = ANNO_TO_TYPES.getOrDefault(a, emptyList()).stream()
+					.flatMap(v -> resolveAllSubtypes(v).stream()).collect(toSet());
 
 			List<Class<?>> invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
-					.filter(t -> expandedValidTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
+					.filter(t -> validTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
 
 			if (invalidTypes.isEmpty()) {
-				return Arbitraries.of(new ParameterConfig(a));
+				return Arbitraries.of(new ParameterConfig(Object.class));
 			}
 
-			return Arbitraries.of(invalidTypes).map(t -> {
-				return new ParameterConfig(t, a);
-			});
+			return Arbitraries.of(invalidTypes).map(t -> new ParameterConfig(t, a));
 		});
 	}
 
