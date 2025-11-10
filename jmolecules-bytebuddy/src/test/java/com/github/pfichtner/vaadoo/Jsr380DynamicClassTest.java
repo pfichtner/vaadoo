@@ -107,11 +107,12 @@ class Jsr380DynamicClassTest {
 			entry(LocalDateTime.class, List.of(OffsetDateTime.class, ZonedDateTime.class)) //
 	);
 
-	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = //
+	@SuppressWarnings("unchecked")
+	static final Map<Class<? extends Annotation>, List<Class<?>>> ANNO_TO_TYPES = //
 			Stream.of(Jsr380CodeFragment.class.getMethods()) //
 					.sorted(comparing(Method::getName)) //
 					.collect(groupingBy( //
-							m -> m.getParameterTypes()[0], //
+							m -> (Class<? extends Annotation>) m.getParameterTypes()[0], //
 							mapping(m -> m.getParameterTypes()[1], toList()) //
 					));
 
@@ -130,11 +131,11 @@ class Jsr380DynamicClassTest {
 		Arbitrary<Class<?>> typeGen = Arbitraries.of(ALL_SUPPORTED_TYPES)
 				.flatMap(baseType -> Arbitraries.of(resolveAllSubtypes(baseType)));
 		return typeGen.flatMap(type -> {
-			@SuppressWarnings("unchecked")
 			List<Class<? extends Annotation>> applicable = ANNO_TO_TYPES.entrySet().stream()
-					.sorted(comparingByKey(comparing(Class::getName)))
-					.filter(e -> e.getValue().stream().anyMatch(vt -> vt.isAssignableFrom(type)))
-					.map(e -> (Class<? extends Annotation>) e.getKey()).collect(toList());
+					.sorted(comparingByKey(comparing(Class::getName))) //
+					.filter(e -> e.getValue().stream().anyMatch(vt -> vt.isAssignableFrom(type))) //
+					.map(e -> (Class<? extends Annotation>) e.getKey()) //
+					.collect(toList());
 
 			int maxSize = applicable.size();
 			IntUnaryOperator cap = n -> min(n, maxSize);
@@ -215,17 +216,15 @@ class Jsr380DynamicClassTest {
 			Set<Class<?>> expandedValidTypes = validTypes.stream().flatMap(v -> resolveAllSubtypes(v).stream())
 					.collect(toSet());
 
-			List<Class<?>> trulyInvalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
+			List<Class<?>> invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
 					.filter(t -> expandedValidTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
 
-			if (trulyInvalidTypes.isEmpty()) {
+			if (invalidTypes.isEmpty()) {
 				return Arbitraries.of(new ParameterConfig(a));
 			}
 
-			return Arbitraries.of(trulyInvalidTypes).map(t -> {
-				@SuppressWarnings("unchecked")
-				Class<? extends Annotation> annoClass = (Class<? extends Annotation>) a;
-				return new ParameterConfig(t, annoClass);
+			return Arbitraries.of(invalidTypes).map(t -> {
+				return new ParameterConfig(t, a);
 			});
 		});
 	}
