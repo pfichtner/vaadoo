@@ -62,7 +62,7 @@ import net.jqwik.api.arbitraries.ListArbitrary;
 // TODO create arguments that are compatible, e.g. List, Set for Collection, String[], Integer[], Foo[] for Object[], e.g. 
 class Jsr380DynamicClassTest {
 
-	static final boolean DUMP_CLASS_FILES_TO_TEMP = true;
+	static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
 
 	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = //
 			Stream.of(Jsr380CodeFragment.class.getMethods()) //
@@ -181,8 +181,9 @@ class Jsr380DynamicClassTest {
 			return java.time.LocalDateTime.now();
 		} else if (clazz == java.util.Date.class) {
 			return new java.util.Date();
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	@Value

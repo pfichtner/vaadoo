@@ -49,7 +49,7 @@ import net.bytebuddy.dynamic.loading.ByteArrayClassLoader;
 
 class JMoleculesVaadooPluginTests {
 
-	private static final boolean DUMP_CLASS_FILES_TO_TEMP = true;
+	private static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
 
 	@Test
 	void emptyClassIsUnchanged(@TempDir File outputFolder) throws Exception {
