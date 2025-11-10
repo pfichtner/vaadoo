@@ -159,7 +159,7 @@ class Jsr380DynamicClassTest {
 			result.add(current);
 			SUPERTYPE_TO_SUBTYPES.getOrDefault(current, emptyList()).stream().filter(result::add).forEach(stack::push);
 		}
-		return new ArrayList<>(result);
+		return List.copyOf(result);
 	}
 
 	private static ListArbitrary<Class<? extends Annotation>> uniquesOfMin(List<Class<? extends Annotation>> applicable,
