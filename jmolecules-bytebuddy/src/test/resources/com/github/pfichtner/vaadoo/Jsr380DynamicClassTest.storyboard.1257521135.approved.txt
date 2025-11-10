@@ -1,0 +1,81 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.ParameterConfig(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.Past])
+- TestClassBuilder.ParameterConfig(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.FutureOrPresent])
+- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.ParameterConfig(type=class java.time.ZonedDateTime, annotations=[])
+- TestClassBuilder.ParameterConfig(type=int, annotations=[interface jakarta.validation.constraints.Digits])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1257521135
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import java.time.MonthDay;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1257521135
+implements ValueObject {
+    public Generated_1257521135(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, @Digits(fraction=0, groups={}, integer=0, message="{jakarta.validation.constraints.Digits.message}", payload={}) int n) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1257521135
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1257521135;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import java.time.MonthDay;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1257521135
+implements ValueObject {
+    public Generated_1257521135(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, @Digits(fraction=0, groups={}, integer=0, message="{jakarta.validation.constraints.Digits.message}", payload={}) int n) {
+        Generated_1257521135.validate(monthDay, monthDay2, objectArray, objectArray2, zonedDateTime, n);
+        this(monthDay, monthDay2, objectArray, objectArray2, zonedDateTime, n, null);
+    }
+
+    private /* synthetic */ Generated_1257521135(MonthDay monthDay, MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, int n, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(MonthDay monthDay, MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, int n) {
+        int n2;
+        if (monthDay != null && !monthDay.isBefore(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay must be a past date");
+        }
+        if (monthDay2 == null) {
+            throw new NullPointerException("monthDay1 must not be null");
+        }
+        if (monthDay2 != null && monthDay2.isAfter(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay1 must be a date in the past or in the present");
+        }
+        if (monthDay2 != null && monthDay2.isBefore(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay1 must be a date in the present or in the future");
+        }
+        int n3 = n2 = n == 0 ? 1 : (int)Math.log10(Math.abs(n)) + 1;
+        if (n2 > 0) {
+            throw new IllegalArgumentException("int numeric value out of bounds (<0 digits>.<0 digits> expected)");
+        }
+    }
+}
+
+
+----------------------------------------------------------------
