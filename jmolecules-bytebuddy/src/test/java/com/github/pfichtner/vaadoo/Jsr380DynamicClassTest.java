@@ -7,14 +7,18 @@ import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
 import static java.util.Map.Entry.comparingByKey;
 import static java.util.function.Function.identity;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static net.jqwik.api.ShrinkingMode.OFF;
 import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.Approvals.verify;
 import static org.approvaltests.namer.NamerFactory.withParameters;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,11 +29,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +76,7 @@ import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
+import net.jqwik.api.Assume;
 import net.jqwik.api.Example;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
@@ -78,21 +88,24 @@ class Jsr380DynamicClassTest {
 
 	static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
 
-	static final Map<Class<?>, List<Class<?>>> SUPERTYPE_TO_SUBTYPES = Map
-			.ofEntries(
-					entry(Object.class,
-							List.of(String.class, StringBuilder.class, StringBuffer.class, Number.class,
-									Comparable.class)),
-					entry(CharSequence.class, List.of(String.class, StringBuilder.class, StringBuffer.class)),
-					entry(Collection.class, List.of(List.class, Set.class)),
-					entry(List.class, List.of(ArrayList.class, LinkedList.class)),
-					entry(Set.class, List.of(HashSet.class, LinkedHashSet.class)),
-					entry(Map.class, List.of(HashMap.class, TreeMap.class, LinkedHashMap.class)),
-					entry(Object[].class, List.of(String[].class, Integer[].class, Long[].class, Object[].class)),
-					entry(Number.class,
-							List.of(Integer.class, Long.class, Double.class, Float.class, BigDecimal.class)),
-					entry(Comparable.class, List.of(String.class, Integer.class, LocalDate.class, LocalDateTime.class)) //
-			);
+	static final Map<Class<?>, List<Class<?>>> SUPERTYPE_TO_SUBTYPES = Map.ofEntries(
+			entry(Object.class,
+					List.of(String.class, StringBuilder.class, StringBuffer.class, Number.class, Collection.class,
+							Map.class, Comparable.class)), //
+			entry(CharSequence.class, List.of(String.class, StringBuilder.class, StringBuffer.class)), //
+			entry(Collection.class, List.of(List.class, Set.class)), //
+			entry(List.class, List.of(ArrayList.class, LinkedList.class)), //
+			entry(Set.class, List.of(HashSet.class, LinkedHashSet.class)), //
+			entry(Map.class, List.of(HashMap.class, TreeMap.class, LinkedHashMap.class)), //
+			entry(Object[].class, List.of(String[].class, Integer[].class, Long[].class, Object[].class)), //
+			entry(Number.class, List.of(Integer.class, Long.class, Double.class, Float.class, BigDecimal.class)), //
+			entry(Comparable.class, List.of(String.class, Integer.class, LocalDate.class, LocalDateTime.class)), //
+			entry(Date.class,
+					List.of(java.sql.Date.class, java.sql.Timestamp.class, Calendar.class, LocalDate.class,
+							LocalDateTime.class, Instant.class, OffsetDateTime.class, ZonedDateTime.class)),
+			entry(LocalDate.class, List.of(LocalDateTime.class)), //
+			entry(LocalDateTime.class, List.of(OffsetDateTime.class, ZonedDateTime.class)) //
+	);
 
 	static final Map<Class<?>, List<Class<?>>> ANNO_TO_TYPES = //
 			Stream.of(Jsr380CodeFragment.class.getMethods()) //
@@ -180,13 +193,41 @@ class Jsr380DynamicClassTest {
 		createInstances(params, unloaded);
 	}
 
-//	@Property
-	void forAllNotSupportedTypes(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
-		// Annotation jakarta.validation.constraints.DecimalMin on type java.lang.String
-		// not allowed,
-		// allowed only on types: [byte, short, int, long, java.lang.Byte,
-		// java.lang.Short, java.lang.Integer, java.lang.Long, java.math.BigInteger,
-		// java.math.BigDecimal, java.lang.CharSequence]
+	@Property
+	void throwsExceptionIfTypeIsNotSupportedByAnnotation(
+			@ForAll("invalidParameterConfigs") List<ParameterConfig> params) throws Exception {
+		Assume.that(params.stream().map(ParameterConfig::getAnnotations).anyMatch(not(List::isEmpty)));
+		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated")
+				.constructor(new ConstructorConfig(params)).make();
+		newInstance(unloaded, args(params));
+		assertThat(assertThrows(IllegalStateException.class, () -> transformClass(unloaded)).getMessage())
+				.contains("not allowed, allowed only on");
+	}
+
+	@Provide
+	private Arbitrary<List<ParameterConfig>> invalidParameterConfigs() {
+		return invalidParameterConfigGen().list().ofMinSize(1).ofMaxSize(10);
+	}
+
+	private Arbitrary<ParameterConfig> invalidParameterConfigGen() {
+		return Arbitraries.of(ANNO_TO_TYPES.keySet()).flatMap(a -> {
+			List<Class<?>> validTypes = ANNO_TO_TYPES.getOrDefault(a, List.of());
+			Set<Class<?>> expandedValidTypes = validTypes.stream().flatMap(v -> resolveAllSubtypes(v).stream())
+					.collect(toSet());
+
+			List<Class<?>> trulyInvalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
+					.filter(t -> expandedValidTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
+
+			if (trulyInvalidTypes.isEmpty()) {
+				return Arbitraries.of(new ParameterConfig(a));
+			}
+
+			return Arbitraries.of(trulyInvalidTypes).map(t -> {
+				@SuppressWarnings("unchecked")
+				Class<? extends Annotation> annoClass = (Class<? extends Annotation>) a;
+				return new ParameterConfig(t, annoClass);
+			});
+		});
 	}
 
 	private void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded)
@@ -223,7 +264,8 @@ class Jsr380DynamicClassTest {
 		return params.stream().map(ParameterConfig::getType).map(Jsr380DynamicClassTest::getDefault).toArray();
 	}
 
-	// TODO use Arbitrary to generate value, e.g. null, "", "XXX" for CharSequence, String, ...
+	// TODO use Arbitrary to generate value, e.g. null, "", "XXX" for CharSequence,
+	// String, ...
 	private static Object getDefault(Class<?> clazz) {
 		if (clazz.isPrimitive()) {
 			return Array.get(Array.newInstance(clazz, 1), 0);
@@ -233,8 +275,8 @@ class Jsr380DynamicClassTest {
 			return java.time.LocalDate.now();
 		} else if (clazz == java.time.LocalDateTime.class) {
 			return java.time.LocalDateTime.now();
-		} else if (clazz == java.util.Date.class) {
-			return new java.util.Date();
+		} else if (clazz == Date.class) {
+			return new Date();
 		} else if (clazz == List.class || clazz == ArrayList.class) {
 			return new ArrayList<>();
 		} else if (clazz == Set.class || clazz == HashSet.class) {
