@@ -1,10 +1,10 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterConfig(type=class java.time.LocalTime, annotations=[])
-- TestClassBuilder.ParameterConfig(type=class java.time.chrono.MinguoDate, annotations=[interface jakarta.validation.constraints.PastOrPresent])
-- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
-- TestClassBuilder.ParameterConfig(type=class java.time.Year, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.PastOrPresent])
-- TestClassBuilder.ParameterConfig(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.Past])
+- TestClassBuilder.ParameterDefinition(type=class java.time.LocalTime, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[interface jakarta.validation.constraints.PastOrPresent])
+- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class java.time.Year, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.PastOrPresent])
+- TestClassBuilder.ParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.Past])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_1137684278
 /*

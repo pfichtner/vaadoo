@@ -53,36 +53,36 @@ public class TestClassBuilder {
 
 	@Value
 	@RequiredArgsConstructor
-	public static class ParameterConfig {
+	public static class ParameterDefinition {
 		Class<?> type;
 		List<Class<? extends Annotation>> annotations;
 
 		@SafeVarargs
-		public ParameterConfig(Class<?> type, Class<? extends Annotation>... annotations) {
+		public ParameterDefinition(Class<?> type, Class<? extends Annotation>... annotations) {
 			this(type, List.of(annotations));
 		}
 
-		public static String stableChecksum(List<ParameterConfig> configs) {
-			String stringValue = configs.stream().map(ParameterConfig::asString).collect(joining("|"));
+		public static String stableChecksum(List<ParameterDefinition> parameters) {
+			String stringValue = parameters.stream().map(ParameterDefinition::asString).collect(joining("|"));
 			return String.valueOf(abs(stringValue.hashCode()));
 		}
 
-		private static String asString(ParameterConfig config) {
-			return config.type.getName() + ":"
-					+ config.annotations.stream().map(Class::getName).sorted().collect(joining(","));
+		private static String asString(ParameterDefinition definition) {
+			return definition.type.getName() + ":"
+					+ definition.annotations.stream().map(Class::getName).sorted().collect(joining(","));
 		}
 
 	}
 
 	@Value
 	public static class ConstructorDefinition {
-		List<ParameterConfig> parameterConfig;
+		List<ParameterDefinition> parameters;
 	}
 
 	@Value
 	public static class MethodDefinition {
 		String methodname;
-		List<ParameterConfig> parameterConfig;
+		List<ParameterDefinition> parameters;
 	}
 
 	private final String classname;
@@ -125,14 +125,14 @@ public class TestClassBuilder {
 		NameMaker nameMaker = new NameMaker();
 
 		Builder<Object> builder = interfaces.stream().reduce(base(), Builder::implement, (__, b) -> b);
-		for (ConstructorDefinition constructorConfig : constructors) {
+		for (ConstructorDefinition ctor : constructors) {
 			Initial<Object> ctorInitial = builder.defineConstructor(Visibility.PUBLIC);
 
 			Annotatable<Object> paramDef = null;
-			for (ParameterConfig parameterConfig : constructorConfig.getParameterConfig()) {
-				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameterConfig.getType(),
-						nameMaker.makeName(parameterConfig.getType()));
-				for (Class<? extends Annotation> anno : parameterConfig.getAnnotations()) {
+			for (ParameterDefinition parameter : ctor.getParameters()) {
+				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.getType(),
+						nameMaker.makeName(parameter.getType()));
+				for (Class<? extends Annotation> anno : parameter.getAnnotations()) {
 					paramDef = paramDef.annotateParameter(createAnnotation(anno));
 				}
 			}
@@ -141,9 +141,8 @@ public class TestClassBuilder {
 					.intercept(net.bytebuddy.implementation.MethodCall.invoke(objectNoArgConstructor));
 		}
 
-		for (MethodDefinition methodConfig : methods) {
-			builder = builder
-					.defineMethod(methodConfig.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC)
+		for (MethodDefinition method : methods) {
+			builder = builder.defineMethod(method.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC)
 					.withParameter(Object.class, "someArgName").intercept(StubMethod.INSTANCE);
 		}
 

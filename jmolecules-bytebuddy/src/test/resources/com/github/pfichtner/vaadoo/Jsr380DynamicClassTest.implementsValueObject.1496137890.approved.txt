@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterConfig(type=class java.util.LinkedHashMap, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotEmpty])
-- TestClassBuilder.ParameterConfig(type=class java.time.chrono.MinguoDate, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.Past])
+- TestClassBuilder.ParameterDefinition(type=class java.util.LinkedHashMap, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotEmpty])
+- TestClassBuilder.ParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.Past])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_1496137890
 /*

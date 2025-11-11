@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Long;, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.Long;, annotations=[])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_223166080
 /*

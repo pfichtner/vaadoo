@@ -1,13 +1,13 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Long;, annotations=[])
-- TestClassBuilder.ParameterConfig(type=class java.lang.Short, annotations=[interface jakarta.validation.constraints.Digits, interface jakarta.validation.constraints.DecimalMin])
-- TestClassBuilder.ParameterConfig(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
-- TestClassBuilder.ParameterConfig(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.PositiveOrZero, interface jakarta.validation.constraints.Negative, interface jakarta.validation.constraints.NegativeOrZero])
-- TestClassBuilder.ParameterConfig(type=class java.math.BigDecimal, annotations=[])
-- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.String;, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.NotEmpty])
-- TestClassBuilder.ParameterConfig(type=byte, annotations=[interface jakarta.validation.constraints.DecimalMax])
-- TestClassBuilder.ParameterConfig(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.Null])
+- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.Long;, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class java.lang.Short, annotations=[interface jakarta.validation.constraints.Digits, interface jakarta.validation.constraints.DecimalMin])
+- TestClassBuilder.ParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
+- TestClassBuilder.ParameterDefinition(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.PositiveOrZero, interface jakarta.validation.constraints.Negative, interface jakarta.validation.constraints.NegativeOrZero])
+- TestClassBuilder.ParameterDefinition(type=class java.math.BigDecimal, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.String;, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.NotEmpty])
+- TestClassBuilder.ParameterDefinition(type=byte, annotations=[interface jakarta.validation.constraints.DecimalMax])
+- TestClassBuilder.ParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.Null])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_334067205
 /*

@@ -61,7 +61,7 @@ import org.approvaltests.scrubbers.RegExScrubber;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
-import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterConfig;
+import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
 import jakarta.validation.constraints.NotNull;
@@ -119,11 +119,11 @@ class Jsr380DynamicClassTest {
 			.collect(toList());
 
 	@Provide
-	Arbitrary<List<ParameterConfig>> constructorParameters() {
+	Arbitrary<List<ParameterDefinition>> constructorParameters() {
 		return parameterConfigGen().list().ofMinSize(1).ofMaxSize(10);
 	}
 
-	private Arbitrary<ParameterConfig> parameterConfigGen() {
+	private Arbitrary<ParameterDefinition> parameterConfigGen() {
 		Arbitrary<Class<?>> typeGen = Arbitraries.of(ALL_SUPPORTED_TYPES)
 				.flatMap(baseType -> Arbitraries.of(resolveAllSubtypes(baseType)));
 		return typeGen.flatMap(type -> {
@@ -142,7 +142,7 @@ class Jsr380DynamicClassTest {
 					Tuple.of(20, uniquesOfMin(applicable, cap, 3)), //
 					Tuple.of(5, uniquesOfMin(applicable, cap, 4).ofMaxSize(maxSize))) //
 					.flatMap(identity());
-			return frequency.map(annos -> new ParameterConfig(type, annos));
+			return frequency.map(annos -> new ParameterDefinition(type, annos));
 		});
 	}
 
@@ -163,7 +163,7 @@ class Jsr380DynamicClassTest {
 	}
 
 	@Property
-	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
+	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
 		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorDefinition(params)).build();
@@ -172,8 +172,8 @@ class Jsr380DynamicClassTest {
 
 	@Property
 	void throwsExceptionIfTypeIsNotSupportedByAnnotation(
-			@ForAll("invalidParameterConfigs") List<ParameterConfig> params) throws Exception {
-		Assume.that(params.stream().map(ParameterConfig::getAnnotations).anyMatch(not(List::isEmpty)));
+			@ForAll("invalidParameterConfigs") List<ParameterDefinition> params) throws Exception {
+		Assume.that(params.stream().map(ParameterDefinition::getAnnotations).anyMatch(not(List::isEmpty)));
 		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated").implementsValueObject()
 				.constructor(new ConstructorDefinition(params)).build();
 		newInstance(unloaded, args(params));
@@ -182,23 +182,23 @@ class Jsr380DynamicClassTest {
 	}
 
 	@Provide
-	private Arbitrary<List<ParameterConfig>> invalidParameterConfigs() {
+	private Arbitrary<List<ParameterDefinition>> invalidParameterConfigs() {
 		return invalidParameterConfigGen().list().ofMinSize(1).ofMaxSize(10);
 	}
 
-	static Arbitrary<ParameterConfig> invalidParameterConfigGen() {
+	static Arbitrary<ParameterDefinition> invalidParameterConfigGen() {
 		return Arbitraries.of(ANNO_TO_TYPES.keySet()).flatMap(a -> {
 			Set<Class<?>> validTypes = ANNO_TO_TYPES.getOrDefault(a, emptyList()).stream()
 					.flatMap(v -> resolveAllSubtypes(v).stream()).collect(toSet());
 			List<Class<?>> invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
 					.filter(t -> validTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
 			return invalidTypes.isEmpty() //
-					? Arbitraries.of(new ParameterConfig(Object.class)) //
-					: Arbitraries.of(invalidTypes).map(t -> new ParameterConfig(t, a));
+					? Arbitraries.of(new ParameterDefinition(Object.class)) //
+					: Arbitraries.of(invalidTypes).map(t -> new ParameterDefinition(t, a));
 		});
 	}
 
-	static void createInstances(List<ParameterConfig> params, Unloaded<Object> unloaded) throws Exception {
+	static void createInstances(List<ParameterDefinition> params, Unloaded<Object> unloaded) throws Exception {
 		Object[] args = args(params);
 		newInstance(unloaded, args);
 		try {
@@ -225,8 +225,8 @@ class Jsr380DynamicClassTest {
 		return clazz.getDeclaredConstructors()[0].newInstance(args);
 	}
 
-	static Object[] args(List<ParameterConfig> params) {
-		return params.stream().map(ParameterConfig::getType).map(Jsr380DynamicClassTest::getDefault).toArray();
+	static Object[] args(List<ParameterDefinition> params) {
+		return params.stream().map(ParameterDefinition::getType).map(Jsr380DynamicClassTest::getDefault).toArray();
 	}
 
 	// TODO use Arbitrary to generate value, e.g. null, "", "XXX" for CharSequence,
@@ -261,7 +261,7 @@ class Jsr380DynamicClassTest {
 
 	@Value
 	static class Storyboard {
-		List<ParameterConfig> params;
+		List<ParameterDefinition> params;
 		String source;
 		String transformed;
 
@@ -312,7 +312,7 @@ class Jsr380DynamicClassTest {
 
 	@Example
 	void noArg() throws Exception {
-		List<ParameterConfig> noParams = emptyList();
+		List<ParameterDefinition> noParams = emptyList();
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorDefinition(noParams)).build();
 		approveTransformed(noParams, testClass);
@@ -320,8 +320,8 @@ class Jsr380DynamicClassTest {
 
 	@Property
 	void withoutImplementingValueObject_noValidationCodeGetsAdded(
-			@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
-		String checksum = ParameterConfig.stableChecksum(params);
+			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
+		String checksum = ParameterDefinition.stableChecksum(params);
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
 				.constructor(new ConstructorDefinition(params)).build();
 		Unloaded<Object> transformedClass = transformClass(testClass);
@@ -329,10 +329,10 @@ class Jsr380DynamicClassTest {
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
-	void implementsValueObject(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
+	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
 		settings().allowMultipleVerifyCallsForThisClass();
 		settings().allowMultipleVerifyCallsForThisMethod();
-		String checksum = ParameterConfig.stableChecksum(params);
+		String checksum = ParameterDefinition.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
 					.implementsValueObject().constructor(new ConstructorDefinition(params)).build();
@@ -342,14 +342,14 @@ class Jsr380DynamicClassTest {
 
 	@Example
 	void alreadyHasValidateMethod() throws Exception {
-		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
+		List<ParameterDefinition> params = List.of(new ParameterDefinition(Object.class, List.of(NotNull.class)));
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorDefinition(params)).method(new MethodDefinition("validate", emptyList()))
 				.build();
 		approveTransformed(params, testClass);
 	}
 
-	void approveTransformed(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
+	void approveTransformed(List<ParameterDefinition> params, Unloaded<Object> generatedClass) throws Exception {
 		Unloaded<Object> transformedClass = transformClass(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
