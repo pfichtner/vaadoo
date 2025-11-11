@@ -59,8 +59,8 @@ import org.approvaltests.namer.NamedEnvironment;
 import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
 import org.approvaltests.scrubbers.RegExScrubber;
 
-import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorConfig;
-import com.github.pfichtner.vaadoo.TestClassBuilder.MethodConfig;
+import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterConfig;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
@@ -166,7 +166,7 @@ class Jsr380DynamicClassTest {
 	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
 		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(new ConstructorConfig(params)).make();
+				.constructor(new ConstructorDefinition(params)).build();
 		createInstances(params, unloaded);
 	}
 
@@ -175,7 +175,7 @@ class Jsr380DynamicClassTest {
 			@ForAll("invalidParameterConfigs") List<ParameterConfig> params) throws Exception {
 		Assume.that(params.stream().map(ParameterConfig::getAnnotations).anyMatch(not(List::isEmpty)));
 		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated").implementsValueObject()
-				.constructor(new ConstructorConfig(params)).make();
+				.constructor(new ConstructorDefinition(params)).build();
 		newInstance(unloaded, args(params));
 		assertThat(assertThrows(IllegalStateException.class, () -> transformClass(unloaded)).getMessage())
 				.contains("not allowed, allowed only on");
@@ -314,15 +314,16 @@ class Jsr380DynamicClassTest {
 	void noArg() throws Exception {
 		List<ParameterConfig> noParams = emptyList();
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(new ConstructorConfig(noParams)).make();
+				.constructor(new ConstructorDefinition(noParams)).build();
 		approveTransformed(noParams, testClass);
 	}
 
 	@Property
-	void withoutImplementingValueObject_noValidationCodeGetsAdded(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
+	void withoutImplementingValueObject_noValidationCodeGetsAdded(
+			@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
 		String checksum = ParameterConfig.stableChecksum(params);
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-				.constructor(new ConstructorConfig(params)).make();
+				.constructor(new ConstructorDefinition(params)).build();
 		Unloaded<Object> transformedClass = transformClass(testClass);
 		newInstance(transformedClass, args(params));
 	}
@@ -334,7 +335,7 @@ class Jsr380DynamicClassTest {
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.implementsValueObject().constructor(new ConstructorConfig(params)).make();
+					.implementsValueObject().constructor(new ConstructorDefinition(params)).build();
 			approveTransformed(params, testClass);
 		}
 	}
@@ -343,7 +344,8 @@ class Jsr380DynamicClassTest {
 	void alreadyHasValidateMethod() throws Exception {
 		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(new ConstructorConfig(params)).method(new MethodConfig("validate", emptyList())).make();
+				.constructor(new ConstructorDefinition(params)).method(new MethodDefinition("validate", emptyList()))
+				.build();
 		approveTransformed(params, testClass);
 	}
 

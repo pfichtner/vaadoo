@@ -4,6 +4,7 @@ import static java.lang.Math.abs;
 import static java.util.stream.Collectors.joining;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,9 +22,9 @@ import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.modifier.Ownership;
 import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDescription.ForLoadedType;
 import net.bytebuddy.dynamic.DynamicType.Builder;
-import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ImplementationDefinition.Optional;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Annotatable;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Initial;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
@@ -31,6 +32,8 @@ import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.StubMethod;
 
 public class TestClassBuilder {
+
+	private static final Constructor<Object> objectNoArgConstructor = objectNoArgConstructor();
 
 	private static class NameMaker {
 
@@ -72,24 +75,31 @@ public class TestClassBuilder {
 	}
 
 	@Value
-	public static class ConstructorConfig {
+	public static class ConstructorDefinition {
 		List<ParameterConfig> parameterConfig;
 	}
 
 	@Value
-	public static class MethodConfig {
+	public static class MethodDefinition {
 		String methodname;
 		List<ParameterConfig> parameterConfig;
 	}
 
-	private Builder<Object> bb;
-	private final List<ConstructorConfig> constructors = new ArrayList<>();
-	private final List<MethodConfig> methods = new ArrayList<>();
+	private final String classname;
+	private final List<TypeDescription> interfaces = new ArrayList<>();
+	private final List<ConstructorDefinition> constructors = new ArrayList<>();
+	private final List<MethodDefinition> methods = new ArrayList<>();
 
 	public TestClassBuilder(String classname) {
-		bb = new ByteBuddy() //
-				.subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS) //
-				.name(classname);
+		this.classname = classname;
+	}
+
+	private static Constructor<Object> objectNoArgConstructor() {
+		try {
+			return Object.class.getDeclaredConstructor();
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public TestClassBuilder implementsValueObject() {
@@ -97,26 +107,26 @@ public class TestClassBuilder {
 	}
 
 	public TestClassBuilder withInterface(Class<?> clazz) {
-		bb = bb.implement(ForLoadedType.of(clazz)); //
+		this.interfaces.add(ForLoadedType.of(clazz));
 		return this;
 	}
 
-	public TestClassBuilder constructor(ConstructorConfig constructor) {
+	public TestClassBuilder constructor(ConstructorDefinition constructor) {
 		this.constructors.add(constructor);
 		return this;
 	}
 
-	public TestClassBuilder method(MethodConfig method) {
+	public TestClassBuilder method(MethodDefinition method) {
 		this.methods.add(method);
 		return this;
 	}
 
-	public Unloaded<Object> make() throws NoSuchMethodException {
-		Builder<Object> built = bb;
+	public Unloaded<Object> build() {
 		NameMaker nameMaker = new NameMaker();
 
-		for (ConstructorConfig constructorConfig : constructors) {
-			Initial<Object> ctorInitial = built.defineConstructor(Visibility.PUBLIC);
+		Builder<Object> builder = interfaces.stream().reduce(base(), Builder::implement, (__, b) -> b);
+		for (ConstructorDefinition constructorConfig : constructors) {
+			Initial<Object> ctorInitial = builder.defineConstructor(Visibility.PUBLIC);
 
 			Annotatable<Object> paramDef = null;
 			for (ParameterConfig parameterConfig : constructorConfig.getParameterConfig()) {
@@ -127,16 +137,24 @@ public class TestClassBuilder {
 				}
 			}
 
-			built = (paramDef == null ? ctorInitial : paramDef)
-					.intercept(net.bytebuddy.implementation.MethodCall.invoke(Object.class.getDeclaredConstructor()));
+			builder = (paramDef == null ? ctorInitial : paramDef)
+					.intercept(net.bytebuddy.implementation.MethodCall.invoke(objectNoArgConstructor));
 		}
 
-		for (MethodConfig methodConfig : methods) {
-			built = built.defineMethod(methodConfig.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC)
+		for (MethodDefinition methodConfig : methods) {
+			builder = builder
+					.defineMethod(methodConfig.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC)
 					.withParameter(Object.class, "someArgName").intercept(StubMethod.INSTANCE);
 		}
 
-		return built.make();
+		return builder.make();
+	}
+
+	private Builder<Object> base() {
+		Builder<Object> built = new ByteBuddy() //
+				.subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS) //
+				.name(classname);
+		return built;
 	}
 
 	private static AnnotationDescription createAnnotation(Class<? extends Annotation> ann) {
