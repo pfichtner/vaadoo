@@ -174,7 +174,10 @@ class Jsr380DynamicClassTest {
 	static Unloaded<Object> transformClass(DynamicType unloaded) throws Exception {
 		try (WithPreprocessor plugin = new JMoleculesPlugin(dummyRoot())) {
 			TypeDescription typeDescription = unloaded.getTypeDescription();
-			ClassFileLocator locator = ClassFileLocator.Simple.of(typeDescription.getName(), unloaded.getBytes());
+			var locator = new ClassFileLocator.Compound( //
+					ClassFileLocator.Simple.of(typeDescription.getName(), unloaded.getBytes()), //
+					ClassFileLocator.ForClassLoader.ofSystemLoader() //
+			);
 			plugin.onPreprocess(typeDescription, locator);
 
 			var byteBuddy = new ByteBuddy();
