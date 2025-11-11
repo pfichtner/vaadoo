@@ -23,6 +23,7 @@ import net.bytebuddy.description.modifier.Ownership;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.description.type.TypeDescription.ForLoadedType;
 import net.bytebuddy.dynamic.DynamicType.Builder;
+import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ImplementationDefinition.Optional;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Annotatable;
 import net.bytebuddy.dynamic.DynamicType.Builder.MethodDefinition.ParameterDefinition.Initial;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
@@ -81,15 +82,23 @@ public class TestClassBuilder {
 		List<ParameterConfig> parameterConfig;
 	}
 
-	private final Builder<Object> bb;
+	private Builder<Object> bb;
 	private final List<ConstructorConfig> constructors = new ArrayList<>();
 	private final List<MethodConfig> methods = new ArrayList<>();
 
 	public TestClassBuilder(String classname) {
 		bb = new ByteBuddy() //
 				.subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS) //
-				.implement(ForLoadedType.of(org.jmolecules.ddd.types.ValueObject.class)) //
 				.name(classname);
+	}
+
+	public TestClassBuilder implementsValueObject() {
+		return withInterface(org.jmolecules.ddd.types.ValueObject.class);
+	}
+
+	public TestClassBuilder withInterface(Class<?> clazz) {
+		bb = bb.implement(ForLoadedType.of(clazz)); //
+		return this;
 	}
 
 	public TestClassBuilder constructor(ConstructorConfig constructor) {

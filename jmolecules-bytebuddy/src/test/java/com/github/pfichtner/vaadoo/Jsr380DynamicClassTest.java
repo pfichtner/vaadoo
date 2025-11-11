@@ -197,7 +197,7 @@ class Jsr380DynamicClassTest {
 	@Property
 	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterConfig> params)
 			throws Exception {
-		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated")
+		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorConfig(params)).make();
 		createInstances(params, unloaded);
 	}
@@ -206,7 +206,7 @@ class Jsr380DynamicClassTest {
 	void throwsExceptionIfTypeIsNotSupportedByAnnotation(
 			@ForAll("invalidParameterConfigs") List<ParameterConfig> params) throws Exception {
 		Assume.that(params.stream().map(ParameterConfig::getAnnotations).anyMatch(not(List::isEmpty)));
-		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated")
+		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated").implementsValueObject()
 				.constructor(new ConstructorConfig(params)).make();
 		newInstance(unloaded, args(params));
 		assertThat(assertThrows(IllegalStateException.class, () -> transformClass(unloaded)).getMessage())
@@ -346,19 +346,19 @@ class Jsr380DynamicClassTest {
 	@Example
 	void noArg() throws Exception {
 		List<ParameterConfig> noParams = emptyList();
-		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated")
+		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorConfig(noParams)).make();
 		approve(noParams, testClass);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
-	void storyboard(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
+	void implementsValueObject(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
 		settings().allowMultipleVerifyCallsForThisClass();
 		settings().allowMultipleVerifyCallsForThisMethod();
 		String checksum = ParameterConfig.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.constructor(new ConstructorConfig(params)).make();
+					.implementsValueObject().constructor(new ConstructorConfig(params)).make();
 			approve(params, testClass);
 		}
 	}
@@ -366,7 +366,7 @@ class Jsr380DynamicClassTest {
 	@Example
 	void alreadyHasValidateMethod() throws Exception {
 		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
-		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated")
+		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorConfig(params)).method(new MethodConfig("validate", emptyList())).make();
 		approve(params, testClass);
 	}

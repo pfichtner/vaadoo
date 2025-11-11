@@ -35,7 +35,6 @@ import com.github.pfichtner.vaadoo.testclasses.ClassWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ClassWithNotNullAttribute;
 import com.github.pfichtner.vaadoo.testclasses.EmptyClass;
 import com.github.pfichtner.vaadoo.testclasses.TwoConstructorsValueObject;
-import com.github.pfichtner.vaadoo.testclasses.UselessValueObject;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
 
@@ -53,17 +52,25 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void emptyClassIsUnchanged(@TempDir File outputFolder) throws Exception {
-		assertThatNoException().isThrownBy(() -> transformedClass(EmptyClass.class, outputFolder));
+		Class<?> transformedClass = transformedClass(EmptyClass.class, outputFolder);
+		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor();
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance());
 	}
 
 	@Test
 	void classWithAttribute(@TempDir File outputFolder) throws Exception {
-		assertThatNoException().isThrownBy(() -> transformedClass(ClassWithAttribute.class, outputFolder));
+		Class<?> transformedClass = transformedClass(ClassWithAttribute.class, outputFolder);
+		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor(String.class);
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance((String) null));
 	}
 
 	@Test
 	void classWithNotNullAttribute(@TempDir File outputFolder) throws Exception {
-		assertThatNoException().isThrownBy(() -> transformedClass(ClassWithNotNullAttribute.class, outputFolder));
+		Class<?> transformedClass = transformedClass(ClassWithNotNullAttribute.class, outputFolder);
+		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor(String.class);
+		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
+						.hasMessage(notNull("someString")));
 	}
 
 	@Test
@@ -73,13 +80,6 @@ class JMoleculesVaadooPluginTests {
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
 				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
 						.hasMessage(notNull("someString")));
-	}
-
-	@Test
-	void valueObjectWithoutAttributes(@TempDir File outputFolder) throws Exception {
-		Class<?> transformedClass = transformedClass(UselessValueObject.class, outputFolder);
-		Constructor<?> stringArgConstructor = transformedClass.getDeclaredConstructor();
-		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance());
 	}
 
 	@Test
