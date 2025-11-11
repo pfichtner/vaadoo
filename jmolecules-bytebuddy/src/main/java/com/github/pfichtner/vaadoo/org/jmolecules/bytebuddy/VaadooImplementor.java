@@ -169,7 +169,7 @@ class VaadooImplementor {
 		private Method codeFragmentMethod(ConfigEntry config, TypeDescription actual) {
 			TypeDescription[] parameters = new TypeDescription[] { config.anno(), config.resolveSuperType(actual) };
 			return codeFragmentMethod(parameters).map(m -> {
-				var supportedType = m.getParameterTypes()[1];
+				Class<?> supportedType = m.getParameterTypes()[1];
 				if (actual.isAssignableTo(supportedType)) {
 					return m;
 				}
@@ -179,7 +179,7 @@ class VaadooImplementor {
 
 		private IllegalStateException unsupportedType(TypeDescription... parameters) {
 			assert parameters.length >= 2 : "Expected to get 2 parameters, got " + Arrays.toString(parameters);
-			var supported = this.codeFragmentMethods.stream() //
+			List<String> supported = this.codeFragmentMethods.stream() //
 					.filter(StaticValidateAppender::isCodeFragmentMethod) //
 					.filter(m -> m.getParameterCount() > 1) //
 					.filter(m -> parameters[0].isAssignableTo(m.getParameterTypes()[0])) //
