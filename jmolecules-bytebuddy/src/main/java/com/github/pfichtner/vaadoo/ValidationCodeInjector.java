@@ -18,7 +18,6 @@ package com.github.pfichtner.vaadoo;
 import static com.github.pfichtner.vaadoo.AsmUtil.STRING_TYPE;
 import static com.github.pfichtner.vaadoo.AsmUtil.classReader;
 import static com.github.pfichtner.vaadoo.AsmUtil.isArray;
-import static com.github.pfichtner.vaadoo.AsmUtil.isArrayHandlingOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isLoadOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isReturnOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isStoreOpcode;
@@ -210,7 +209,7 @@ public class ValidationCodeInjector {
 									owner, name, sourceMethodOwner));
 						}
 
-						this.currentAnnotationType = getObjectType(owner);
+						currentAnnotationType = getObjectType(owner);
 						if (isFirstParamLoad) {
 							Type returnType = getReturnType(descriptor);
 							if (isArray(returnType)) {
@@ -264,7 +263,7 @@ public class ValidationCodeInjector {
 						if (valueFromClass != null) {
 							return valueFromClass;
 						}
-						Object defaultValue = defaultValue(this.currentAnnotationType.getClassName(), name);
+						Object defaultValue = defaultValue(currentAnnotationType.getClassName(), name);
 						if (defaultValue != null) {
 							return defaultValue;
 						}
@@ -316,7 +315,7 @@ public class ValidationCodeInjector {
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
 		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
 				signatureOfTargetMethod, parameter);
-		this.classReader.accept(classVisitor, 0);
+		classReader.accept(classVisitor, 0);
 	}
 
 	private static String defaultValue(String className, String name) {
