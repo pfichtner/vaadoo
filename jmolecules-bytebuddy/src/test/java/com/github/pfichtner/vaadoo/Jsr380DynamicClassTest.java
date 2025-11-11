@@ -1,5 +1,6 @@
 package com.github.pfichtner.vaadoo;
 
+import static com.github.pfichtner.vaadoo.Transformer.transformClass;
 import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
@@ -27,7 +28,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -63,15 +63,9 @@ import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorConfig;
 import com.github.pfichtner.vaadoo.TestClassBuilder.MethodConfig;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterConfig;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Value;
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.build.Plugin.WithPreprocessor;
-import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.ClassFileLocator;
-import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.jqwik.api.Arbitraries;
@@ -85,8 +79,6 @@ import net.jqwik.api.Tuple;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
 class Jsr380DynamicClassTest {
-
-	static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
 
 	static final Map<Class<?>, List<Class<?>>> SUPERTYPE_TO_SUBTYPES = Map.ofEntries(
 			entry(Object.class,
@@ -168,29 +160,6 @@ class Jsr380DynamicClassTest {
 	private static ListArbitrary<Class<? extends Annotation>> uniquesOfMin(List<Class<? extends Annotation>> applicable,
 			IntUnaryOperator cap, int i) {
 		return Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(i));
-	}
-
-	static Unloaded<Object> transformClass(DynamicType unloaded) throws Exception {
-		try (WithPreprocessor plugin = new JMoleculesPlugin(dummyRoot())) {
-			TypeDescription typeDescription = unloaded.getTypeDescription();
-			var locator = new ClassFileLocator.Compound( //
-					ClassFileLocator.Simple.of(typeDescription.getName(), unloaded.getBytes()), //
-					ClassFileLocator.ForClassLoader.ofSystemLoader() //
-			);
-			plugin.onPreprocess(typeDescription, locator);
-
-			var byteBuddy = new ByteBuddy();
-			var builder = byteBuddy.rebase(unloaded.getTypeDescription(), locator);
-			var transformedBuilder = plugin.apply(builder, typeDescription, locator);
-
-			@SuppressWarnings("unchecked")
-			DynamicType.Unloaded<Object> transformed = (DynamicType.Unloaded<Object>) transformedBuilder.make();
-			if (DUMP_CLASS_FILES_TO_TEMP) {
-				transformed.saveIn(Files.createTempDirectory("generated-class").toFile());
-			}
-
-			return transformed;
-		}
 	}
 
 	@Property
