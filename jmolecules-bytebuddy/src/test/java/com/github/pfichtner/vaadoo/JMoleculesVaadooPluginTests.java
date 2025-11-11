@@ -22,11 +22,9 @@ import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.github.pfichtner.vaadoo.testclasses.AnnotationDoesNotSupportType;
 import com.github.pfichtner.vaadoo.testclasses.ClassWithAttribute;
@@ -39,21 +37,21 @@ import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
 class JMoleculesVaadooPluginTests {
 
 	@Test
-	void emptyClassIsUnchanged(@TempDir File outputFolder) throws Exception {
+	void emptyClassIsUnchanged() throws Exception {
 		Class<?> transformed = transformClass(EmptyClass.class);
 		Constructor<?> stringArgConstructor = transformed.getDeclaredConstructor();
 		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance());
 	}
 
 	@Test
-	void classWithAttribute(@TempDir File outputFolder) throws Exception {
+	void classWithAttribute() throws Exception {
 		Class<?> transformed = transformClass(ClassWithAttribute.class);
 		Constructor<?> stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance((String) null));
 	}
 
 	@Test
-	void classWithNotNullAttribute(@TempDir File outputFolder) throws Exception {
+	void classWithNotNullAttribute() throws Exception {
 		Class<?> transformed = transformClass(ClassWithNotNullAttribute.class);
 		Constructor<?> stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
@@ -62,7 +60,7 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	@Test
-	void valueObjectWithAttribute(@TempDir File outputFolder) throws Exception {
+	void valueObjectWithAttribute() throws Exception {
 		Class<?> transformed = transformClass(ValueObjectWithAttribute.class);
 		Constructor<?> stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
@@ -71,7 +69,7 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	@Test
-	void valueObjectWithTwoConstructors(@TempDir File outputFolder) throws Exception {
+	void valueObjectWithTwoConstructors() throws Exception {
 		Class<?> transformed = transformClass(TwoConstructorsValueObject.class);
 		Constructor<?> stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		Constructor<?> stringBooleanArgConstructor = transformed.getDeclaredConstructor(String.class, boolean.class);
@@ -85,7 +83,7 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	@Test
-	void regex(@TempDir File outputFolder) throws Exception {
+	void regex() throws Exception {
 		Class<?> transformed = transformClass(ValueObjectWithRegexAttribute.class);
 		Constructor<?> constructor = transformed.getDeclaredConstructor(String.class);
 		constructor.newInstance("42");
@@ -95,7 +93,7 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	@Test
-	void wrongType(@TempDir File outputFolder) {
+	void wrongType() {
 		assertThatException().isThrownBy(() -> transformClass(AnnotationDoesNotSupportType.class))
 				.satisfies(e -> assertThat(e).isInstanceOf(IllegalStateException.class)
 						.hasMessage("Annotation " + "jakarta.validation.constraints.NotEmpty"
