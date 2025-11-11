@@ -64,26 +64,24 @@ class VaadooImplementor {
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
 		TypeDescription typeDescription = type.getTypeDescription();
-
-		// Loop over all constructors
-		for (InDefinedShape constructor : typeDescription.getDeclaredMethods().stream()
-				.filter(MethodDescription::isConstructor).collect(toList())) {
-			// Extract constructor parameter types
-			Parameters parameters = Parameters.of(constructor.getParameters());
-
-			// Generate a unique method name per constructor
-			// TODO we could overload (add validate(String,String) works also if there
-			// already is a validate())
-			String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
-
-			// Add static validate method
-			type = type.mapBuilder(t -> addStaticValidateMethod(t, validateMethodName, parameters, log));
-
-			// Inject call into this constructor
-			type = type.mapBuilder(
-					t -> injectCallToValidateIntoConstructor(t, constructor, validateMethodName, parameters));
+		for (InDefinedShape definedShape : typeDescription.getDeclaredMethods()) {
+			if (definedShape.isConstructor()) {
+				// Extract constructor parameter types
+				Parameters parameters = Parameters.of(definedShape.getParameters());
+				
+				// Generate a unique method name per constructor
+				// TODO we could overload (add validate(String,String) works also if there
+				// already is a validate())
+				String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
+				
+				// Add static validate method
+				type = type.mapBuilder(t -> addStaticValidateMethod(t, validateMethodName, parameters, log));
+				
+				// Inject call into this constructor
+				type = type.mapBuilder(
+						t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
+			}
 		}
-
 		return type;
 	}
 
