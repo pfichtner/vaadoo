@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -254,8 +253,7 @@ class Jsr380DynamicClassTest {
 			throws InstantiationException, IllegalAccessException, InvocationTargetException, Exception {
 		Class<?> clazz = unloaded.load(new ClassLoader() {
 		}, ClassLoadingStrategy.Default.INJECTION).getLoaded();
-		Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-		return constructor.newInstance(args);
+		return clazz.getDeclaredConstructors()[0].newInstance(args);
 	}
 
 	static Object[] args(List<ParameterConfig> params) {
@@ -348,7 +346,16 @@ class Jsr380DynamicClassTest {
 		List<ParameterConfig> noParams = emptyList();
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorConfig(noParams)).make();
-		approve(noParams, testClass);
+		approveTransformed(noParams, testClass);
+	}
+
+	@Property
+	void withoutImplementingValueObject_noValidationCodeGetsAdded(@ForAll("constructorParameters") List<ParameterConfig> params) throws Exception {
+		String checksum = ParameterConfig.stableChecksum(params);
+		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
+				.constructor(new ConstructorConfig(params)).make();
+		Unloaded<Object> transformedClass = transformClass(testClass);
+		newInstance(transformedClass, args(params));
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -359,7 +366,7 @@ class Jsr380DynamicClassTest {
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
 					.implementsValueObject().constructor(new ConstructorConfig(params)).make();
-			approve(params, testClass);
+			approveTransformed(params, testClass);
 		}
 	}
 
@@ -368,10 +375,10 @@ class Jsr380DynamicClassTest {
 		List<ParameterConfig> params = List.of(new ParameterConfig(Object.class, List.of(NotNull.class)));
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(new ConstructorConfig(params)).method(new MethodConfig("validate", emptyList())).make();
-		approve(params, testClass);
+		approveTransformed(params, testClass);
 	}
 
-	void approve(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
+	void approveTransformed(List<ParameterConfig> params, Unloaded<Object> generatedClass) throws Exception {
 		Unloaded<Object> transformedClass = transformClass(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
