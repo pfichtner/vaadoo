@@ -96,7 +96,7 @@ class JMoleculesVaadooPluginTests {
 	void wrongType() {
 		assertThatException().isThrownBy(() -> transformClass(AnnotationDoesNotSupportType.class))
 				.satisfies(e -> assertThat(e).isInstanceOf(IllegalStateException.class)
-						.hasMessage("Annotation " + "jakarta.validation.constraints.NotEmpty"
+						.hasMessage("Annotation" + " " + "jakarta.validation.constraints.NotEmpty"
 								+ " on type java.lang.Integer not allowed, " + "allowed only on types: "
 								+ "[java.lang.CharSequence, java.util.Collection, java.util.Map, java.lang.Object[]]"));
 	}
