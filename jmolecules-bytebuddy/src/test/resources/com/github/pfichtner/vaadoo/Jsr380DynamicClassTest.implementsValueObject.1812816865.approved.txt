@@ -1,10 +1,10 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterConfig(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
-- TestClassBuilder.ParameterConfig(type=class java.util.Calendar, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.FutureOrPresent, interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.Past])
-- TestClassBuilder.ParameterConfig(type=class java.time.chrono.MinguoDate, annotations=[])
-- TestClassBuilder.ParameterConfig(type=class java.time.Instant, annotations=[interface jakarta.validation.constraints.Null])
-- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
+- TestClassBuilder.ParameterDefinition(type=class java.util.Calendar, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.FutureOrPresent, interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.Past])
+- TestClassBuilder.ParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class java.time.Instant, annotations=[interface jakarta.validation.constraints.Null])
+- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_1812816865
 /*

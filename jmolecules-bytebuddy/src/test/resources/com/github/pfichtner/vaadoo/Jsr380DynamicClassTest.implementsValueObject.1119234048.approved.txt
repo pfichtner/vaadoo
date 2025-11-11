@@ -1,15 +1,15 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterConfig(type=short, annotations=[])
-- TestClassBuilder.ParameterConfig(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.Max, interface jakarta.validation.constraints.PositiveOrZero])
-- TestClassBuilder.ParameterConfig(type=class java.time.LocalDateTime, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Null])
-- TestClassBuilder.ParameterConfig(type=short, annotations=[interface jakarta.validation.constraints.Positive, interface jakarta.validation.constraints.PositiveOrZero])
-- TestClassBuilder.ParameterConfig(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull])
-- TestClassBuilder.ParameterConfig(type=short, annotations=[])
-- TestClassBuilder.ParameterConfig(type=interface java.util.Map, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotNull])
-- TestClassBuilder.ParameterConfig(type=class [Ljava.lang.Object;, annotations=[])
-- TestClassBuilder.ParameterConfig(type=interface java.util.List, annotations=[interface jakarta.validation.constraints.Null])
-- TestClassBuilder.ParameterConfig(type=class java.util.LinkedHashSet, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull])
+- TestClassBuilder.ParameterDefinition(type=short, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.Max, interface jakarta.validation.constraints.PositiveOrZero])
+- TestClassBuilder.ParameterDefinition(type=class java.time.LocalDateTime, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Null])
+- TestClassBuilder.ParameterDefinition(type=short, annotations=[interface jakarta.validation.constraints.Positive, interface jakarta.validation.constraints.PositiveOrZero])
+- TestClassBuilder.ParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull])
+- TestClassBuilder.ParameterDefinition(type=short, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=interface java.util.Map, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotNull])
+- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.ParameterDefinition(type=interface java.util.List, annotations=[interface jakarta.validation.constraints.Null])
+- TestClassBuilder.ParameterDefinition(type=class java.util.LinkedHashSet, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_1119234048
 /*
