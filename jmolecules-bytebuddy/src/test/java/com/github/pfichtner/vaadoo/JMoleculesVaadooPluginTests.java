@@ -31,6 +31,7 @@ import com.github.pfichtner.vaadoo.testclasses.EmptyClass;
 import com.github.pfichtner.vaadoo.testclasses.TwoConstructorsValueObject;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
+import com.github.pfichtner.vaadoo.testclasses.custom.CustomExample;
 
 class JMoleculesVaadooPluginTests {
 
@@ -97,6 +98,15 @@ class JMoleculesVaadooPluginTests {
 						.hasMessage("Annotation" + " " + "jakarta.validation.constraints.NotEmpty"
 								+ " on type java.lang.Integer not allowed, " + "allowed only on types: "
 								+ "[java.lang.CharSequence, java.util.Collection, java.util.Map, java.lang.Object[]]"));
+	}
+
+	@Test
+	void customExample() throws Exception {
+		var transformed = transform(CustomExample.class);
+		var constructor = transformed.getDeclaredConstructor(String.class);
+		constructor.newInstance("DE02 6005 0101 0002 0343 04");
+		assertThatException().isThrownBy(() -> constructor.newInstance("DE02")).satisfies(
+				e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class).hasMessage("iban not valid"));
 	}
 
 	static String notNull(String paramName) {

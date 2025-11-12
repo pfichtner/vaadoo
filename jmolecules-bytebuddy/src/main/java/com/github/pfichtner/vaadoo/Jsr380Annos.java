@@ -179,4 +179,8 @@ public class Jsr380Annos {
 				anno.getName(), type.getName(), valids));
 	}
 
+	public static boolean isStandardJr380Anno(TypeDescription classtype) {
+		return configs.stream().map(ConfigEntry::anno).anyMatch(classtype::equals);
+	}
+
 }

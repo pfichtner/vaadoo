@@ -16,6 +16,8 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
 import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
+import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 import static java.lang.String.format;
 import static java.util.function.Predicate.not;
@@ -68,15 +70,15 @@ class VaadooImplementor {
 			if (definedShape.isConstructor()) {
 				// Extract constructor parameter types
 				Parameters parameters = Parameters.of(definedShape.getParameters());
-				
+
 				// Generate a unique method name per constructor
 				// TODO we could overload (add validate(String,String) works also if there
 				// already is a validate())
 				String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
-				
+
 				// Add static validate method
 				type = type.mapBuilder(t -> addStaticValidateMethod(t, validateMethodName, parameters, log));
-				
+
 				// Inject call into this constructor
 				type = type.mapBuilder(
 						t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
@@ -126,6 +128,9 @@ class VaadooImplementor {
 		private final Class<? extends Jsr380CodeFragment> fragmentClass;
 		private final List<Method> codeFragmentMethods;
 
+		// TODO customAnnotationsEnabled
+		private boolean customAnnotationsEnabled = true;
+
 		public StaticValidateAppender(Parameters parameters, String validateMethodName,
 				Class<? extends Jsr380CodeFragment> fragmentClass) {
 			this.parameters = parameters;
@@ -154,9 +159,10 @@ class VaadooImplementor {
 							}
 						}
 					}
-					// TODO support custom annotations
-//					if (customAnnotationsEnabled) {
-//					}
+
+					if (customAnnotationsEnabled && !isStandardJr380Anno(annotation)) {
+						addCustomAnnotations(parameter, annotation, mv);
+					}
 				}
 			}
 

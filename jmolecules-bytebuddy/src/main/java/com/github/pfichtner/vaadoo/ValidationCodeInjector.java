@@ -304,7 +304,7 @@ public class ValidationCodeInjector {
 
 	private final ClassReader classReader;
 
-	static final String NAME = "@@@NAME@@@";
+	public static final String NAME = "@@@NAME@@@";
 	private final String signatureOfTargetMethod;
 
 	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod) {
