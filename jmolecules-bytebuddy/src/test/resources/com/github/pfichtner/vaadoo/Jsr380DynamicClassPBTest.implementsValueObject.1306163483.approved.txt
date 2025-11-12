@@ -1,0 +1,91 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
+- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.Instant, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=long, annotations=[interface jakarta.validation.constraints.Positive])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.LocalTime, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Null])
+- TestClassBuilder.DefaultParameterDefinition(type=boolean, annotations=[interface jakarta.validation.constraints.AssertTrue])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.Year, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1306163483
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.Year;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1306163483
+implements ValueObject {
+    public Generated_1306163483(Object[] objectArray, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, short s, Instant instant, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) long l, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) LocalTime localTime, @AssertTrue(groups={}, message="{jakarta.validation.constraints.AssertTrue.message}", payload={}) boolean bl, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Year year) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1306163483
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1306163483;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.Year;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1306163483
+implements ValueObject {
+    public Generated_1306163483(Object[] objectArray, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) ZonedDateTime zonedDateTime, short s, Instant instant, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) long l, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) LocalTime localTime, @AssertTrue(groups={}, message="{jakarta.validation.constraints.AssertTrue.message}", payload={}) boolean bl, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Year year) {
+        Generated_1306163483.validate(objectArray, zonedDateTime, s, instant, l, localTime, bl, year);
+        this(objectArray, zonedDateTime, s, instant, l, localTime, bl, year, null);
+    }
+
+    private /* synthetic */ Generated_1306163483(Object[] objectArray, ZonedDateTime zonedDateTime, short s, Instant instant, long l, LocalTime localTime, boolean bl, Year year, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Object[] objectArray, ZonedDateTime zonedDateTime, short s, Instant instant, long l, LocalTime localTime, boolean bl, Year year) {
+        if (zonedDateTime != null && zonedDateTime.isAfter(ZonedDateTime.now())) {
+            throw new IllegalArgumentException("zonedDateTime must be a date in the past or in the present");
+        }
+        if (l <= 0L) {
+            throw new IllegalArgumentException("long must be greater than 0");
+        }
+        if (localTime == null) {
+            throw new NullPointerException("localTime must not be null");
+        }
+        if (localTime != null) {
+            throw new IllegalArgumentException("localTime must be null");
+        }
+        if (!bl) {
+            throw new IllegalArgumentException("boolean must be true");
+        }
+        if (year != null && year.isAfter(Year.now())) {
+            throw new IllegalArgumentException("year must be a date in the past or in the present");
+        }
+        if (year == null) {
+            throw new NullPointerException("year must not be null");
+        }
+    }
+}
+
+
+----------------------------------------------------------------

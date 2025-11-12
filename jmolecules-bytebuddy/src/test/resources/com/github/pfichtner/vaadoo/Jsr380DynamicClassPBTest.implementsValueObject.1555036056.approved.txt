@@ -1,0 +1,109 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Long;, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.StringBuilder, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.Digits, interface jakarta.validation.constraints.DecimalMin])
+- TestClassBuilder.DefaultParameterDefinition(type=interface java.util.Map, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Size])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.util.LinkedList, annotations=[interface jakarta.validation.constraints.NotNull])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.Year, annotations=[interface jakarta.validation.constraints.FutureOrPresent])
+- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1555036056
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.time.Year;
+import java.time.chrono.MinguoDate;
+import java.util.LinkedList;
+import java.util.Map;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1555036056
+implements ValueObject {
+    public Generated_1555036056(Object[] objectArray, Long[] longArray, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @Digits(fraction=0, groups={}, integer=0, message="{jakarta.validation.constraints.Digits.message}", payload={}) @DecimalMin(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMin.message}", payload={}, value="0") StringBuilder stringBuilder, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Map map, MinguoDate minguoDate, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) LinkedList linkedList, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) Year year, short s, Integer n) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1555036056
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1555036056;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.Year;
+import java.time.chrono.MinguoDate;
+import java.util.LinkedList;
+import java.util.Map;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1555036056
+implements ValueObject {
+    public Generated_1555036056(Object[] objectArray, Long[] longArray, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @Digits(fraction=0, groups={}, integer=0, message="{jakarta.validation.constraints.Digits.message}", payload={}) @DecimalMin(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMin.message}", payload={}, value="0") StringBuilder stringBuilder, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Map map, MinguoDate minguoDate, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) LinkedList linkedList, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) Year year, short s, Integer n) {
+        Generated_1555036056.validate(objectArray, longArray, stringBuilder, map, minguoDate, linkedList, year, s, n);
+        this(objectArray, longArray, stringBuilder, map, minguoDate, linkedList, year, s, n, null);
+    }
+
+    private /* synthetic */ Generated_1555036056(Object[] objectArray, Long[] longArray, StringBuilder stringBuilder, Map map, MinguoDate minguoDate, LinkedList linkedList, Year year, short s, Integer n, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Object[] objectArray, Long[] longArray, StringBuilder stringBuilder, Map map, MinguoDate minguoDate, LinkedList linkedList, Year year, short s, Integer n) {
+        if (stringBuilder != null && (stringBuilder.length() < 0 || stringBuilder.length() > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException("size of stringBuilder must be between 0 and 2147483647");
+        }
+        if (stringBuilder != null) {
+            try {
+                int n2;
+                BigDecimal bigDecimal = new BigDecimal(stringBuilder.toString());
+                int n3 = bigDecimal.precision() - bigDecimal.scale();
+                int n4 = n2 = bigDecimal.scale() < 0 ? 0 : bigDecimal.scale();
+                if (n3 > 0 || n2 > 0) {
+                    throw new IllegalArgumentException("stringBuilder numeric value out of bounds (<0 digits>.<0 digits> expected)");
+                }
+            }
+            catch (NumberFormatException numberFormatException) {
+                // empty catch block
+            }
+        }
+        try {
+            if (stringBuilder != null && new BigDecimal(String.valueOf(stringBuilder)).compareTo(new BigDecimal("0")) < (1 != 0 ? 0 : 1)) {
+                throw new IllegalArgumentException("stringBuilder must be greater than or equal to 0");
+            }
+        }
+        catch (NumberFormatException numberFormatException) {
+            // empty catch block
+        }
+        if (map == null) {
+            throw new NullPointerException("map must not be null");
+        }
+        if (map != null && (map.size() < 0 || map.size() > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException("size of map must be between 0 and 2147483647");
+        }
+        if (linkedList == null) {
+            throw new NullPointerException("linkedList must not be null");
+        }
+        if (year != null && year.isBefore(Year.now())) {
+            throw new IllegalArgumentException("year must be a date in the present or in the future");
+        }
+    }
+}
+
+
+----------------------------------------------------------------

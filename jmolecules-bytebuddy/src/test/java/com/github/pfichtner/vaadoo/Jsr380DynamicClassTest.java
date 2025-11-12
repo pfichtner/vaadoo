@@ -23,7 +23,6 @@ import static com.github.pfichtner.vaadoo.Transformer.transform;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -31,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -40,21 +40,29 @@ class Jsr380DynamicClassTest {
 	TestClassBuilder classAnnotatedByValueObject = baseTestClass.annotatedByValueObject();
 	TestClassBuilder classThatImplementsValueObject = baseTestClass.thatImplementsValueObject();
 
-	ConstructorDefinition notNullObject = new ConstructorDefinition(
-			new ParameterDefinition(Object.class, NotNull.class));
+	ConstructorDefinition notNullObjectConstructor = new ConstructorDefinition(
+			new DefaultParameterDefinition(Object.class, NotNull.class));
 	Object[] nullArg = new Object[] { null };
 
 	@Test
 	void noArg() throws Exception {
-		var constructor = new ConstructorDefinition(emptyList());
+		var noArgsConstructor = new ConstructorDefinition(emptyList());
+		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(noArgsConstructor));
+		approveTransformed(noArgsConstructor.params(), unloaded);
+	}
+
+	@Test
+	void namedArg() throws Exception {
+		var constructor = new ConstructorDefinition(
+				new DefaultParameterDefinition(Object.class, NotNull.class).withName("aNamedArgument"));
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
 		approveTransformed(constructor.params(), unloaded);
 	}
 
 	@Test
 	void implementingValueObjectAndAnnotatedByValueObjectIsTheSame() throws Exception {
-		var transformed1 = transform(a(classThatImplementsValueObject.withConstructor(notNullObject)));
-		var transformed2 = transform(a(classAnnotatedByValueObject.withConstructor(notNullObject)));
+		var transformed1 = transform(a(classThatImplementsValueObject.withConstructor(notNullObjectConstructor)));
+		var transformed2 = transform(a(classAnnotatedByValueObject.withConstructor(notNullObjectConstructor)));
 		var e1 = assertThrows(RuntimeException.class, () -> newInstance(transformed1, nullArg));
 		var e2 = assertThrows(RuntimeException.class, () -> newInstance(transformed2, nullArg));
 		assertThat(e1).isExactlyInstanceOf(e2.getClass()).hasMessage(e2.getMessage());
@@ -63,21 +71,15 @@ class Jsr380DynamicClassTest {
 	@Test
 	void implementingEntityDoesNotAddBytecode() throws Exception {
 		var transformed = transform(a(baseTestClass.withInterface(org.jmolecules.ddd.types.Entity.class) //
-				.withConstructor(notNullObject)));
+				.withConstructor(notNullObjectConstructor)));
 		newInstance(transformed, nullArg);
 	}
 
 	@Test
-	@Disabled
-	void argName() throws Exception {
-		fail("'arg0 must not be empty' vs. 'theAttribName must not be empty'");
-	}
-
-	@Test
 	void alreadyHasValidateMethod() throws Exception {
-		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(notNullObject)
+		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(notNullObjectConstructor)
 				.withMethod(new MethodDefinition("validate", emptyList())));
-		approveTransformed(notNullObject.params(), unloaded);
+		approveTransformed(notNullObjectConstructor.params(), unloaded);
 	}
 
 }

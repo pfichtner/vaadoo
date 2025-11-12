@@ -1,0 +1,98 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Short, annotations=[interface jakarta.validation.constraints.Max])
+- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.math.BigDecimal, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.String;, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.NotEmpty])
+- TestClassBuilder.DefaultParameterDefinition(type=byte, annotations=[interface jakarta.validation.constraints.DecimalMax])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.Null])
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+----------------------------------------------------------------
+Analysing type com.example.Generated_636472046
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.chrono.JapaneseDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_636472046
+implements ValueObject {
+    public Generated_636472046(@Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) Short s, short s2, BigDecimal bigDecimal, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) String[] stringArray, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") byte by, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) JapaneseDate japaneseDate, Object[] objectArray) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_636472046
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_636472046;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.chrono.JapaneseDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_636472046
+implements ValueObject {
+    public Generated_636472046(@Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) Short s, short s2, BigDecimal bigDecimal, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) String[] stringArray, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") byte by, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) JapaneseDate japaneseDate, Object[] objectArray) {
+        Generated_636472046.validate(s, s2, bigDecimal, stringArray, by, japaneseDate, objectArray);
+        this(s, s2, bigDecimal, stringArray, by, japaneseDate, objectArray, null);
+    }
+
+    private /* synthetic */ Generated_636472046(Short s, short s2, BigDecimal bigDecimal, String[] stringArray, byte by, JapaneseDate japaneseDate, Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Short s, short s2, BigDecimal bigDecimal, String[] stringArray, byte by, JapaneseDate japaneseDate, Object[] objectArray) {
+        if (s != null && (long)s.shortValue() > 0L) {
+            throw new IllegalArgumentException("short must be less than or equal to 0");
+        }
+        if (stringArray != null && (stringArray.length < 0 || stringArray.length > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException("size of stringArray must be between 0 and 2147483647");
+        }
+        if (stringArray == null) {
+            throw new NullPointerException("stringArray must not be null");
+        }
+        if (stringArray == null) {
+            throw new NullPointerException("stringArray must not be empty");
+        }
+        if (stringArray.length <= 0) {
+            throw new IllegalArgumentException("stringArray must not be empty");
+        }
+        if (new BigDecimal(by).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
+            throw new IllegalArgumentException("byte must be less than or equal to 0");
+        }
+        if (japaneseDate != null && japaneseDate.isAfter(JapaneseDate.now())) {
+            throw new IllegalArgumentException("japaneseDate must be a date in the past or in the present");
+        }
+        if (japaneseDate != null && !japaneseDate.isAfter(JapaneseDate.now())) {
+            throw new IllegalArgumentException("japaneseDate must be a future date");
+        }
+        if (japaneseDate != null) {
+            throw new IllegalArgumentException("japaneseDate must be null");
+        }
+    }
+}
+
+
+----------------------------------------------------------------

@@ -1,11 +1,11 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.Past])
-- TestClassBuilder.ParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.FutureOrPresent])
-- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
-- TestClassBuilder.ParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
-- TestClassBuilder.ParameterDefinition(type=class java.time.ZonedDateTime, annotations=[])
-- TestClassBuilder.ParameterDefinition(type=int, annotations=[interface jakarta.validation.constraints.Digits])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.Past])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.FutureOrPresent])
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[interface jakarta.validation.constraints.Digits])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_1257521135
 /*

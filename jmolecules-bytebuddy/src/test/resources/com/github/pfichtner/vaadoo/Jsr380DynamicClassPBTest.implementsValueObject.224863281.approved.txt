@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.ParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.FutureOrPresent])
-- TestClassBuilder.ParameterDefinition(type=class java.lang.Long, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.FutureOrPresent])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Long, annotations=[])
 ----------------------------------------------------------------
 Analysing type com.example.Generated_224863281
 /*

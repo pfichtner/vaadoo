@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
 params annotations
-- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull])
+- TestClassBuilder.NamedParameterDefinition(delegate=TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull]), name=aNamedArgument)
 ----------------------------------------------------------------
 Analysing type com.example.Generated
 /*
@@ -14,9 +14,6 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated
 implements ValueObject {
     public Generated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
-    }
-
-    private static void validate(Object object) {
     }
 }
 
@@ -35,7 +32,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated
 implements ValueObject {
     public Generated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Object object) {
-        Generated.validate_1(object);
+        Generated.validate(object);
         this(object, null);
     }
 
@@ -43,11 +40,8 @@ implements ValueObject {
     }
 
     private static void validate(Object object) {
-    }
-
-    private static void validate_1(Object object) {
         if (object == null) {
-            throw new NullPointerException("object must not be null");
+            throw new NullPointerException("aNamedArgument must not be null");
         }
     }
 }

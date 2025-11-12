@@ -68,6 +68,7 @@ import java.util.stream.Stream;
 import org.approvaltests.namer.NamedEnvironment;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
@@ -145,7 +146,7 @@ class Jsr380DynamicClassPBTest {
 					Tuple.of(20, uniquesOfMin(applicable, cap, 3)), //
 					Tuple.of(5, uniquesOfMin(applicable, cap, 4).ofMaxSize(maxSize))) //
 					.flatMap(identity());
-			return frequency.map(annos -> new ParameterDefinition(type, annos));
+			return frequency.map(annos -> new DefaultParameterDefinition(type, annos));
 		});
 	}
 
@@ -196,8 +197,8 @@ class Jsr380DynamicClassPBTest {
 			List<Class<?>> invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
 					.filter(t -> validTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
 			return invalidTypes.isEmpty() //
-					? Arbitraries.of(new ParameterDefinition(Object.class)) //
-					: Arbitraries.of(invalidTypes).map(t -> new ParameterDefinition(t, a));
+					? Arbitraries.of(new DefaultParameterDefinition(Object.class)) //
+					: Arbitraries.of(invalidTypes).map(t -> new DefaultParameterDefinition(t, a));
 		});
 	}
 

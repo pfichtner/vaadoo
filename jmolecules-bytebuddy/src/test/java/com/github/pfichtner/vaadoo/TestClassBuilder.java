@@ -16,8 +16,10 @@
 package com.github.pfichtner.vaadoo;
 
 import static java.lang.Math.abs;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.PRIVATE;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -34,9 +36,11 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
+import lombok.experimental.Delegate;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.modifier.Ownership;
@@ -62,36 +66,63 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		private final Set<String> names = new HashSet<>();
 
 		public String makeName(Class<?> clazz) {
-			String name = clazz.isArray() ? clazz.getComponentType().getSimpleName() + "Array" : clazz.getSimpleName();
-			name = name.substring(0, 1).toLowerCase() + name.substring(1);
-			String newName = name;
+			String suggestion = clazz.isArray() ? clazz.getComponentType().getSimpleName() + "Array"
+					: clazz.getSimpleName();
+			return makeName(suggestion.substring(0, 1).toLowerCase() + suggestion.substring(1));
+		}
+
+		private String makeName(String suggestion) {
+			String newName = suggestion;
 			for (int cnt = 1; !names.add(newName); cnt++) {
-				newName = name + cnt;
+				newName = suggestion + cnt;
 			}
 			return newName;
 		}
 
 	}
 
-	@Value
-	@RequiredArgsConstructor
-	public static class ParameterDefinition {
-		Class<?> type;
-		List<Class<? extends Annotation>> annotations;
+	public interface ParameterDefinition {
 
-		@SafeVarargs
-		public ParameterDefinition(Class<?> type, Class<? extends Annotation>... annotations) {
-			this(type, List.of(annotations));
-		}
+		Class<?> getType();
+
+		List<Class<? extends Annotation>> getAnnotations();
 
 		public static String stableChecksum(List<ParameterDefinition> parameters) {
 			String stringValue = parameters.stream().map(ParameterDefinition::asString).collect(joining("|"));
 			return String.valueOf(abs(stringValue.hashCode()));
 		}
 
-		private static String asString(ParameterDefinition definition) {
-			return definition.type.getName() + ":"
-					+ definition.annotations.stream().map(Class::getName).sorted().collect(joining(","));
+		static String asString(ParameterDefinition definition) {
+			return format("%s:%s", definition.getType().getName(),
+					definition.getAnnotations().stream().map(Class::getName).sorted().collect(joining(",")));
+		}
+
+	}
+
+	@Value
+	@Accessors(fluent = true)
+	public static class NamedParameterDefinition implements ParameterDefinition {
+
+		@Delegate
+		@Getter(value = PRIVATE)
+		private final ParameterDefinition delegate;
+		private final String name;
+
+	}
+
+	@Value
+	@RequiredArgsConstructor
+	public static class DefaultParameterDefinition implements ParameterDefinition {
+		Class<?> type;
+		List<Class<? extends Annotation>> annotations;
+
+		@SafeVarargs
+		public DefaultParameterDefinition(Class<?> type, Class<? extends Annotation>... annotations) {
+			this(type, List.of(annotations));
+		}
+
+		public ParameterDefinition withName(String name) {
+			return new NamedParameterDefinition(this, name);
 		}
 
 	}
@@ -186,8 +217,10 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 			Annotatable<Object> paramDef = null;
 			for (ParameterDefinition parameter : ctor.params()) {
-				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.getType(),
-						nameMaker.makeName(parameter.getType()));
+				String name = parameter instanceof NamedParameterDefinition
+						? nameMaker.makeName(((NamedParameterDefinition) parameter).name())
+						: nameMaker.makeName(parameter.getType());
+				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.getType(), name);
 				for (Class<? extends Annotation> anno : parameter.getAnnotations()) {
 					paramDef = paramDef.annotateParameter(createAnnotation(anno));
 				}
