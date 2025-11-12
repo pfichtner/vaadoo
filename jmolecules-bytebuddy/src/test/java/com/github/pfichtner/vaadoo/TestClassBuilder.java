@@ -98,8 +98,13 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 	@Value
 	@Accessors(fluent = true)
+	@RequiredArgsConstructor
 	public static class ConstructorDefinition {
 		List<ParameterDefinition> params;
+
+		public ConstructorDefinition(ParameterDefinition... params) {
+			this(List.of(params));
+		}
 	}
 
 	@Value

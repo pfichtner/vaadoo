@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.Map;
 
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
 
@@ -41,23 +40,23 @@ public final class Transformer {
 
 	private static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
 
-	public static Unloaded<?> transformClass(DynamicType unloaded) throws Exception {
-		return transformClass(unloaded.getTypeDescription(),
+	public static Unloaded<?> transform(DynamicType unloaded) throws Exception {
+		return transform(unloaded.getTypeDescription(),
 				ClassFileLocator.Simple.of(unloaded.getTypeDescription().getName(), unloaded.getBytes()));
 	}
 
-	public static Class<?> transformClass(Class<?> clazz) throws Exception {
-		Unloaded<?> transformedClass = transformClass(new TypeDescription.ForLoadedType(clazz),
+	public static Class<?> transform(Class<?> clazz) throws Exception {
+		Unloaded<?> transformed = transform(new TypeDescription.ForLoadedType(clazz),
 				ClassFileLocator.ForClassLoader.of(clazz.getClassLoader()));
-		Map<String, byte[]> allTypes = new HashMap<>();
-		allTypes.put(transformedClass.getTypeDescription().getName(), transformedClass.getBytes());
-		transformedClass.getAuxiliaryTypes().forEach((aux, type) -> allTypes.put(aux.getName(), type));
+		var allTypes = new HashMap<String, byte[]>();
+		allTypes.put(transformed.getTypeDescription().getName(), transformed.getBytes());
+		transformed.getAuxiliaryTypes().forEach((aux, type) -> allTypes.put(aux.getName(), type));
 		ClassLoader classLoader = new ByteArrayClassLoader.ChildFirst(clazz.getClassLoader(), allTypes,
 				ByteArrayClassLoader.PersistenceHandler.MANIFEST);
-		return classLoader.loadClass(transformedClass.getTypeDescription().getName());
+		return classLoader.loadClass(transformed.getTypeDescription().getName());
 	}
 
-	public static Unloaded<?> transformClass(TypeDescription typeDescription, ClassFileLocator cfl) throws IOException {
+	public static Unloaded<?> transform(TypeDescription typeDescription, ClassFileLocator cfl) throws IOException {
 		try (WithPreprocessor plugin = new JMoleculesPlugin(dummyRoot())) {
 			var locator = new ClassFileLocator.Compound(cfl, ClassFileLocator.ForClassLoader.ofSystemLoader());
 			plugin.onPreprocess(typeDescription, locator);

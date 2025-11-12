@@ -19,13 +19,13 @@ import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
-import static com.github.pfichtner.vaadoo.Transformer.transformClass;
+import static com.github.pfichtner.vaadoo.Transformer.transform;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.List;
-
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
@@ -41,7 +41,7 @@ class Jsr380DynamicClassTest {
 	TestClassBuilder classThatImplementsValueObject = baseTestClass.thatImplementsValueObject();
 
 	ConstructorDefinition notNullObject = new ConstructorDefinition(
-			List.of(new ParameterDefinition(Object.class, List.of(NotNull.class))));
+			new ParameterDefinition(Object.class, NotNull.class));
 	Object[] nullArg = new Object[] { null };
 
 	@Test
@@ -53,8 +53,8 @@ class Jsr380DynamicClassTest {
 
 	@Test
 	void implementingValueObjectAndAnnotatedByValueObjectIsTheSame() throws Exception {
-		var transformed1 = transformClass(a(classThatImplementsValueObject.withConstructor(notNullObject)));
-		var transformed2 = transformClass(a(classAnnotatedByValueObject.withConstructor(notNullObject)));
+		var transformed1 = transform(a(classThatImplementsValueObject.withConstructor(notNullObject)));
+		var transformed2 = transform(a(classAnnotatedByValueObject.withConstructor(notNullObject)));
 		var e1 = assertThrows(RuntimeException.class, () -> newInstance(transformed1, nullArg));
 		var e2 = assertThrows(RuntimeException.class, () -> newInstance(transformed2, nullArg));
 		assertThat(e1).isExactlyInstanceOf(e2.getClass()).hasMessage(e2.getMessage());
@@ -62,9 +62,15 @@ class Jsr380DynamicClassTest {
 
 	@Test
 	void implementingEntityDoesNotAddBytecode() throws Exception {
-		var transformed = transformClass(a(baseTestClass.withInterface(org.jmolecules.ddd.types.Entity.class) //
+		var transformed = transform(a(baseTestClass.withInterface(org.jmolecules.ddd.types.Entity.class) //
 				.withConstructor(notNullObject)));
 		newInstance(transformed, nullArg);
+	}
+
+	@Test
+	@Disabled
+	void argName() throws Exception {
+		fail("'arg0 must not be empty' vs. 'theAttribName must not be empty'");
 	}
 
 	@Test
