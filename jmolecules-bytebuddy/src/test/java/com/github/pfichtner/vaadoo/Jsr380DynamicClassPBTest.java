@@ -151,8 +151,8 @@ class Jsr380DynamicClassPBTest {
 	@Property
 	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
-		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(new ConstructorDefinition(params)).build();
+		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated").thatImplementsValueObject()
+				.withConstructor(new ConstructorDefinition(params)).build();
 		createInstances(params, unloaded);
 	}
 
@@ -160,8 +160,8 @@ class Jsr380DynamicClassPBTest {
 	void throwsExceptionIfTypeIsNotSupportedByAnnotation(
 			@ForAll("invalidParameterConfigs") List<ParameterDefinition> params) throws Exception {
 		Assume.that(params.stream().map(ParameterDefinition::getAnnotations).anyMatch(not(List::isEmpty)));
-		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated").implementsValueObject()
-				.constructor(new ConstructorDefinition(params)).build();
+		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated").thatImplementsValueObject()
+				.withConstructor(new ConstructorDefinition(params)).build();
 		newInstance(unloaded, args(params));
 		assertThatIllegalStateException().isThrownBy(() -> transformClass(unloaded))
 				.withMessageContaining("not allowed, allowed only on");
@@ -271,7 +271,7 @@ class Jsr380DynamicClassPBTest {
 			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
 		String checksum = ParameterDefinition.stableChecksum(params);
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-				.constructor(new ConstructorDefinition(params)).build();
+				.withConstructor(new ConstructorDefinition(params)).build();
 		Unloaded<?> transformedClass = transformClass(testClass);
 		newInstance(transformedClass, args(params));
 	}
@@ -283,7 +283,7 @@ class Jsr380DynamicClassPBTest {
 		String checksum = ParameterDefinition.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.implementsValueObject().constructor(new ConstructorDefinition(params)).build();
+					.thatImplementsValueObject().withConstructor(new ConstructorDefinition(params)).build();
 			approveTransformed(params, testClass);
 		}
 	}

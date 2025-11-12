@@ -20,24 +20,29 @@ import net.bytebuddy.dynamic.DynamicType.Unloaded;
 
 class Jsr380DynamicClassTest {
 
+	TestClassBuilder testClass = new TestClassBuilder("com.example.Generated");
+	TestClassBuilder classAnnotatedByValueObject = testClass.annotatedByValueObject();
+	TestClassBuilder classThatImplementsValueObject = testClass.thatImplementsValueObject();
+
 	ConstructorDefinition notNullObject = new ConstructorDefinition(
 			List.of(new ParameterDefinition(Object.class, List.of(NotNull.class))));
 	Object[] nullArg = new Object[] { null };
 
+	static Unloaded<Object> a(TestClassBuilder builder) {
+		return builder.build();
+	}
+
 	@Test
 	void noArg() throws Exception {
 		var constructor = new ConstructorDefinition(emptyList());
-		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(constructor).build();
-		approveTransformed(constructor.params(), testClass);
+		var unloaded = a(testClass.thatImplementsValueObject().withConstructor(constructor));
+		approveTransformed(constructor.params(), unloaded);
 	}
 
 	@Test
 	void implementingValueObjectAndAnnotatedByValueObjectIsTheSame() throws Exception {
-		var transformed1 = transformClass(new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(notNullObject).build());
-		var transformed2 = transformClass(new TestClassBuilder("com.example.Generated").annotatedByValueObject()
-				.constructor(notNullObject).build());
+		var transformed1 = transformClass(a(classThatImplementsValueObject.withConstructor(notNullObject)));
+		var transformed2 = transformClass(a(classAnnotatedByValueObject.withConstructor(notNullObject)));
 		var e1 = assertThrows(RuntimeException.class, () -> newInstance(transformed1, nullArg));
 		var e2 = assertThrows(RuntimeException.class, () -> newInstance(transformed2, nullArg));
 		assertThat(e1).isExactlyInstanceOf(e2.getClass()).hasMessage(e2.getMessage());
@@ -45,16 +50,16 @@ class Jsr380DynamicClassTest {
 
 	@Test
 	void implementingEntityDoesNotAddBytecode() throws Exception {
-		var transformed = transformClass(new TestClassBuilder("com.example.Generated")
-				.withInterface(org.jmolecules.ddd.types.Entity.class).constructor(notNullObject).build());
+		var transformed = transformClass(
+				a(testClass.withInterface(org.jmolecules.ddd.types.Entity.class).withConstructor(notNullObject)));
 		newInstance(transformed, nullArg);
 	}
 
 	@Test
 	void alreadyHasValidateMethod() throws Exception {
-		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(notNullObject).method(new MethodDefinition("validate", emptyList())).build();
-		approveTransformed(notNullObject.params(), testClass);
+		var unloaded = a(testClass.thatImplementsValueObject().withConstructor(notNullObject)
+				.withMethod(new MethodDefinition("validate", emptyList())));
+		approveTransformed(notNullObject.params(), unloaded);
 	}
 
 }

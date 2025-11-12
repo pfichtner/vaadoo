@@ -125,7 +125,7 @@ public class TestClassBuilder {
 				.build();
 	}
 
-	public TestClassBuilder implementsValueObject() {
+	public TestClassBuilder thatImplementsValueObject() {
 		return withInterface(org.jmolecules.ddd.types.ValueObject.class);
 	}
 
@@ -133,11 +133,11 @@ public class TestClassBuilder {
 		return toBuilder().interfaces(append(this.interfaces, ForLoadedType.of(clazz))).build();
 	}
 
-	public TestClassBuilder constructor(ConstructorDefinition constructor) {
+	public TestClassBuilder withConstructor(ConstructorDefinition constructor) {
 		return toBuilder().constructors(append(this.constructors, constructor)).build();
 	}
 
-	public TestClassBuilder method(MethodDefinition method) {
+	public TestClassBuilder withMethod(MethodDefinition method) {
 		return toBuilder().methods(append(this.methods, method)).build();
 	}
 
