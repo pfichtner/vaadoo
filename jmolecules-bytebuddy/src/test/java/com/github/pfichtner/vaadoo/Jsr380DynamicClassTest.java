@@ -318,13 +318,25 @@ class Jsr380DynamicClassTest {
 		approveTransformed(noParams, testClass);
 	}
 
+//	@Example
+	void implementingValueObjectAndAnnotatedByValueObjectIsTheSame() throws Exception {
+		List<ParameterDefinition> params = List.of(new ParameterDefinition(Object.class, List.of(NotNull.class)));
+		var transformedClass1 = transformClass(new TestClassBuilder("com.example.Generated").implementsValueObject()
+				.constructor(new ConstructorDefinition(params)).build());
+		var transformedClass2 = transformClass(new TestClassBuilder("com.example.Generated").annotatedByValueObject()
+				.constructor(new ConstructorDefinition(params)).build());
+		var e1 = assertThrows(RuntimeException.class, () -> newInstance(transformedClass1, args(params)));
+		var e2 = assertThrows(RuntimeException.class, () -> newInstance(transformedClass2, args(params)));
+		assertThat(e1).isEqualTo(e2);
+	}
+
 	@Property
 	void withoutImplementingValueObject_noValidationCodeGetsAdded(
 			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
 		String checksum = ParameterDefinition.stableChecksum(params);
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
 				.constructor(new ConstructorDefinition(params)).build();
-		Unloaded<Object> transformedClass = transformClass(testClass);
+		Unloaded<?> transformedClass = transformClass(testClass);
 		newInstance(transformedClass, args(params));
 	}
 
@@ -350,7 +362,7 @@ class Jsr380DynamicClassTest {
 	}
 
 	void approveTransformed(List<ParameterDefinition> params, Unloaded<Object> generatedClass) throws Exception {
-		Unloaded<Object> transformedClass = transformClass(generatedClass);
+		Unloaded<?> transformedClass = transformClass(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
 
@@ -362,7 +374,7 @@ class Jsr380DynamicClassTest {
 		return new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]", i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 	}
 
-	static String decompile(Unloaded<Object> clazz) throws IOException {
+	static String decompile(Unloaded<?> clazz) throws IOException {
 		return Decompiler.decompile(clazz.getBytes());
 	}
 

@@ -38,13 +38,13 @@ public final class Transformer {
 
 	private static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
 
-	public static Unloaded<Object> transformClass(DynamicType unloaded) throws Exception {
+	public static Unloaded<?> transformClass(DynamicType unloaded) throws Exception {
 		return transformClass(unloaded.getTypeDescription(),
 				ClassFileLocator.Simple.of(unloaded.getTypeDescription().getName(), unloaded.getBytes()));
 	}
 
 	public static Class<?> transformClass(Class<?> clazz) throws Exception {
-		Unloaded<Object> transformedClass = transformClass(new TypeDescription.ForLoadedType(clazz),
+		Unloaded<?> transformedClass = transformClass(new TypeDescription.ForLoadedType(clazz),
 				ClassFileLocator.ForClassLoader.of(clazz.getClassLoader()));
 		Map<String, byte[]> allTypes = new HashMap<>();
 		allTypes.put(transformedClass.getTypeDescription().getName(), transformedClass.getBytes());
@@ -54,7 +54,7 @@ public final class Transformer {
 		return classLoader.loadClass(transformedClass.getTypeDescription().getName());
 	}
 
-	public static Unloaded<Object> transformClass(TypeDescription typeDescription, ClassFileLocator cfl)
+	public static Unloaded<?> transformClass(TypeDescription typeDescription, ClassFileLocator cfl)
 			throws IOException {
 		try (WithPreprocessor plugin = new JMoleculesPlugin(Jsr380DynamicClassTest.dummyRoot())) {
 			var locator = new ClassFileLocator.Compound(cfl, ClassFileLocator.ForClassLoader.ofSystemLoader());
@@ -64,8 +64,7 @@ public final class Transformer {
 			var builder = byteBuddy.rebase(typeDescription, locator);
 			var transformedBuilder = plugin.apply(builder, typeDescription, locator);
 
-			@SuppressWarnings("unchecked")
-			DynamicType.Unloaded<Object> transformed = (DynamicType.Unloaded<Object>) transformedBuilder.make();
+			Unloaded<?> transformed =  transformedBuilder.make();
 
 			if (DUMP_CLASS_FILES_TO_TEMP) {
 				transformed.saveIn(Files.createTempDirectory("generated-class").toFile());
