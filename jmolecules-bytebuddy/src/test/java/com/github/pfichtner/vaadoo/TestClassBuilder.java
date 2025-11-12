@@ -104,12 +104,11 @@ public class TestClassBuilder {
 	}
 
 	public TestClassBuilder annotatedByValueObject() {
-		return withAnnotation();
+		return withAnnotation(org.jmolecules.ddd.annotation.ValueObject.class);
 	}
 
-	private TestClassBuilder withAnnotation() {
-		this.annotations
-				.add(AnnotationDescription.Builder.ofType(org.jmolecules.ddd.annotation.ValueObject.class).build());
+	private TestClassBuilder withAnnotation(Class<? extends Annotation> clazz) {
+		this.annotations.add(AnnotationDescription.Builder.ofType(clazz).build());
 		return this;
 	}
 
@@ -135,9 +134,9 @@ public class TestClassBuilder {
 	public Unloaded<Object> build() {
 		NameMaker nameMaker = new NameMaker();
 
-		Builder<Object> builder;
-		builder = annotations.stream().reduce(base(), Builder::annotateType, (__, b) -> b);
-		builder = interfaces.stream().reduce(base(), Builder::implement, (__, b) -> b);
+		Builder<Object> builder = base();
+		builder = annotations.stream().reduce(builder, Builder::annotateType, (__, b) -> b);
+		builder = interfaces.stream().reduce(builder, Builder::implement, (__, b) -> b);
 		for (ConstructorDefinition ctor : constructors) {
 			Initial<Object> ctorInitial = builder.defineConstructor(Visibility.PUBLIC);
 
