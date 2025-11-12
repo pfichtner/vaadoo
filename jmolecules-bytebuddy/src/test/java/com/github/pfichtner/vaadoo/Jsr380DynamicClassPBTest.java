@@ -1,6 +1,23 @@
+/*
+ * Copyright 2021-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.pfichtner.vaadoo;
 
 import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
+import static com.github.pfichtner.vaadoo.Buildable.a;
+import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
 import static com.github.pfichtner.vaadoo.Transformer.transformClass;
 import static java.lang.Math.min;
@@ -151,8 +168,8 @@ class Jsr380DynamicClassPBTest {
 	@Property
 	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
-		Unloaded<Object> unloaded = new TestClassBuilder("com.example.Generated").thatImplementsValueObject()
-				.withConstructor(new ConstructorDefinition(params)).build();
+		var unloaded = a(testClass("com.example.Generated").thatImplementsValueObject()
+				.withConstructor(new ConstructorDefinition(params)));
 		createInstances(params, unloaded);
 	}
 
@@ -160,8 +177,8 @@ class Jsr380DynamicClassPBTest {
 	void throwsExceptionIfTypeIsNotSupportedByAnnotation(
 			@ForAll("invalidParameterConfigs") List<ParameterDefinition> params) throws Exception {
 		Assume.that(params.stream().map(ParameterDefinition::getAnnotations).anyMatch(not(List::isEmpty)));
-		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated").thatImplementsValueObject()
-				.withConstructor(new ConstructorDefinition(params)).build();
+		var unloaded = a(testClass("com.example.InvalidGenerated").thatImplementsValueObject()
+				.withConstructor(new ConstructorDefinition(params)));
 		newInstance(unloaded, args(params));
 		assertThatIllegalStateException().isThrownBy(() -> transformClass(unloaded))
 				.withMessageContaining("not allowed, allowed only on");
@@ -269,10 +286,10 @@ class Jsr380DynamicClassPBTest {
 	@Property
 	void withoutImplementingValueObject_noValidationCodeGetsAdded(
 			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
-		String checksum = ParameterDefinition.stableChecksum(params);
-		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-				.withConstructor(new ConstructorDefinition(params)).build();
-		Unloaded<?> transformedClass = transformClass(testClass);
+		var checksum = ParameterDefinition.stableChecksum(params);
+		var testClass = a(testClass("com.example.Generated_" + checksum) //
+				.withConstructor(new ConstructorDefinition(params)));
+		var transformedClass = transformClass(testClass);
 		newInstance(transformedClass, args(params));
 	}
 
@@ -280,10 +297,10 @@ class Jsr380DynamicClassPBTest {
 	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
 		settings().allowMultipleVerifyCallsForThisClass();
 		settings().allowMultipleVerifyCallsForThisMethod();
-		String checksum = ParameterDefinition.stableChecksum(params);
+		var checksum = ParameterDefinition.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
-			Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated_" + checksum)
-					.thatImplementsValueObject().withConstructor(new ConstructorDefinition(params)).build();
+			var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
+					.withConstructor(new ConstructorDefinition(params)));
 			approveTransformed(params, testClass);
 		}
 	}
