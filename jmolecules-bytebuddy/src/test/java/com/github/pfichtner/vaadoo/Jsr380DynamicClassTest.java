@@ -326,16 +326,17 @@ class Jsr380DynamicClassTest {
 		approveTransformed(noParams, testClass);
 	}
 
-//	@Example
+	@Example
 	void implementingValueObjectAndAnnotatedByValueObjectIsTheSame() throws Exception {
-		List<ParameterDefinition> params = List.of(new ParameterDefinition(Object.class, List.of(NotNull.class)));
-		var transformedClass1 = transformClass(new TestClassBuilder("com.example.Generated").implementsValueObject()
-				.constructor(new ConstructorDefinition(params)).build());
+		var params = List.of(new ParameterDefinition(Object.class, List.of(NotNull.class)));
+		var constructor = new ConstructorDefinition(params);
+		var transformedClass1 = transformClass(
+				new TestClassBuilder("com.example.Generated").implementsValueObject().constructor(constructor).build());
 		var transformedClass2 = transformClass(new TestClassBuilder("com.example.Generated").annotatedByValueObject()
-				.constructor(new ConstructorDefinition(params)).build());
+				.constructor(constructor).build());
 		var e1 = assertThrows(RuntimeException.class, () -> newInstance(transformedClass1, args(params)));
 		var e2 = assertThrows(RuntimeException.class, () -> newInstance(transformedClass2, args(params)));
-		assertThat(e1).isEqualTo(e2);
+		assertThat(e1).isExactlyInstanceOf(e2.getClass()).hasMessage(e2.getMessage());
 	}
 
 	@Property
