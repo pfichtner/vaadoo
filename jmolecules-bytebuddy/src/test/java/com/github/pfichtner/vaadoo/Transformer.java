@@ -17,6 +17,7 @@ package com.github.pfichtner.vaadoo;
 
 import static lombok.AccessLevel.PRIVATE;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -54,9 +55,8 @@ public final class Transformer {
 		return classLoader.loadClass(transformedClass.getTypeDescription().getName());
 	}
 
-	public static Unloaded<?> transformClass(TypeDescription typeDescription, ClassFileLocator cfl)
-			throws IOException {
-		try (WithPreprocessor plugin = new JMoleculesPlugin(Jsr380DynamicClassTest.dummyRoot())) {
+	public static Unloaded<?> transformClass(TypeDescription typeDescription, ClassFileLocator cfl) throws IOException {
+		try (WithPreprocessor plugin = new JMoleculesPlugin(dummyRoot())) {
 			var locator = new ClassFileLocator.Compound(cfl, ClassFileLocator.ForClassLoader.ofSystemLoader());
 			plugin.onPreprocess(typeDescription, locator);
 
@@ -64,7 +64,7 @@ public final class Transformer {
 			var builder = byteBuddy.rebase(typeDescription, locator);
 			var transformedBuilder = plugin.apply(builder, typeDescription, locator);
 
-			Unloaded<?> transformed =  transformedBuilder.make();
+			Unloaded<?> transformed = transformedBuilder.make();
 
 			if (DUMP_CLASS_FILES_TO_TEMP) {
 				transformed.saveIn(Files.createTempDirectory("generated-class").toFile());
@@ -72,6 +72,10 @@ public final class Transformer {
 
 			return transformed;
 		}
+	}
+
+	private static File dummyRoot() {
+		return new File("jmolecules-bytebuddy-tests");
 	}
 
 }
