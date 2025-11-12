@@ -21,8 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
+import java.lang.reflect.Constructor;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.github.pfichtner.vaadoo.testclasses.AnnotationDoesNotSupportType;
 import com.github.pfichtner.vaadoo.testclasses.ClassWithAttribute;
@@ -100,28 +107,36 @@ class JMoleculesVaadooPluginTests {
 								+ "[java.lang.CharSequence, java.util.Collection, java.util.Map, java.lang.Object[]]"));
 	}
 
-	@Test
-	void customExample() throws Exception {
+	@ParameterizedTest
+	@MethodSource("customExampleSource")
+	void customExample(Constructor<?> constructor, List<Object> args, String message) throws Exception {
+		constructor.newInstance(args.toArray());
+		assertThatException().isThrownBy(() -> constructor.newInstance(makeIbanInvalid(args))).satisfies(
+				e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class).hasMessage(message));
+	}
+
+	static Object[] makeIbanInvalid(List<Object> args) {
+		Object[] array = args.toArray();
+		array[0] = ((String) array[0]).substring(0, 3);
+		return array;
+	}
+
+	static List<Arguments> customExampleSource() throws Exception {
 		var transformed = transform(CustomExample.class);
-		var stringConstructor = transformed.getDeclaredConstructor(String.class);
-		var stringStringConstructor = transformed.getDeclaredConstructor(String.class, String.class);
-		var stringBooleanConstructor = transformed.getDeclaredConstructor(String.class, boolean.class);
-
-		stringConstructor.newInstance("DE02 6005 0101 0002 0343 04");
-		stringStringConstructor.newInstance("DE02 6005 0101 0002 0343 04", "");
-		stringBooleanConstructor.newInstance("DE02 6005 0101 0002 0343 04", true);
-
-		assertThatException().isThrownBy(() -> stringConstructor.newInstance("DE02"))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
-						.hasMessage("iban not valid"));
-
-		assertThatException().isThrownBy(() -> stringStringConstructor.newInstance("DE02", ""))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
-						.hasMessage("iban not a valid IBAN (this is a custum message from resourcebundle)"));
-
-		assertThatException().isThrownBy(() -> stringBooleanConstructor.newInstance("DE02", true))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
-						.hasMessage("a custom message"));
+		return List.of( //
+				arguments( //
+						transformed.getDeclaredConstructor(String.class), //
+						List.of("DE02 6005 0101 0002 0343 04"), //
+						"iban not valid"), //
+				arguments( //
+						transformed.getDeclaredConstructor(String.class, String.class), //
+						List.of("DE02 6005 0101 0002 0343 04", ""), //
+						"iban not a valid IBAN (this is a custum message from resourcebundle)"), //
+				arguments( //
+						transformed.getDeclaredConstructor(String.class, boolean.class), //
+						List.of("DE02 6005 0101 0002 0343 04", true), //
+						"a custom message") //
+		);
 	}
 
 	static String notNull(String paramName) {
