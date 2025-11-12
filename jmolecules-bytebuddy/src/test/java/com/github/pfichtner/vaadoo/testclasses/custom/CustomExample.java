@@ -12,4 +12,12 @@ public class CustomExample {
 		this.iban = iban;
 	}
 
+	public CustomExample(@Iban2 String iban, String ignore) {
+		this.iban = iban;
+	}
+
+	public CustomExample(@Iban2(message = "a custom message") String iban, boolean ignore) {
+		this.iban = iban;
+	}
+
 }

@@ -14,7 +14,7 @@ import jakarta.validation.ConstraintValidatorContext;
  * must also perform the ISO 7064 mod-97 checksum (convert letters → numbers and
  * check remainder 1).
  */
-public class IbanValidator implements ConstraintValidator<Iban, String> {
+public class IbanValidator implements ConstraintValidator<Iban2, String> {
 
 	private static final Pattern DE_IBAN = Pattern.compile("^DE\\d{20}$", CASE_INSENSITIVE);
 

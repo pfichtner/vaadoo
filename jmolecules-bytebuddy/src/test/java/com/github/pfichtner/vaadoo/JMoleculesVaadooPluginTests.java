@@ -103,10 +103,25 @@ class JMoleculesVaadooPluginTests {
 	@Test
 	void customExample() throws Exception {
 		var transformed = transform(CustomExample.class);
-		var constructor = transformed.getDeclaredConstructor(String.class);
-		constructor.newInstance("DE02 6005 0101 0002 0343 04");
-		assertThatException().isThrownBy(() -> constructor.newInstance("DE02")).satisfies(
-				e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class).hasMessage("iban not valid"));
+		var stringConstructor = transformed.getDeclaredConstructor(String.class);
+		var stringStringConstructor = transformed.getDeclaredConstructor(String.class, String.class);
+		var stringBooleanConstructor = transformed.getDeclaredConstructor(String.class, boolean.class);
+
+		stringConstructor.newInstance("DE02 6005 0101 0002 0343 04");
+		stringStringConstructor.newInstance("DE02 6005 0101 0002 0343 04", "");
+		stringBooleanConstructor.newInstance("DE02 6005 0101 0002 0343 04", true);
+
+		assertThatException().isThrownBy(() -> stringConstructor.newInstance("DE02"))
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("iban not valid"));
+
+		assertThatException().isThrownBy(() -> stringStringConstructor.newInstance("DE02", ""))
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("iban not a valid IBAN (this is a custum message from resourcebundle)"));
+
+		assertThatException().isThrownBy(() -> stringBooleanConstructor.newInstance("DE02", true))
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("a custom message"));
 	}
 
 	static String notNull(String paramName) {

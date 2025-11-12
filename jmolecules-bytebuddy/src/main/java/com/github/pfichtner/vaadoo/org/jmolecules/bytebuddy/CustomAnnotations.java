@@ -32,6 +32,7 @@ import static net.bytebuddy.jar.asm.Type.getObjectType;
 import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import com.github.pfichtner.vaadoo.NamedPlaceholders;
@@ -85,7 +86,7 @@ public final class CustomAnnotations {
 			mv.visitTypeInsn(NEW, "java/lang/IllegalArgumentException");
 			mv.visitInsn(DUP);
 			var message = parameter.annotationValue(getObjectType(annotation.getInternalName()), "message");
-			mv.visitLdcInsn(message == null ? getMessage(parameter, annotation) : message);
+			mv.visitLdcInsn(getMessage(parameter, annotation, message));
 			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/IllegalArgumentException", "<init>", "(Ljava/lang/String;)V",
 					false);
 			mv.visitInsn(ATHROW);
@@ -94,10 +95,9 @@ public final class CustomAnnotations {
 		}
 	}
 
-	private static Object getMessage(Parameter parameter, TypeDescription annotation) {
-		Object message = null;
+	private static Object getMessage(Parameter parameter, TypeDescription annotation, Object message) {
 		Object defaultMessage = defaultMessage(annotation);
-		if (defaultMessage instanceof String) {
+		if (message != null && message.equals(defaultMessage)) {
 			Function<String, String> rbResolver = Resources::message;
 			Function<String, String> paramNameResolver = k -> k.equals(ValidationCodeInjector.NAME) ? parameter.name()
 					: k;
@@ -120,7 +120,7 @@ public final class CustomAnnotations {
 	private static Object defaultMessage(TypeDescription type) {
 		MethodList<InDefinedShape> list = type.getDeclaredMethods() //
 				.filter(named("message")) //
-				.filter(m -> m.getParameters().size() == 1);
+				.filter(m -> m.getParameters().size() == 0);
 		return list.isEmpty() ? null : list.getOnly().getDefaultValue().resolve();
 	}
 
