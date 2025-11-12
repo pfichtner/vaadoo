@@ -19,6 +19,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,7 @@ import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ByteArrayClassLoader;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 
 @RequiredArgsConstructor(access = PRIVATE)
 public final class Transformer {
@@ -71,6 +73,17 @@ public final class Transformer {
 			}
 
 			return transformed;
+		}
+	}
+
+	public static Object newInstance(Unloaded<?> unloaded, Object[] args) throws Exception {
+		Class<?> clazz = unloaded.load(new ClassLoader() {
+		}, ClassLoadingStrategy.Default.INJECTION).getLoaded();
+		try {
+			return clazz.getDeclaredConstructors()[0].newInstance(args);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			throw cause instanceof Exception ? (Exception) cause : new RuntimeException(e);
 		}
 	}
 

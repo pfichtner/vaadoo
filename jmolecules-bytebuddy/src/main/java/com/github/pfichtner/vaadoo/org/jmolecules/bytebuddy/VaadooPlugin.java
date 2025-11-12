@@ -15,12 +15,14 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
-import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
 
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 
+import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDescription.Generic;
@@ -65,7 +67,7 @@ class VaadooPlugin implements LoggingPlugin {
 			return false;
 		}
 
-		if (!target.getInterfaces().filter(nameStartsWith("org.jmolecules")).isEmpty()) {
+		if (!target.getInterfaces().filter(nameMatches("org.jmolecules.ddd.types.ValueObject")).isEmpty()) {
 			return true;
 		}
 		if (hasAnyJMoleculesAnnotation(target)) {
@@ -80,7 +82,11 @@ class VaadooPlugin implements LoggingPlugin {
 	private boolean hasAnyJMoleculesAnnotation(TypeDescription target) {
 		return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
 				.flatMap(AnnotationList::stream)
-				.anyMatch(it -> it.getAnnotationType().getName().startsWith("org.jmolecules"));
+				.anyMatch(typeIs("org.jmolecules.ddd.annotation.ValueObject"));
+	}
+
+	private Predicate<? super AnnotationDescription> typeIs(String annoName) {
+		return it -> it.getAnnotationType().getName().equals(annoName);
 	}
 
 	@Override

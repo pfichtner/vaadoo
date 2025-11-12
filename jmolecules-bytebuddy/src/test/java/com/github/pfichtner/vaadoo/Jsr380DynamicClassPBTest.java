@@ -1,6 +1,7 @@
 package com.github.pfichtner.vaadoo;
 
 import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
+import static com.github.pfichtner.vaadoo.Transformer.newInstance;
 import static com.github.pfichtner.vaadoo.Transformer.transformClass;
 import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
@@ -20,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -55,7 +55,6 @@ import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Assume;
@@ -110,7 +109,7 @@ class Jsr380DynamicClassPBTest {
 		return parameterConfigGen().list().ofMinSize(1).ofMaxSize(10);
 	}
 
-	private Arbitrary<ParameterDefinition> parameterConfigGen() {
+	Arbitrary<ParameterDefinition> parameterConfigGen() {
 		Arbitrary<Class<?>> typeGen = Arbitraries.of(ALL_SUPPORTED_TYPES)
 				.flatMap(baseType -> Arbitraries.of(resolveAllSubtypes(baseType)));
 		return typeGen.flatMap(type -> {
@@ -133,7 +132,7 @@ class Jsr380DynamicClassPBTest {
 		});
 	}
 
-	private static List<Class<?>> resolveAllSubtypes(Class<?> base) {
+	static List<Class<?>> resolveAllSubtypes(Class<?> base) {
 		Set<Class<?>> result = new LinkedHashSet<>();
 		Deque<Class<?>> stack = new ArrayDeque<>(List.of(base));
 		while (!stack.isEmpty()) {
@@ -144,7 +143,7 @@ class Jsr380DynamicClassPBTest {
 		return List.copyOf(result);
 	}
 
-	private static ListArbitrary<Class<? extends Annotation>> uniquesOfMin(List<Class<? extends Annotation>> applicable,
+	static ListArbitrary<Class<? extends Annotation>> uniquesOfMin(List<Class<? extends Annotation>> applicable,
 			IntUnaryOperator cap, int i) {
 		return Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(i));
 	}
@@ -169,7 +168,7 @@ class Jsr380DynamicClassPBTest {
 	}
 
 	@Provide
-	private Arbitrary<List<ParameterDefinition>> invalidParameterConfigs() {
+	Arbitrary<List<ParameterDefinition>> invalidParameterConfigs() {
 		return invalidParameterConfigGen().list().ofMinSize(1).ofMaxSize(10);
 	}
 
@@ -203,20 +202,6 @@ class Jsr380DynamicClassPBTest {
 
 	static Predicate<Throwable> endsWith(Function<Throwable, String> mapper, String expectedMessage) {
 		return t -> mapper.apply(t).endsWith(expectedMessage);
-	}
-
-	static Object newInstance(Unloaded<?> unloaded, Object[] args) throws Exception {
-		Class<?> clazz = unloaded.load(new ClassLoader() {
-		}, ClassLoadingStrategy.Default.INJECTION).getLoaded();
-		try {
-			return clazz.getDeclaredConstructors()[0].newInstance(args);
-		} catch (InvocationTargetException e) {
-			Throwable cause = e.getCause();
-			if (cause instanceof Exception) {
-				throw (Exception) cause;
-			}
-			throw new RuntimeException(e);
-		}
 	}
 
 	static Object[] args(List<ParameterDefinition> params) {
