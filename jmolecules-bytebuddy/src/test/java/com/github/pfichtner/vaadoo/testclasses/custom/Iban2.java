@@ -10,5 +10,5 @@ import jakarta.validation.Constraint;
 @Constraint(validatedBy = IbanValidator.class)
 public @interface Iban2 {
 
-	String message() default "{jakarta.validation.constraints.Iban.message}";
+	String message() default "{jakarta.validation.constraints.Iban2.message}";
 }
