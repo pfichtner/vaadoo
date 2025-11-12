@@ -81,7 +81,7 @@ class VaadooPlugin implements LoggingPlugin {
 
 	private boolean hasAnyJMoleculesAnnotation(TypeDescription target) {
 		return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
-				.flatMap(AnnotationList::stream)
+				.flatMap(AnnotationList::stream) //
 				.anyMatch(typeIs("org.jmolecules.ddd.annotation.ValueObject"));
 	}
 

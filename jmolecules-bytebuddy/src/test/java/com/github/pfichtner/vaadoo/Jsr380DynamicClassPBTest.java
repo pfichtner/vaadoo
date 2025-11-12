@@ -201,7 +201,7 @@ class Jsr380DynamicClassPBTest {
 		});
 	}
 
-	static void createInstances(List<ParameterDefinition> params, Unloaded<Object> unloaded) throws Exception {
+	static void createInstances(List<ParameterDefinition> params, Unloaded<?> unloaded) throws Exception {
 		Object[] args = args(params);
 		newInstance(unloaded, args);
 		try {

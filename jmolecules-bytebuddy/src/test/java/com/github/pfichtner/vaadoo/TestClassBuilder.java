@@ -53,7 +53,7 @@ import net.bytebuddy.implementation.StubMethod;
 @Value
 @lombok.Builder(toBuilder = true)
 @AllArgsConstructor
-public class TestClassBuilder implements Buildable<Unloaded<Object>> {
+public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 	private static final Constructor<Object> objectNoArgConstructor = objectNoArgConstructor();
 
@@ -104,9 +104,14 @@ public class TestClassBuilder implements Buildable<Unloaded<Object>> {
 
 	@Value
 	@Accessors(fluent = true)
+	@RequiredArgsConstructor
 	public static class MethodDefinition {
 		String methodname;
 		List<ParameterDefinition> params;
+
+		public MethodDefinition(String methodname, ParameterDefinition... params) {
+			this(methodname, List.of(params));
+		}
 	}
 
 	String classname;
@@ -156,7 +161,7 @@ public class TestClassBuilder implements Buildable<Unloaded<Object>> {
 		return toBuilder().constructors(append(this.constructors, constructor)).build();
 	}
 
-	public Buildable<Unloaded<Object>> withMethod(MethodDefinition method) {
+	public Buildable<Unloaded<?>> withMethod(MethodDefinition method) {
 		return toBuilder().methods(append(this.methods, method)).build();
 	}
 
@@ -165,7 +170,7 @@ public class TestClassBuilder implements Buildable<Unloaded<Object>> {
 	}
 
 	@Override
-	public Unloaded<Object> build() {
+	public Unloaded<?> build() {
 		NameMaker nameMaker = new NameMaker();
 
 		Builder<Object> builder = base();

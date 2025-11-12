@@ -58,7 +58,7 @@ class ApprovalUtil {
 		}
 	}
 
-	public static void approveTransformed(List<ParameterDefinition> params, Unloaded<Object> generatedClass) throws Exception {
+	public static void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass) throws Exception {
 		Unloaded<?> transformedClass = transformClass(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
