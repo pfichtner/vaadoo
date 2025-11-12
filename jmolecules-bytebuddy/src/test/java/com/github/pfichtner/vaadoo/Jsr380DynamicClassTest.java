@@ -19,6 +19,7 @@ import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.Approvals.verify;
 import static org.approvaltests.namer.NamerFactory.withParameters;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
@@ -177,8 +178,8 @@ class Jsr380DynamicClassTest {
 		Unloaded<Object> unloaded = new TestClassBuilder("com.example.InvalidGenerated").implementsValueObject()
 				.constructor(new ConstructorDefinition(params)).build();
 		newInstance(unloaded, args(params));
-		assertThat(assertThrows(IllegalStateException.class, () -> transformClass(unloaded)).getMessage())
-				.contains("not allowed, allowed only on");
+		assertThatIllegalStateException().isThrownBy(() -> transformClass(unloaded))
+				.withMessageContaining("not allowed, allowed only on");
 	}
 
 	@Provide
@@ -203,26 +204,33 @@ class Jsr380DynamicClassTest {
 		newInstance(unloaded, args);
 		try {
 			newInstance(transformClass(unloaded), args);
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			if (!isAnExpectedException(e)) {
 				throw e;
 			}
 		}
 	}
 
-	static boolean isAnExpectedException(InvocationTargetException e) {
-		return oks.stream().map(p -> p.test(e.getCause())).anyMatch(Boolean.TRUE::equals);
+	static boolean isAnExpectedException(Exception exception) {
+		return oks.stream().map(p -> p.test(exception)).anyMatch(Boolean.TRUE::equals);
 	}
 
 	static Predicate<Throwable> endsWith(Function<Throwable, String> mapper, String expectedMessage) {
 		return t -> mapper.apply(t).endsWith(expectedMessage);
 	}
 
-	static Object newInstance(Unloaded<Object> unloaded, Object[] args)
-			throws InstantiationException, IllegalAccessException, InvocationTargetException, Exception {
+	static Object newInstance(Unloaded<?> unloaded, Object[] args) throws Exception {
 		Class<?> clazz = unloaded.load(new ClassLoader() {
 		}, ClassLoadingStrategy.Default.INJECTION).getLoaded();
-		return clazz.getDeclaredConstructors()[0].newInstance(args);
+		try {
+			return clazz.getDeclaredConstructors()[0].newInstance(args);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof Exception) {
+				throw (Exception) cause;
+			}
+			throw new RuntimeException(e);
+		}
 	}
 
 	static Object[] args(List<ParameterDefinition> params) {

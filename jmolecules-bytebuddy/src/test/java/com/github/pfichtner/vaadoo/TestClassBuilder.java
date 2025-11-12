@@ -86,6 +86,7 @@ public class TestClassBuilder {
 	}
 
 	private final String classname;
+	private final List<AnnotationDescription> annotations = new ArrayList<>();
 	private final List<TypeDescription> interfaces = new ArrayList<>();
 	private final List<ConstructorDefinition> constructors = new ArrayList<>();
 	private final List<MethodDefinition> methods = new ArrayList<>();
@@ -100,6 +101,16 @@ public class TestClassBuilder {
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public TestClassBuilder annotatedByValueObject() {
+		return withAnnotation();
+	}
+
+	private TestClassBuilder withAnnotation() {
+		this.annotations
+				.add(AnnotationDescription.Builder.ofType(org.jmolecules.ddd.annotation.ValueObject.class).build());
+		return this;
 	}
 
 	public TestClassBuilder implementsValueObject() {
@@ -124,7 +135,9 @@ public class TestClassBuilder {
 	public Unloaded<Object> build() {
 		NameMaker nameMaker = new NameMaker();
 
-		Builder<Object> builder = interfaces.stream().reduce(base(), Builder::implement, (__, b) -> b);
+		Builder<Object> builder;
+		builder = annotations.stream().reduce(base(), Builder::annotateType, (__, b) -> b);
+		builder = interfaces.stream().reduce(base(), Builder::implement, (__, b) -> b);
 		for (ConstructorDefinition ctor : constructors) {
 			Initial<Object> ctorInitial = builder.defineConstructor(Visibility.PUBLIC);
 
