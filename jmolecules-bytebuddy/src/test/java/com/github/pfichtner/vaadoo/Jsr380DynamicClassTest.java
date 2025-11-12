@@ -29,7 +29,7 @@ class Jsr380DynamicClassTest {
 		var constructor = new ConstructorDefinition(emptyList());
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(constructor).build();
-		approveTransformed(constructor.getParameters(), testClass);
+		approveTransformed(constructor.params(), testClass);
 	}
 
 	@Test
@@ -54,7 +54,7 @@ class Jsr380DynamicClassTest {
 	void alreadyHasValidateMethod() throws Exception {
 		Unloaded<Object> testClass = new TestClassBuilder("com.example.Generated").implementsValueObject()
 				.constructor(notNullObject).method(new MethodDefinition("validate", emptyList())).build();
-		approveTransformed(notNullObject.getParameters(), testClass);
+		approveTransformed(notNullObject.params(), testClass);
 	}
 
 }

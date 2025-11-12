@@ -18,6 +18,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import lombok.experimental.Accessors;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.modifier.Ownership;
@@ -75,14 +76,16 @@ public class TestClassBuilder {
 	}
 
 	@Value
+	@Accessors(fluent = true)
 	public static class ConstructorDefinition {
-		List<ParameterDefinition> parameters;
+		List<ParameterDefinition> params;
 	}
 
 	@Value
+	@Accessors(fluent = true)
 	public static class MethodDefinition {
 		String methodname;
-		List<ParameterDefinition> parameters;
+		List<ParameterDefinition> params;
 	}
 
 	private final String classname;
@@ -141,7 +144,7 @@ public class TestClassBuilder {
 			Initial<Object> ctorInitial = builder.defineConstructor(Visibility.PUBLIC);
 
 			Annotatable<Object> paramDef = null;
-			for (ParameterDefinition parameter : ctor.getParameters()) {
+			for (ParameterDefinition parameter : ctor.params()) {
 				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.getType(),
 						nameMaker.makeName(parameter.getType()));
 				for (Class<? extends Annotation> anno : parameter.getAnnotations()) {
@@ -154,7 +157,7 @@ public class TestClassBuilder {
 		}
 
 		for (MethodDefinition method : methods) {
-			builder = builder.defineMethod(method.getMethodname(), void.class, Visibility.PRIVATE, Ownership.STATIC)
+			builder = builder.defineMethod(method.methodname(), void.class, Visibility.PRIVATE, Ownership.STATIC)
 					.withParameter(Object.class, "someArgName").intercept(StubMethod.INSTANCE);
 		}
 
