@@ -2,6 +2,7 @@ package com.github.pfichtner.vaadoo;
 
 import static java.lang.Math.abs;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -16,6 +18,7 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
@@ -32,6 +35,9 @@ import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.StubMethod;
 
+@Value
+@lombok.Builder(toBuilder = true)
+@AllArgsConstructor
 public class TestClassBuilder {
 
 	private static final Constructor<Object> objectNoArgConstructor = objectNoArgConstructor();
@@ -88,14 +94,18 @@ public class TestClassBuilder {
 		List<ParameterDefinition> params;
 	}
 
-	private final String classname;
-	private final List<AnnotationDescription> annotations = new ArrayList<>();
-	private final List<TypeDescription> interfaces = new ArrayList<>();
-	private final List<ConstructorDefinition> constructors = new ArrayList<>();
-	private final List<MethodDefinition> methods = new ArrayList<>();
+	String classname;
+	List<AnnotationDescription> annotations;
+	List<TypeDescription> interfaces;
+	List<ConstructorDefinition> constructors;
+	List<MethodDefinition> methods;
 
 	public TestClassBuilder(String classname) {
 		this.classname = classname;
+		this.annotations = new ArrayList<>();
+		this.interfaces = new ArrayList<>();
+		this.constructors = new ArrayList<>();
+		this.methods = new ArrayList<>();
 	}
 
 	private static Constructor<Object> objectNoArgConstructor() {
@@ -111,8 +121,8 @@ public class TestClassBuilder {
 	}
 
 	private TestClassBuilder withAnnotation(Class<? extends Annotation> clazz) {
-		this.annotations.add(AnnotationDescription.Builder.ofType(clazz).build());
-		return this;
+		return toBuilder().annotations(append(this.annotations, AnnotationDescription.Builder.ofType(clazz).build()))
+				.build();
 	}
 
 	public TestClassBuilder implementsValueObject() {
@@ -120,18 +130,19 @@ public class TestClassBuilder {
 	}
 
 	public TestClassBuilder withInterface(Class<?> clazz) {
-		this.interfaces.add(ForLoadedType.of(clazz));
-		return this;
+		return toBuilder().interfaces(append(this.interfaces, ForLoadedType.of(clazz))).build();
 	}
 
 	public TestClassBuilder constructor(ConstructorDefinition constructor) {
-		this.constructors.add(constructor);
-		return this;
+		return toBuilder().constructors(append(this.constructors, constructor)).build();
 	}
 
 	public TestClassBuilder method(MethodDefinition method) {
-		this.methods.add(method);
-		return this;
+		return toBuilder().methods(append(this.methods, method)).build();
+	}
+
+	private static <T> List<T> append(List<T> col, T add) {
+		return Stream.concat(col.stream(), Stream.of(add)).collect(toList());
 	}
 
 	public Unloaded<Object> build() {
