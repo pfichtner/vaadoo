@@ -109,32 +109,32 @@ class JMoleculesVaadooPluginTests {
 
 	@ParameterizedTest
 	@MethodSource("customExampleSource")
-	void customExample(Constructor<?> constructor, List<Object> args, String message) throws Exception {
-		constructor.newInstance(args.toArray());
-		assertThatException().isThrownBy(() -> constructor.newInstance(makeIbanInvalid(args))).satisfies(
+	void customExample(Constructor<?> constructor, List<Object> validArgs, List<Object> invalidArgs, String message)
+			throws Exception {
+		constructor.newInstance(validArgs.toArray());
+		assertThatException().isThrownBy(() -> constructor.newInstance(invalidArgs.toArray())).satisfies(
 				e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class).hasMessage(message));
-	}
-
-	static Object[] makeIbanInvalid(List<Object> args) {
-		Object[] array = args.toArray();
-		array[0] = ((String) array[0]).substring(0, 3);
-		return array;
 	}
 
 	static List<Arguments> customExampleSource() throws Exception {
 		var transformed = transform(CustomExample.class);
+		String validIban = "DE02 6005 0101 0002 0343 04";
+		String invalidIban = "DE02";
 		return List.of( //
 				arguments( //
 						transformed.getDeclaredConstructor(String.class), //
-						List.of("DE02 6005 0101 0002 0343 04"), //
+						List.of(validIban), //
+						List.of(invalidIban), //
 						"iban not valid"), //
 				arguments( //
 						transformed.getDeclaredConstructor(String.class, String.class), //
-						List.of("DE02 6005 0101 0002 0343 04", ""), //
+						List.of(validIban, ""), //
+						List.of(invalidIban, ""), //
 						"iban not a valid IBAN (this is a custum message from resourcebundle)"), //
 				arguments( //
 						transformed.getDeclaredConstructor(String.class, boolean.class), //
-						List.of("DE02 6005 0101 0002 0343 04", true), //
+						List.of(validIban, true), //
+						List.of(invalidIban, true), //
 						"a custom message") //
 		);
 	}
