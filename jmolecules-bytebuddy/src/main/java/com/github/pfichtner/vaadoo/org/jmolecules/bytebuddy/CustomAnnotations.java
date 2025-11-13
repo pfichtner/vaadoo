@@ -32,7 +32,6 @@ import static net.bytebuddy.jar.asm.Type.getObjectType;
 import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 import com.github.pfichtner.vaadoo.NamedPlaceholders;

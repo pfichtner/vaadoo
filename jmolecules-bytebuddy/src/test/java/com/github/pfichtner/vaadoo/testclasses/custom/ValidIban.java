@@ -8,5 +8,5 @@ import jakarta.validation.Constraint;
 
 @Retention(RUNTIME)
 @Constraint(validatedBy = IbanValidator.class)
-public @interface Iban {
+public @interface ValidIban {
 }

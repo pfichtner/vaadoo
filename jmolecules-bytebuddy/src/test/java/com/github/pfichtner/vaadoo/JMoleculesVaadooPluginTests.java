@@ -39,6 +39,7 @@ import com.github.pfichtner.vaadoo.testclasses.TwoConstructorsValueObject;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExample;
+import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMessage;
 
 class JMoleculesVaadooPluginTests {
 
@@ -117,22 +118,23 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	static List<Arguments> customExampleSource() throws Exception {
-		var transformed = transform(CustomExample.class);
+		var transformed1 = transform(CustomExample.class);
+		var transformed2 = transform(CustomExampleWithCustomMessage.class);
 		String validIban = "DE02 6005 0101 0002 0343 04";
 		String invalidIban = "DE02";
 		return List.of( //
 				arguments( //
-						transformed.getDeclaredConstructor(String.class), //
+						transformed1.getDeclaredConstructor(String.class), //
 						List.of(validIban), //
 						List.of(invalidIban), //
 						"iban not valid"), //
 				arguments( //
-						transformed.getDeclaredConstructor(String.class, String.class), //
+						transformed2.getDeclaredConstructor(String.class, String.class), //
 						List.of(validIban, ""), //
 						List.of(invalidIban, ""), //
 						"iban not a valid IBAN (this is a custum message from resourcebundle)"), //
 				arguments( //
-						transformed.getDeclaredConstructor(String.class, boolean.class), //
+						transformed2.getDeclaredConstructor(String.class, boolean.class), //
 						List.of(validIban, true), //
 						List.of(invalidIban, true), //
 						"a custom message") //
