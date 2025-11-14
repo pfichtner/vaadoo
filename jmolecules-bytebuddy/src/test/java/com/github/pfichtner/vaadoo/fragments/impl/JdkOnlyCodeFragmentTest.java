@@ -194,6 +194,7 @@ class JdkOnlyCodeFragmentTest {
 
 	JdkOnlyCodeFragment sutClass = new JdkOnlyCodeFragment();
 
+	Class<?>[] booleanTypes = new Class<?>[] { boolean.class, Boolean.class };
 	Class<?>[] numberTypes = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
 			Integer.class, Long.class, BigInteger.class, BigDecimal.class };
 
@@ -234,7 +235,7 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkPattern() {
 		var fixture = TestFixture.of(sutClass, Pattern.class, Map.of("regexp", "[24]{2}"));
-		fixture.assertThrowsNothing(nullValue,String.class);
+		fixture.assertThrowsNothing(nullValue, String.class);
 		fixture.assertThrowsNothing("42");
 		fixture.assertThrows("21", IllegalArgumentException.class);
 	}
@@ -312,18 +313,16 @@ class JdkOnlyCodeFragmentTest {
 	void checkAssertTrueFalse() {
 		var fixture = TestFixture.of(sutClass, boolean.class, AssertTrue.class);
 		fixture.assertThrowsNothing(nullValue, Boolean.class);
-		var types = new Class<?>[] { boolean.class, Boolean.class };
-		fixture.assertThrowsNothing(true, types);
-		fixture.assertThrows(false, IllegalArgumentException.class, types);
+		fixture.assertThrowsNothing(true, booleanTypes);
+		fixture.assertThrows(false, IllegalArgumentException.class, booleanTypes);
 	}
 
 	@Test
 	void checkAssertFalse() {
 		var fixture = TestFixture.of(sutClass, boolean.class, AssertFalse.class);
 		fixture.assertThrowsNothing(nullValue, Boolean.class);
-		var types = new Class<?>[] { boolean.class, Boolean.class };
-		fixture.assertThrowsNothing(false, types);
-		fixture.assertThrows(true, IllegalArgumentException.class, types);
+		fixture.assertThrowsNothing(false, booleanTypes);
+		fixture.assertThrows(true, IllegalArgumentException.class, booleanTypes);
 	}
 
 	@Test
