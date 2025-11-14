@@ -181,8 +181,10 @@ class JdkOnlyCodeFragmentTest {
 					return n.doubleValue();
 				if (target == BigInteger.class)
 					return BigInteger.valueOf(n.longValue());
-				if (target == BigDecimal.class)
-					return BigDecimal.valueOf(n.doubleValue());
+				if (target == BigDecimal.class) {
+					BigDecimal bd = BigDecimal.valueOf(n.doubleValue());
+					return value.getClass() == Integer.class || value.getClass() == Long.class ? bd.setScale(0) : bd;
+				}
 			}
 
 			return target.cast(value);
@@ -191,6 +193,9 @@ class JdkOnlyCodeFragmentTest {
 	}
 
 	JdkOnlyCodeFragment sutClass = new JdkOnlyCodeFragment();
+
+	Class<?>[] numberTypes = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
+			Integer.class, Long.class, BigInteger.class, BigDecimal.class };
 
 	Object nullValue = null;
 	Object nonNullValue = new Object();
@@ -222,6 +227,7 @@ class JdkOnlyCodeFragmentTest {
 	void checkNotBlank() {
 		var fixture = TestFixture.of(sutClass, CharSequence.class, NotBlank.class);
 		fixture.assertThrowsNothing(notBlankString);
+		fixture.assertThrows(nullValue, NullPointerException.class, String.class);
 		fixture.assertThrows(blankString, IllegalArgumentException.class);
 	}
 
@@ -244,24 +250,28 @@ class JdkOnlyCodeFragmentTest {
 		{
 			var fixture = TestFixture.of(sutClass, CharSequence.class, NotEmpty.class);
 			fixture.assertThrowsNothing(notBlankString);
+			fixture.assertThrows(nullValue, NullPointerException.class, String.class);
 			fixture.assertThrows(emptyString, IllegalArgumentException.class);
 		}
 
 		{
 			var fixture = TestFixture.of(sutClass, Collection.class, NotEmpty.class);
 			fixture.assertThrowsNothing(notEmptyList);
+			fixture.assertThrows(nullValue, NullPointerException.class, Collection.class);
 			fixture.assertThrows(emptyList, IllegalArgumentException.class);
 		}
 
 		{
 			var fixture = TestFixture.of(sutClass, Map.class, NotEmpty.class);
 			fixture.assertThrowsNothing(notEmptyMap);
+			fixture.assertThrows(nullValue, NullPointerException.class, Map.class);
 			fixture.assertThrows(emptyMap, IllegalArgumentException.class);
 		}
 
 		{
 			var fixture = TestFixture.of(sutClass, Object[].class, NotEmpty.class);
 			fixture.assertThrowsNothing(notEmptyArray);
+			fixture.assertThrows(nullValue, NullPointerException.class, Object[].class);
 			fixture.assertThrows(emptyArray, IllegalArgumentException.class);
 		}
 	}
@@ -270,24 +280,28 @@ class JdkOnlyCodeFragmentTest {
 	void checkSize() {
 		{
 			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing(nullValue, String.class);
 			fixture.assertThrowsNothing("ab");
 			fixture.assertThrows("a", IllegalArgumentException.class);
 		}
 
 		{
 			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing(nullValue, List.class);
 			fixture.assertThrowsNothing(List.of("x", "y"));
 			fixture.assertThrows(List.of("x"), IllegalArgumentException.class);
 		}
 
 		{
 			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing(nullValue, Map.class);
 			fixture.assertThrowsNothing(Map.of("a", 1, "b", 2));
 			fixture.assertThrows(Map.of("a", 1), IllegalArgumentException.class);
 		}
 
 		{
 			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing(nullValue, Object[].class);
 			fixture.assertThrowsNothing(new Object[] { "x", "y" });
 			fixture.assertThrows(new Object[] { "x" }, IllegalArgumentException.class);
 		}
@@ -296,13 +310,16 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkAssertTrueFalse() {
 		var fixture = TestFixture.of(sutClass, boolean.class, AssertTrue.class);
+		fixture.assertThrowsNothing(nullValue, Boolean.class);
 		var types = new Class<?>[] { boolean.class, Boolean.class };
 		fixture.assertThrowsNothing(true, types);
 		fixture.assertThrows(false, IllegalArgumentException.class, types);
 	}
 
+	@Test
 	void checkAssertFalse() {
 		var fixture = TestFixture.of(sutClass, boolean.class, AssertFalse.class);
+		fixture.assertThrowsNothing(nullValue, Boolean.class);
 		var types = new Class<?>[] { boolean.class, Boolean.class };
 		fixture.assertThrowsNothing(false, types);
 		fixture.assertThrows(true, IllegalArgumentException.class, types);
@@ -311,79 +328,91 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkMin() {
 		var fixture = TestFixture.of(sutClass, Min.class, Map.of("value", 10L));
-		var types = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
-				Integer.class, Long.class, BigInteger.class, BigDecimal.class };
-		fixture.assertThrows(9, IllegalArgumentException.class, types);
-		fixture.assertThrowsNothing(10, types);
+		fixture.assertThrows(9, IllegalArgumentException.class, numberTypes);
+		fixture.assertThrowsNothing(10, numberTypes);
 	}
 
 	@Test
 	void checkMax() {
 		var fixture = TestFixture.of(sutClass, Max.class, Map.of("value", 10L));
-		var types = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
-				Integer.class, Long.class, BigInteger.class, BigDecimal.class };
-		fixture.assertThrowsNothing(10, types);
-		fixture.assertThrows((long) 11, IllegalArgumentException.class, types);
+		fixture.assertThrowsNothing(10, numberTypes);
+		fixture.assertThrows((long) 11, IllegalArgumentException.class, numberTypes);
 	}
 
 	@Test
 	void checkDecimalMin() {
-		// TODO add missing types
-		var fixture = TestFixture.of(sutClass, DecimalMin.class, Map.of("value", "5"));
-		fixture.assertThrowsNothing("5");
-		fixture.assertThrows("4", IllegalArgumentException.class);
+		{
+			var fixture = TestFixture.of(sutClass, DecimalMin.class, Map.of("value", "5"));
+			fixture.assertThrowsNothing(5, numberTypes);
+			fixture.assertThrows(4, IllegalArgumentException.class, numberTypes);
+		}
+		{
+			var fixture = TestFixture.of(sutClass, DecimalMin.class, Map.of("value", "5"));
+			fixture.assertThrowsNothing("5");
+			fixture.assertThrows("4", IllegalArgumentException.class);
+		}
 	}
 
 	@Test
 	void checkDecimalMax() {
-		// TODO add missing types
-		var fixture = TestFixture.of(sutClass, DecimalMax.class, Map.of("value", "5"));
-		fixture.assertThrowsNothing("5");
-		fixture.assertThrows("6", IllegalArgumentException.class);
+		{
+			var fixture = TestFixture.of(sutClass, DecimalMax.class, Map.of("value", "5"));
+			fixture.assertThrowsNothing(5, numberTypes);
+			fixture.assertThrows(6, IllegalArgumentException.class, numberTypes);
+		}
+		{
+			var fixture = TestFixture.of(sutClass, DecimalMax.class, Map.of("value", "5"));
+			fixture.assertThrowsNothing("5");
+			fixture.assertThrows("6", IllegalArgumentException.class);
+		}
 	}
 
 	@Test
-	void checkDigitsAndSign() {
-		// TODO add missing types
-		var fixture = TestFixture.of(sutClass, Digits.class, Map.of("integer", 2, "fraction", 0));
-		fixture.assertThrowsNothing(12);
-		fixture.assertThrows(123, IllegalArgumentException.class);
+	void checkDigits() {
+		{
+			var fixture = TestFixture.of(sutClass, Digits.class, Map.of("integer", 2, "fraction", 0));
+			fixture.assertThrowsNothing(12, numberTypes);
+			fixture.assertThrows(123, IllegalArgumentException.class, numberTypes);
+		}
+		{
+			var fixture = TestFixture.of(sutClass, Digits.class, Map.of("integer", 2, "fraction", 0));
+			fixture.assertThrowsNothing("12");
+			fixture.assertThrows("123", IllegalArgumentException.class);
+		}
 	}
 
 	@Test
 	void checkPositive() {
-		// TODO add missing types
 		var fixture = TestFixture.of(sutClass, int.class, Positive.class);
-		fixture.assertThrowsNothing(1);
-		fixture.assertThrows(0, IllegalArgumentException.class);
+		fixture.assertThrowsNothing(1, numberTypes);
+		fixture.assertThrows(0, IllegalArgumentException.class, numberTypes);
 	}
 
 	@Test
 	void checkPositiveOrZero() {
-		// TODO add missing types
 		var fixture = TestFixture.of(sutClass, int.class, PositiveOrZero.class);
-		fixture.assertThrowsNothing(0);
-		fixture.assertThrows(-1, IllegalArgumentException.class);
+		fixture.assertThrowsNothing(0, numberTypes);
+		fixture.assertThrows(-1, IllegalArgumentException.class, numberTypes);
 	}
 
 	@Test
 	void checkNegative() {
-		// TODO add missing types
 		var fixture = TestFixture.of(sutClass, int.class, Negative.class);
-		fixture.assertThrowsNothing(-1);
-		fixture.assertThrows(0, IllegalArgumentException.class);
+		fixture.assertThrowsNothing(-1, numberTypes);
+		fixture.assertThrows(0, IllegalArgumentException.class, numberTypes);
 	}
 
 	@Test
 	void checkNegativeOrZero() {
-		// TODO add missing types
 		var fixture = TestFixture.of(sutClass, int.class, NegativeOrZero.class);
-		fixture.assertThrowsNothing(0);
-		fixture.assertThrows(1, IllegalArgumentException.class);
+		fixture.assertThrowsNothing(0, numberTypes);
+		fixture.assertThrows(1, IllegalArgumentException.class, numberTypes);
 	}
 
 	@Test
 	void checkPast() {
+		// TODO add missing types
+		// TODO add PastOrPresent
 		{
 			var fixture = TestFixture.of(sutClass, java.util.Date.class, Past.class);
 			fixture.assertThrowsNothing(new java.util.Date(System.currentTimeMillis() - 1_000L));
@@ -400,6 +429,8 @@ class JdkOnlyCodeFragmentTest {
 
 	@Test
 	void checkFuture() {
+		// TODO add missing types
+		// TODO add FutureOrPresent
 		{
 			var fixture = TestFixture.of(sutClass, java.util.Date.class, Future.class);
 			fixture.assertThrowsNothing(new java.util.Date(System.currentTimeMillis() + 100_000L));
