@@ -234,6 +234,7 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkPattern() {
 		var fixture = TestFixture.of(sutClass, Pattern.class, Map.of("regexp", "[24]{2}"));
+		fixture.assertThrowsNothing(nullValue,String.class);
 		fixture.assertThrowsNothing("42");
 		fixture.assertThrows("21", IllegalArgumentException.class);
 	}
