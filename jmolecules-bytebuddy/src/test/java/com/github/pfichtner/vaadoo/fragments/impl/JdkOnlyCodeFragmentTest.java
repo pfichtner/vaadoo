@@ -22,13 +22,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+
+import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
 import jakarta.validation.constraints.AssertFalse;
 import jakarta.validation.constraints.AssertTrue;
@@ -50,36 +54,116 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 class JdkOnlyCodeFragmentTest {
 
 	@Value
-	@RequiredArgsConstructor(staticName = "of")
-	static class TestFixture<T extends Annotation, S> implements Consumer<S> {
+	static class TestFixture {
 
-		BiConsumer<T, S> sut;
-		Class<S> type;
-		T anno;
+		Jsr380CodeFragment sut;
+		Annotation anno;
 
-		@Override
-		public void accept(S value) {
-			sut.accept(anno, value);
+		public static TestFixture of(Jsr380CodeFragment sut, Class<?> argType, Class<? extends Annotation> anno) {
+			return of(sut, anno, emptyMap());
 		}
 
-		void assertThrowsNothing(S value) {
-			accept(value);
+		private static TestFixture of(Jsr380CodeFragment sut, Class<? extends Annotation> anno,
+				Map<String, Object> data) {
+			return new TestFixture(sut, anno(anno, data));
 		}
 
-		void assertThrows(S value, Class<? extends Exception> excpetionType) {
-			assertThatThrownBy(() -> accept(value)).isInstanceOf(excpetionType).hasMessage("theMessage");
+		private static <T> T only(Stream<T> stream) {
+			return stream.reduce((_ign1, _ign2) -> {
+				throw new IllegalStateException("multiple elements");
+			}).orElseThrow(() -> new IllegalStateException("no match"));
 		}
 
-	}
+		private void assertThrows(Object value, Class<? extends Exception> excpetionType) {
+			assertThrows(value, excpetionType, value.getClass());
+		}
 
-	private static <A extends Annotation> A anno(Class<A> annotationType) {
-		return anno(annotationType, emptyMap());
+		private void assertThrows(Object value, Class<? extends Exception> excpetionType, Class<?>... param1Types) {
+			for (Class<?> param1Type : param1Types) {
+				assertThatThrownBy(() -> accept(value, param1Type))
+						.isInstanceOf((Class<? extends Exception>) excpetionType).hasMessage("theMessage");
+			}
+		}
+
+		private void assertThrows(Object value, Class<? extends Exception> excpetionType, List<Class<?>> param1Types) {
+			assertThrows(value, excpetionType, param1Types);
+		}
+
+		private void assertThrowsNothing(Object value) {
+			assertThrowsNothing(value, value.getClass());
+		}
+
+		private void assertThrowsNothing(Object value, Class<?>... param1Types) {
+			assertThrowsNothing(value, List.of(param1Types));
+		}
+
+		private void assertThrowsNothing(Object value, List<Class<?>> param1Types) {
+			for (Class<?> param1Type : param1Types) {
+				accept(value, param1Type);
+			}
+		}
+
+		private void accept(Object value, Class<?> param1Type) {
+			Method method = only(Arrays.stream(sut.getClass().getMethods()).filter(m -> m.getName().equals("check"))
+					.filter(m -> m.getParameterTypes().length == 2 && m.getParameterTypes()[0].isInstance(anno)
+							&& m.getParameterTypes()[1].isAssignableFrom(param1Type)));
+			try {
+				method.invoke(sut, anno, convert(param1Type, value));
+			} catch (IllegalAccessException | IllegalArgumentException e) {
+				throw new RuntimeException(e);
+			} catch (InvocationTargetException e) {
+				Throwable cause = e.getCause();
+				throw cause instanceof RuntimeException ? (RuntimeException) cause : new RuntimeException(e);
+			}
+		}
+
+		private static Object convert(Class<?> target, Object value) {
+			if (value == null)
+				return null;
+
+			if (target.isPrimitive()) {
+				if (target == byte.class)
+					return ((Number) value).byteValue();
+				if (target == short.class)
+					return ((Number) value).shortValue();
+				if (target == int.class)
+					return ((Number) value).intValue();
+				if (target == long.class)
+					return ((Number) value).longValue();
+				if (target == float.class)
+					return ((Number) value).floatValue();
+				if (target == double.class)
+					return ((Number) value).doubleValue();
+				if (target == char.class)
+					return (char) ((Number) value).intValue();
+				if (target == boolean.class)
+					return value;
+			}
+
+			// wrapper types
+			if (Number.class.isAssignableFrom(target) && value instanceof Number) {
+				Number n = (Number) value;
+				if (target == Byte.class)
+					return n.byteValue();
+				if (target == Short.class)
+					return n.shortValue();
+				if (target == Integer.class)
+					return n.intValue();
+				if (target == Long.class)
+					return n.longValue();
+				if (target == Float.class)
+					return n.floatValue();
+				if (target == Double.class)
+					return n.doubleValue();
+			}
+
+			return target.cast(value);
+		}
 
 	}
 
@@ -92,12 +176,15 @@ class JdkOnlyCodeFragmentTest {
 					if (m.getName().equals("message")) {
 						return "theMessage";
 					}
+					if (m.getName().equals("toString")) {
+						return "$$ann$proxy$$";
+					}
 					Object object = values.get(m.getName());
 					return (object == null) ? m.getDefaultValue() : object;
 				}));
 	}
 
-	JdkOnlyCodeFragment sut = new JdkOnlyCodeFragment();
+	JdkOnlyCodeFragment sutClass = new JdkOnlyCodeFragment();
 
 	Object nullValue = null;
 	Object nonNullValue = new Object();
@@ -113,35 +200,35 @@ class JdkOnlyCodeFragmentTest {
 
 	@Test
 	void checkNull() {
-		var fixture = TestFixture.of(sut::check, Object.class, anno(Null.class));
-		fixture.assertThrowsNothing(nullValue);
+		var fixture = TestFixture.of(sutClass, Object.class, Null.class);
+		fixture.assertThrowsNothing(nullValue, Object.class);
 		fixture.assertThrows(nonNullValue, IllegalArgumentException.class);
 	}
 
 	@Test
 	void checkNotNull() {
-		var fixture = TestFixture.of(sut::check, Object.class, anno(NotNull.class));
+		var fixture = TestFixture.of(sutClass, Object.class, NotNull.class);
 		fixture.assertThrowsNothing(nonNullValue);
-		fixture.assertThrows(nullValue, NullPointerException.class);
+		fixture.assertThrows(nullValue, NullPointerException.class, Object.class);
 	}
 
 	@Test
 	void checkNotBlank() {
-		var fixture = TestFixture.of(sut::check, CharSequence.class, anno(NotBlank.class));
+		var fixture = TestFixture.of(sutClass, CharSequence.class, NotBlank.class);
 		fixture.assertThrowsNothing(notBlankString);
 		fixture.assertThrows(blankString, IllegalArgumentException.class);
 	}
 
 	@Test
 	void checkPattern() {
-		var fixture = TestFixture.of(sut::check, CharSequence.class, anno(Pattern.class, Map.of("regexp", "[24]{2}")));
+		var fixture = TestFixture.of(sutClass, Pattern.class, Map.of("regexp", "[24]{2}"));
 		fixture.assertThrowsNothing("42");
 		fixture.assertThrows("21", IllegalArgumentException.class);
 	}
 
 	@Test
 	void checkEmail() {
-		var fixture = TestFixture.of(sut::check, CharSequence.class, anno(Email.class));
+		var fixture = TestFixture.of(sutClass, CharSequence.class, Email.class);
 		fixture.assertThrowsNothing("john.doe@example.com");
 		fixture.assertThrows("missing-at-symbol.com", IllegalArgumentException.class);
 	}
@@ -149,25 +236,25 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkNotEmpty() {
 		{
-			var fixture = TestFixture.of(sut::check, CharSequence.class, anno(NotEmpty.class));
+			var fixture = TestFixture.of(sutClass, CharSequence.class, NotEmpty.class);
 			fixture.assertThrowsNothing(notBlankString);
 			fixture.assertThrows(emptyString, IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, Collection.class, anno(NotEmpty.class));
+			var fixture = TestFixture.of(sutClass, Collection.class, NotEmpty.class);
 			fixture.assertThrowsNothing(notEmptyList);
 			fixture.assertThrows(emptyList, IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, Map.class, anno(NotEmpty.class));
+			var fixture = TestFixture.of(sutClass, Map.class, NotEmpty.class);
 			fixture.assertThrowsNothing(notEmptyMap);
 			fixture.assertThrows(emptyMap, IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, Object[].class, anno(NotEmpty.class));
+			var fixture = TestFixture.of(sutClass, Object[].class, NotEmpty.class);
 			fixture.assertThrowsNothing(notEmptyArray);
 			fixture.assertThrows(emptyArray, IllegalArgumentException.class);
 		}
@@ -176,128 +263,75 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkSize() {
 		{
-			var fixture = TestFixture.of(sut::check, CharSequence.class, anno(Size.class, Map.of("min", 2, "max", 4)));
-			fixture.assertThrowsNothing("abc");
+			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing("ab");
 			fixture.assertThrows("a", IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, Collection.class, anno(Size.class, Map.of("min", 1, "max", 2)));
-			fixture.assertThrowsNothing(List.of("x"));
-			fixture.assertThrows(List.of(), IllegalArgumentException.class);
+			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing(List.of("x", "y"));
+			fixture.assertThrows(List.of("x"), IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, Map.class, anno(Size.class, Map.of("min", 1, "max", 2)));
-			fixture.assertThrowsNothing(Map.of("a", 1));
-			fixture.assertThrows(Map.of(), IllegalArgumentException.class);
+			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing(Map.of("a", 1, "b", 2));
+			fixture.assertThrows(Map.of("a", 1), IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, Object[].class, anno(Size.class, Map.of("min", 1, "max", 2)));
-			fixture.assertThrowsNothing(new Object[] { "x" });
-			fixture.assertThrows(new Object[] {}, IllegalArgumentException.class);
+			var fixture = TestFixture.of(sutClass, Size.class, Map.of("min", 2, "max", 4));
+			fixture.assertThrowsNothing(new Object[] { "x", "y" });
+			fixture.assertThrows(new Object[] { "x" }, IllegalArgumentException.class);
 		}
 	}
 
 	@Test
 	void checkAssertTrueFalse() {
-		{
-			var fixture = TestFixture.of(sut::check, boolean.class, anno(AssertTrue.class));
-			fixture.assertThrowsNothing(true);
-			fixture.assertThrows(false, IllegalArgumentException.class);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, Boolean.class, anno(AssertTrue.class));
-			fixture.assertThrowsNothing(Boolean.TRUE);
-			fixture.assertThrows(Boolean.FALSE, IllegalArgumentException.class);
-		}
-
+		var fixture = TestFixture.of(sutClass, boolean.class, AssertTrue.class);
+		var types = new Class<?>[] { boolean.class, Boolean.class };
+		fixture.assertThrowsNothing(true, types);
+		fixture.assertThrows(false, IllegalArgumentException.class, types);
 	}
 
 	void checkAssertFalse() {
-		{
-			var fixture = TestFixture.of(sut::check, boolean.class, anno(AssertFalse.class));
-			fixture.assertThrowsNothing(false);
-			fixture.assertThrows(true, IllegalArgumentException.class);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, Boolean.class, anno(AssertFalse.class));
-			fixture.assertThrowsNothing(Boolean.FALSE);
-			fixture.assertThrows(Boolean.TRUE, IllegalArgumentException.class);
-		}
+		var fixture = TestFixture.of(sutClass, boolean.class, AssertFalse.class);
+		var types = new Class<?>[] { boolean.class, Boolean.class };
+		fixture.assertThrowsNothing(false, types);
+		fixture.assertThrows(true, IllegalArgumentException.class, types);
 	}
 
 	@Test
 	void checkMin() {
-		// TODO add checks for primitives
-		{
-			var fixture = TestFixture.of(sut::check, byte.class, anno(Min.class, Map.of("value", 10L)));
-			fixture.assertThrows((byte) 9, IllegalArgumentException.class);
-			fixture.assertThrowsNothing((byte) 10);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, short.class, anno(Min.class, Map.of("value", 10L)));
-			fixture.assertThrows((short) 9, IllegalArgumentException.class);
-			fixture.assertThrowsNothing((short) 10);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, int.class, anno(Min.class, Map.of("value", 10L)));
-			fixture.assertThrows((int) 9, IllegalArgumentException.class);
-			fixture.assertThrowsNothing((int) 10);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, long.class, anno(Min.class, Map.of("value", 10L)));
-			fixture.assertThrows((long) 9, IllegalArgumentException.class);
-			fixture.assertThrowsNothing((long) 10);
-		}
+		var fixture = TestFixture.of(sutClass, Min.class, Map.of("value", 10L));
+		var types = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
+				Integer.class, Long.class };
+		fixture.assertThrows(9, IllegalArgumentException.class, types);
+		fixture.assertThrowsNothing(10, types);
 	}
 
 	@Test
 	void checkMax() {
-		// TODO add checks for primitives
-		{
-			var fixture = TestFixture.of(sut::check, byte.class, anno(Max.class, Map.of("value", 10L)));
-			fixture.assertThrowsNothing((byte) 10);
-			fixture.assertThrows((byte) 11, IllegalArgumentException.class);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, short.class, anno(Max.class, Map.of("value", 10L)));
-			fixture.assertThrowsNothing((short) 10);
-			fixture.assertThrows((short) 11, IllegalArgumentException.class);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, int.class, anno(Max.class, Map.of("value", 10L)));
-			fixture.assertThrowsNothing((int) 10);
-			fixture.assertThrows((int) 11, IllegalArgumentException.class);
-		}
-
-		{
-			var fixture = TestFixture.of(sut::check, long.class, anno(Max.class, Map.of("value", 10L)));
-			fixture.assertThrowsNothing((long) 10);
-			fixture.assertThrows((long) 11, IllegalArgumentException.class);
-		}
+		var fixture = TestFixture.of(sutClass, Max.class, Map.of("value", 10L));
+		var types = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
+				Integer.class, Long.class };
+		fixture.assertThrowsNothing(10, types);
+		fixture.assertThrows((long) 11, IllegalArgumentException.class, types);
 	}
 
 	@Test
 	void checkDecimalMin() {
 		// TODO add missing types
-		var fixture = TestFixture.of(sut::check, CharSequence.class, anno(DecimalMin.class, Map.of("value", "2")));
-		fixture.assertThrowsNothing("2");
-		fixture.assertThrows("1", IllegalArgumentException.class);
+		var fixture = TestFixture.of(sutClass, DecimalMin.class, Map.of("value", "5"));
+		fixture.assertThrowsNothing("5");
+		fixture.assertThrows("4", IllegalArgumentException.class);
 	}
 
 	@Test
 	void checkDecimalMax() {
 		// TODO add missing types
-		var fixture = TestFixture.of(sut::check, CharSequence.class, anno(DecimalMax.class, Map.of("value", "5")));
+		var fixture = TestFixture.of(sutClass, DecimalMax.class, Map.of("value", "5"));
 		fixture.assertThrowsNothing("5");
 		fixture.assertThrows("6", IllegalArgumentException.class);
 	}
@@ -305,7 +339,7 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkDigitsAndSign() {
 		// TODO add missing types
-		var fixture = TestFixture.of(sut::check, int.class, anno(Digits.class, Map.of("integer", 2, "fraction", 0)));
+		var fixture = TestFixture.of(sutClass, Digits.class, Map.of("integer", 2, "fraction", 0));
 		fixture.assertThrowsNothing(12);
 		fixture.assertThrows(123, IllegalArgumentException.class);
 	}
@@ -313,7 +347,7 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkPositive() {
 		// TODO add missing types
-		var fixture = TestFixture.of(sut::check, int.class, anno(Positive.class));
+		var fixture = TestFixture.of(sutClass, int.class, Positive.class);
 		fixture.assertThrowsNothing(1);
 		fixture.assertThrows(0, IllegalArgumentException.class);
 	}
@@ -321,7 +355,7 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkPositiveOrZero() {
 		// TODO add missing types
-		var fixture = TestFixture.of(sut::check, int.class, anno(PositiveOrZero.class));
+		var fixture = TestFixture.of(sutClass, int.class, PositiveOrZero.class);
 		fixture.assertThrowsNothing(0);
 		fixture.assertThrows(-1, IllegalArgumentException.class);
 	}
@@ -329,7 +363,7 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkNegative() {
 		// TODO add missing types
-		var fixture = TestFixture.of(sut::check, int.class, anno(Negative.class));
+		var fixture = TestFixture.of(sutClass, int.class, Negative.class);
 		fixture.assertThrowsNothing(-1);
 		fixture.assertThrows(0, IllegalArgumentException.class);
 	}
@@ -337,7 +371,7 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkNegativeOrZero() {
 		// TODO add missing types
-		var fixture = TestFixture.of(sut::check, int.class, anno(NegativeOrZero.class));
+		var fixture = TestFixture.of(sutClass, int.class, NegativeOrZero.class);
 		fixture.assertThrowsNothing(0);
 		fixture.assertThrows(1, IllegalArgumentException.class);
 	}
@@ -345,14 +379,14 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkPast() {
 		{
-			var fixture = TestFixture.of(sut::check, java.util.Date.class, anno(Past.class));
+			var fixture = TestFixture.of(sutClass, java.util.Date.class, Past.class);
 			fixture.assertThrowsNothing(new java.util.Date(System.currentTimeMillis() - 1_000L));
 			fixture.assertThrows(new java.util.Date(System.currentTimeMillis() + 100_000L),
 					IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, java.time.LocalDate.class, anno(Past.class));
+			var fixture = TestFixture.of(sutClass, java.time.LocalDate.class, Past.class);
 			fixture.assertThrowsNothing(java.time.LocalDate.now().minusDays(1));
 			fixture.assertThrows(java.time.LocalDate.now(), IllegalArgumentException.class);
 		}
@@ -361,14 +395,14 @@ class JdkOnlyCodeFragmentTest {
 	@Test
 	void checkFuture() {
 		{
-			var fixture = TestFixture.of(sut::check, java.util.Date.class, anno(Future.class));
+			var fixture = TestFixture.of(sutClass, java.util.Date.class, Future.class);
 			fixture.assertThrowsNothing(new java.util.Date(System.currentTimeMillis() + 100_000L));
 			fixture.assertThrows(new java.util.Date(System.currentTimeMillis() - 1_000L),
 					IllegalArgumentException.class);
 		}
 
 		{
-			var fixture = TestFixture.of(sut::check, java.time.LocalDate.class, anno(Future.class));
+			var fixture = TestFixture.of(sutClass, java.time.LocalDate.class, Future.class);
 			fixture.assertThrowsNothing(java.time.LocalDate.now().plusDays(1));
 			fixture.assertThrows(java.time.LocalDate.now(), IllegalArgumentException.class);
 		}
