@@ -73,6 +73,23 @@ class JdkOnlyCodeFragmentTest {
 			return new TestFixture(sut, anno(anno, data));
 		}
 
+		private static <A extends Annotation> A anno(Class<A> annotationType, Map<String, Object> values) {
+			return annotationType.cast(newProxyInstance(annotationType.getClassLoader(),
+					new Class<?>[] { annotationType }, (InvocationHandler) (p, m, a) -> {
+						if (m.getName().equals("annotationType")) {
+							return annotationType;
+						}
+						if (m.getName().equals("message")) {
+							return "theMessage";
+						}
+						if (m.getName().equals("toString")) {
+							return "$$ann$proxy$$";
+						}
+						Object object = values.get(m.getName());
+						return (object == null) ? m.getDefaultValue() : object;
+					}));
+		}
+
 		private static <T> T only(Stream<T> stream) {
 			return stream.reduce((_ign1, _ign2) -> {
 				throw new IllegalStateException("multiple elements");
@@ -165,23 +182,6 @@ class JdkOnlyCodeFragmentTest {
 			return target.cast(value);
 		}
 
-	}
-
-	private static <A extends Annotation> A anno(Class<A> annotationType, Map<String, Object> values) {
-		return annotationType.cast(newProxyInstance(annotationType.getClassLoader(), new Class<?>[] { annotationType },
-				(InvocationHandler) (p, m, a) -> {
-					if (m.getName().equals("annotationType")) {
-						return annotationType;
-					}
-					if (m.getName().equals("message")) {
-						return "theMessage";
-					}
-					if (m.getName().equals("toString")) {
-						return "$$ann$proxy$$";
-					}
-					Object object = values.get(m.getName());
-					return (object == null) ? m.getDefaultValue() : object;
-				}));
 	}
 
 	JdkOnlyCodeFragment sutClass = new JdkOnlyCodeFragment();
