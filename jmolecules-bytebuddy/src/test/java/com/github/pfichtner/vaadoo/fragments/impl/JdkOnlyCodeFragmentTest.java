@@ -24,6 +24,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -177,6 +179,10 @@ class JdkOnlyCodeFragmentTest {
 					return n.floatValue();
 				if (target == Double.class)
 					return n.doubleValue();
+				if (target == BigInteger.class)
+					return BigInteger.valueOf(n.longValue());
+				if (target == BigDecimal.class)
+					return BigDecimal.valueOf(n.doubleValue());
 			}
 
 			return target.cast(value);
@@ -306,7 +312,7 @@ class JdkOnlyCodeFragmentTest {
 	void checkMin() {
 		var fixture = TestFixture.of(sutClass, Min.class, Map.of("value", 10L));
 		var types = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
-				Integer.class, Long.class };
+				Integer.class, Long.class, BigInteger.class, BigDecimal.class };
 		fixture.assertThrows(9, IllegalArgumentException.class, types);
 		fixture.assertThrowsNothing(10, types);
 	}
@@ -315,7 +321,7 @@ class JdkOnlyCodeFragmentTest {
 	void checkMax() {
 		var fixture = TestFixture.of(sutClass, Max.class, Map.of("value", 10L));
 		var types = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
-				Integer.class, Long.class };
+				Integer.class, Long.class, BigInteger.class, BigDecimal.class };
 		fixture.assertThrowsNothing(10, types);
 		fixture.assertThrows((long) 11, IllegalArgumentException.class, types);
 	}
