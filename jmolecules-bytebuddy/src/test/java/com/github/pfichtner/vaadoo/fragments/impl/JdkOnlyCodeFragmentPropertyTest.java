@@ -2,16 +2,20 @@ package com.github.pfichtner.vaadoo.fragments.impl;
 
 import static java.lang.Math.abs;
 import static java.lang.reflect.Proxy.newProxyInstance;
+import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -54,6 +58,9 @@ import net.jqwik.time.api.Dates;
  */
 class JdkOnlyCodeFragmentPropertyTest {
 
+	private static final String[] emptyStringArray = new String[0];
+	private static final Object[] emptyObjectArray = new Object[0];
+
 	private static <A extends Annotation> A anno(Class<A> annotationType) {
 		return anno(annotationType, Map.of());
 	}
@@ -75,7 +82,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void notNull_should_accept_any_non_null_string(@ForAll("nonNullStrings") String s) {
 		var a = anno(NotNull.class);
-		assertDoesNotThrow(() -> sut.check(a, s));
+		assertThatNoException().isThrownBy(() -> sut.check(a, s));
 	}
 
 	@Property
@@ -88,7 +95,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void notBlank_passes_for_non_blank(@ForAll("nonBlankStrings") String s) {
 		var a = anno(NotBlank.class);
-		assertDoesNotThrow(() -> sut.check(a, s));
+		assertThatNoException().isThrownBy(() -> sut.check(a, s));
 	}
 
 	@Property
@@ -101,7 +108,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void pattern_matches_generated_values(@ForAll("twoDigits") String s) {
 		var a = anno(Pattern.class, Map.of("regexp", "\\d{2}"));
-		assertDoesNotThrow(() -> sut.check(a, s));
+		assertThatNoException().isThrownBy(() -> sut.check(a, s));
 	}
 
 	// NotEmpty variants: char sequence, collection and map are covered in unit
@@ -110,32 +117,32 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void notEmpty_charsequence_passes(@ForAll("nonBlankStrings") String s) {
 		var a = anno(NotEmpty.class);
-		assertDoesNotThrow(() -> sut.check(a, s));
+		assertThatNoException().isThrownBy(() -> sut.check(a, s));
 	}
 
 	@Property
-	void notEmpty_collection_passes(@ForAll("nonEmptyLists") java.util.List<String> l) {
+	void notEmpty_collection_passes(@ForAll("nonEmptyLists") List<String> l) {
 		var a = anno(NotEmpty.class);
-		assertDoesNotThrow(() -> sut.check(a, l));
+		assertThatNoException().isThrownBy(() -> sut.check(a, l));
 	}
 
 	@Property
-	void notEmpty_map_passes(@ForAll("nonEmptyMaps") java.util.Map<String, Integer> m) {
+	void notEmpty_map_passes(@ForAll("nonEmptyMaps") Map<String, Integer> m) {
 		var a = anno(NotEmpty.class);
-		assertDoesNotThrow(() -> sut.check(a, m));
+		assertThatNoException().isThrownBy(() -> sut.check(a, m));
 	}
 
 	@Property
 	void notEmpty_array_fails_for_empty() {
 		var a = anno(NotEmpty.class);
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, new Object[0])).withMessage("theMessage");
+		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, emptyObjectArray)).withMessage("theMessage");
 	}
 
 	// Size: generate valid sizes and invalid sizes explicitly
 	@Property
 	void size_accepts_values_within_bounds(@ForAll("sizeStrings") String s) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertDoesNotThrow(() -> sut.check(a, s));
+		assertThatNoException().isThrownBy(() -> sut.check(a, s));
 	}
 
 	@Property
@@ -145,25 +152,25 @@ class JdkOnlyCodeFragmentPropertyTest {
 	}
 
 	@Property
-	void size_collection_accepts_within_bounds(@ForAll("sizeLists") java.util.List<String> l) {
+	void size_collection_accepts_within_bounds(@ForAll("sizeLists") List<String> l) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertDoesNotThrow(() -> sut.check(a, l));
+		assertThatNoException().isThrownBy(() -> sut.check(a, l));
 	}
 
 	@Property
-	void size_collection_rejects_too_short(@ForAll("shortLists") java.util.List<String> l) {
+	void size_collection_rejects_too_short(@ForAll("shortLists") List<String> l) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
 		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, l)).withMessage("theMessage");
 	}
 
 	@Property
-	void size_map_accepts_within_bounds(@ForAll("sizeMaps") java.util.Map<String, Integer> m) {
+	void size_map_accepts_within_bounds(@ForAll("sizeMaps") Map<String, Integer> m) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertDoesNotThrow(() -> sut.check(a, m));
+		assertThatNoException().isThrownBy(() -> sut.check(a, m));
 	}
 
 	@Property
-	void size_map_rejects_too_short(@ForAll("shortMaps") java.util.Map<String, Integer> m) {
+	void size_map_rejects_too_short(@ForAll("shortMaps") Map<String, Integer> m) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
 		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, m)).withMessage("theMessage");
 	}
@@ -171,7 +178,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void size_array_accepts_within_bounds(@ForAll("sizeArrays") Object[] arr) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertDoesNotThrow(() -> sut.check(a, arr));
+		assertThatNoException().isThrownBy(() -> sut.check(a, arr));
 	}
 
 	@Property
@@ -186,11 +193,11 @@ class JdkOnlyCodeFragmentPropertyTest {
 		var t = anno(AssertTrue.class);
 		var f = anno(AssertFalse.class);
 		if (b) {
-			assertDoesNotThrow(() -> sut.check(t, b));
+			assertThatNoException().isThrownBy(() -> sut.check(t, b));
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(f, b)).withMessage("theMessage");
 		} else {
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(t, b)).withMessage("theMessage");
-			assertDoesNotThrow(() -> sut.check(f, b));
+			assertThatNoException().isThrownBy(() -> sut.check(f, b));
 		}
 	}
 
@@ -212,53 +219,53 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 		// primitives
 		if (bv >= 0)
-			assertDoesNotThrow(() -> sut.check(a, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
 
 		if (sv >= 0)
-			assertDoesNotThrow(() -> sut.check(a, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
 
 		if (iv >= 0)
-			assertDoesNotThrow(() -> sut.check(a, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
 
 		if (lv >= 0)
-			assertDoesNotThrow(() -> sut.check(a, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
 
 		// wrappers
 		if (bObj >= 0)
-			assertDoesNotThrow(() -> sut.check(a, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
 
 		if (sObj >= 0)
-			assertDoesNotThrow(() -> sut.check(a, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
 
 		if (iObj >= 0)
-			assertDoesNotThrow(() -> sut.check(a, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
 
 		if (lObj >= 0)
-			assertDoesNotThrow(() -> sut.check(a, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.ZERO) >= 0)
-			assertDoesNotThrow(() -> sut.check(a, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.ZERO) >= 0)
-			assertDoesNotThrow(() -> sut.check(a, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
 	}
@@ -279,52 +286,52 @@ class JdkOnlyCodeFragmentPropertyTest {
 		BigDecimal bd = BigDecimal.valueOf(v);
 
 		if (bv <= 100)
-			assertDoesNotThrow(() -> sut.check(a, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
 
 		if (sv <= 100)
-			assertDoesNotThrow(() -> sut.check(a, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
 
 		if (iv <= 100)
-			assertDoesNotThrow(() -> sut.check(a, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
 
 		if (lv <= 100)
-			assertDoesNotThrow(() -> sut.check(a, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
 
 		if (bObj <= 100)
-			assertDoesNotThrow(() -> sut.check(a, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
 
 		if (sObj <= 100)
-			assertDoesNotThrow(() -> sut.check(a, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
 
 		if (iObj <= 100)
-			assertDoesNotThrow(() -> sut.check(a, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
 
 		if (lObj <= 100)
-			assertDoesNotThrow(() -> sut.check(a, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.valueOf(100)) <= 0)
-			assertDoesNotThrow(() -> sut.check(a, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.valueOf(100)) <= 0)
-			assertDoesNotThrow(() -> sut.check(a, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
 	}
@@ -334,7 +341,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void decimalMin_accepts_strings_greater_or_equal(@ForAll("numericStringsGE2") String s) {
 		var a = anno(DecimalMin.class, Map.of("value", "2"));
-		assertDoesNotThrow(() -> sut.check(a, s));
+		assertThatNoException().isThrownBy(() -> sut.check(a, s));
 	}
 
 	@Property
@@ -353,52 +360,52 @@ class JdkOnlyCodeFragmentPropertyTest {
 		BigDecimal bd = BigDecimal.valueOf(v);
 
 		if (bv >= 2)
-			assertDoesNotThrow(() -> sut.check(a, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
 
 		if (sv >= 2)
-			assertDoesNotThrow(() -> sut.check(a, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
 
 		if (iv >= 2)
-			assertDoesNotThrow(() -> sut.check(a, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
 
 		if (lv >= 2)
-			assertDoesNotThrow(() -> sut.check(a, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
 
 		if (bObj >= 2)
-			assertDoesNotThrow(() -> sut.check(a, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
 
 		if (sObj >= 2)
-			assertDoesNotThrow(() -> sut.check(a, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
 
 		if (iObj >= 2)
-			assertDoesNotThrow(() -> sut.check(a, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
 
 		if (lObj >= 2)
-			assertDoesNotThrow(() -> sut.check(a, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.valueOf(2)) >= 0)
-			assertDoesNotThrow(() -> sut.check(a, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.valueOf(2)) >= 0)
-			assertDoesNotThrow(() -> sut.check(a, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
 	}
@@ -425,52 +432,52 @@ class JdkOnlyCodeFragmentPropertyTest {
 		BigDecimal bd = BigDecimal.valueOf(v);
 
 		if (bv <= 5)
-			assertDoesNotThrow(() -> sut.check(a, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
 
 		if (sv <= 5)
-			assertDoesNotThrow(() -> sut.check(a, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
 
 		if (iv <= 5)
-			assertDoesNotThrow(() -> sut.check(a, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
 
 		if (lv <= 5)
-			assertDoesNotThrow(() -> sut.check(a, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
 
 		if (bObj <= 5)
-			assertDoesNotThrow(() -> sut.check(a, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
 
 		if (sObj <= 5)
-			assertDoesNotThrow(() -> sut.check(a, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
 
 		if (iObj <= 5)
-			assertDoesNotThrow(() -> sut.check(a, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
 
 		if (lObj <= 5)
-			assertDoesNotThrow(() -> sut.check(a, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.valueOf(5)) <= 0)
-			assertDoesNotThrow(() -> sut.check(a, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.valueOf(5)) <= 0)
-			assertDoesNotThrow(() -> sut.check(a, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
 	}
@@ -494,52 +501,52 @@ class JdkOnlyCodeFragmentPropertyTest {
 		Predicate<Long> fits = x -> abs(x) <= 99;
 
 		if (fits.test((long) bv))
-			assertDoesNotThrow(() -> sut.check(a, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
 
 		if (fits.test((long) sv))
-			assertDoesNotThrow(() -> sut.check(a, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
 
 		if (fits.test((long) iv))
-			assertDoesNotThrow(() -> sut.check(a, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
 
 		if (fits.test(lv))
-			assertDoesNotThrow(() -> sut.check(a, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
 
 		if (fits.test(bObj.longValue()))
-			assertDoesNotThrow(() -> sut.check(a, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
 
 		if (fits.test(sObj.longValue()))
-			assertDoesNotThrow(() -> sut.check(a, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
 
 		if (fits.test(iObj.longValue()))
-			assertDoesNotThrow(() -> sut.check(a, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
 
 		if (fits.test(lObj.longValue()))
-			assertDoesNotThrow(() -> sut.check(a, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
 
 		if (bi.abs().toString().length() <= 2)
-			assertDoesNotThrow(() -> sut.check(a, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
 
 		if (bd.abs().toBigInteger().toString().length() <= 2)
-			assertDoesNotThrow(() -> sut.check(a, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
 	}
@@ -564,205 +571,205 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 		// Positive
 		if (bv > 0)
-			assertDoesNotThrow(() -> sut.check(p, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(p, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bv)).withMessage("theMessage");
 
 		if (sv > 0)
-			assertDoesNotThrow(() -> sut.check(p, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(p, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, sv)).withMessage("theMessage");
 
 		if (iv > 0)
-			assertDoesNotThrow(() -> sut.check(p, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(p, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, iv)).withMessage("theMessage");
 
 		if (lv > 0)
-			assertDoesNotThrow(() -> sut.check(p, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(p, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, lv)).withMessage("theMessage");
 
 		if (bObj > 0)
-			assertDoesNotThrow(() -> sut.check(p, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(p, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bObj)).withMessage("theMessage");
 
 		if (sObj > 0)
-			assertDoesNotThrow(() -> sut.check(p, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(p, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, sObj)).withMessage("theMessage");
 
 		if (iObj > 0)
-			assertDoesNotThrow(() -> sut.check(p, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(p, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, iObj)).withMessage("theMessage");
 
 		if (lObj > 0)
-			assertDoesNotThrow(() -> sut.check(p, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(p, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.ZERO) > 0)
-			assertDoesNotThrow(() -> sut.check(p, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(p, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.ZERO) > 0)
-			assertDoesNotThrow(() -> sut.check(p, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(p, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bd)).withMessage("theMessage");
 
 		// PositiveOrZero
 		if (bv >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bv)).withMessage("theMessage");
 
 		if (sv >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, sv)).withMessage("theMessage");
 
 		if (iv >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, iv)).withMessage("theMessage");
 
 		if (lv >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, lv)).withMessage("theMessage");
 
 		if (bObj >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bObj)).withMessage("theMessage");
 
 		if (sObj >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, sObj)).withMessage("theMessage");
 
 		if (iObj >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, iObj)).withMessage("theMessage");
 
 		if (lObj >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.ZERO) >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.ZERO) >= 0)
-			assertDoesNotThrow(() -> sut.check(pz, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(pz, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bd)).withMessage("theMessage");
 
 		// Negative
 		if (bv < 0)
-			assertDoesNotThrow(() -> sut.check(n, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(n, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bv)).withMessage("theMessage");
 
 		if (sv < 0)
-			assertDoesNotThrow(() -> sut.check(n, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(n, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, sv)).withMessage("theMessage");
 
 		if (iv < 0)
-			assertDoesNotThrow(() -> sut.check(n, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(n, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, iv)).withMessage("theMessage");
 
 		if (lv < 0)
-			assertDoesNotThrow(() -> sut.check(n, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(n, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, lv)).withMessage("theMessage");
 
 		if (bObj < 0)
-			assertDoesNotThrow(() -> sut.check(n, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(n, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bObj)).withMessage("theMessage");
 
 		if (sObj < 0)
-			assertDoesNotThrow(() -> sut.check(n, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(n, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, sObj)).withMessage("theMessage");
 
 		if (iObj < 0)
-			assertDoesNotThrow(() -> sut.check(n, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(n, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, iObj)).withMessage("theMessage");
 
 		if (lObj < 0)
-			assertDoesNotThrow(() -> sut.check(n, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(n, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.ZERO) < 0)
-			assertDoesNotThrow(() -> sut.check(n, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(n, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.ZERO) < 0)
-			assertDoesNotThrow(() -> sut.check(n, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(n, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bd)).withMessage("theMessage");
 
 		// NegativeOrZero
 		if (bv <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, bv));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, bv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bv)).withMessage("theMessage");
 
 		if (sv <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, sv));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, sv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, sv)).withMessage("theMessage");
 
 		if (iv <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, iv));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, iv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, iv)).withMessage("theMessage");
 
 		if (lv <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, lv));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, lv));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, lv)).withMessage("theMessage");
 
 		if (bObj <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, bObj));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, bObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bObj)).withMessage("theMessage");
 
 		if (sObj <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, sObj));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, sObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, sObj)).withMessage("theMessage");
 
 		if (iObj <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, iObj));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, iObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, iObj)).withMessage("theMessage");
 
 		if (lObj <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, lObj));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, lObj));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, lObj)).withMessage("theMessage");
 
 		if (bi.compareTo(BigInteger.ZERO) <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, bi));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, bi));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bi)).withMessage("theMessage");
 
 		if (bd.compareTo(BigDecimal.ZERO) <= 0)
-			assertDoesNotThrow(() -> sut.check(nz, bd));
+			assertThatNoException().isThrownBy(() -> sut.check(nz, bd));
 		else
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bd)).withMessage("theMessage");
 	}
@@ -771,7 +778,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void past_accepts_dates_before_today(@ForAll("pastDates") LocalDate d) {
 		var a = anno(Past.class);
-		assertDoesNotThrow(() -> sut.check(a, d));
+		assertThatNoException().isThrownBy(() -> sut.check(a, d));
 	}
 
 	@Test
@@ -788,7 +795,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 		// future dates should be rejected by @Past and accepted by @Future
 		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pastAnno, d)).withMessage("theMessage");
-		assertDoesNotThrow(() -> sut.check(futureAnno, d));
+		assertThatNoException().isThrownBy(() -> sut.check(futureAnno, d));
 	}
 
 	@Property
@@ -798,14 +805,14 @@ class JdkOnlyCodeFragmentPropertyTest {
 		LocalDate today = LocalDate.now();
 
 		// FutureOrPresent should accept today and future dates
-		assertDoesNotThrow(() -> sut.check(futureOrPresent, d));
+		assertThatNoException().isThrownBy(() -> sut.check(futureOrPresent, d));
 
 		// PastOrPresent should reject strictly future dates, but accept today
 		if (d.isAfter(today)) {
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pastOrPresent, d))
 					.withMessage("theMessage");
 		} else {
-			assertDoesNotThrow(() -> sut.check(pastOrPresent, d));
+			assertThatNoException().isThrownBy(() -> sut.check(pastOrPresent, d));
 		}
 	}
 
@@ -816,14 +823,14 @@ class JdkOnlyCodeFragmentPropertyTest {
 		LocalDate today = LocalDate.now();
 
 		// PastOrPresent should accept today and past dates
-		assertDoesNotThrow(() -> sut.check(pastOrPresent, d));
+		assertThatNoException().isThrownBy(() -> sut.check(pastOrPresent, d));
 
 		// FutureOrPresent should reject strictly past dates, but accept today
 		if (d.isBefore(today)) {
 			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(futureOrPresent, d))
 					.withMessage("theMessage");
 		} else {
-			assertDoesNotThrow(() -> sut.check(futureOrPresent, d));
+			assertThatNoException().isThrownBy(() -> sut.check(futureOrPresent, d));
 		}
 	}
 
@@ -847,28 +854,27 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Provide
 	Arbitrary<String> sizeStrings() {
-		return Arbitraries.strings().withCharRange('a', 'z').ofMinLength(2).ofMaxLength(4);
+		return Arbitraries.strings().ofMinLength(2).ofMaxLength(4);
 	}
 
 	@Provide
 	Arbitrary<String> shortStrings() {
-		return Arbitraries.strings().withCharRange('a', 'z').ofMaxLength(1);
+		return Arbitraries.strings().ofMaxLength(1);
 	}
 
 	@Provide
-	Arbitrary<java.util.List<String>> nonEmptyLists() {
-		return Arbitraries.strings().withCharRange('a', 'z').ofMinLength(1).list().ofMinSize(1).ofMaxSize(5);
+	Arbitrary<List<String>> nonEmptyLists() {
+		return Arbitraries.strings().ofMinLength(1).list().ofMinSize(1).ofMaxSize(5);
 	}
 
 	@Provide
-	Arbitrary<java.util.Map<String, Integer>> nonEmptyMaps() {
-		return nonEmptyLists().map(l -> java.util.Map.of(l.get(0), 1));
+	Arbitrary<Map<String, Integer>> nonEmptyMaps() {
+		return nonEmptyLists().map(l -> Map.of(l.get(0), 1));
 	}
 
 	@Provide
 	Arbitrary<Object[]> nonEmptyArrays() {
-		return Arbitraries.strings().withCharRange('a', 'z').ofMinLength(1).list().ofMinSize(1).ofMaxSize(5)
-				.map(list -> list.toArray(new String[0]));
+		return Arbitraries.strings().list().ofMinSize(1).ofMaxSize(5).map(l -> l.toArray(emptyStringArray));
 	}
 
 	@Provide
@@ -892,43 +898,34 @@ class JdkOnlyCodeFragmentPropertyTest {
 	}
 
 	@Provide
-	Arbitrary<java.util.List<String>> sizeLists() {
-		return Arbitraries.strings().withCharRange('a', 'z').ofMinLength(1).list().ofMinSize(2).ofMaxSize(4);
+	Arbitrary<List<String>> sizeLists() {
+		return Arbitraries.strings().list().ofMinSize(2).ofMaxSize(4);
 	}
 
 	@Provide
-	Arbitrary<java.util.List<String>> shortLists() {
-		return Arbitraries.strings().withCharRange('a', 'z').ofMinLength(1).list().ofMaxSize(1);
+	Arbitrary<List<String>> shortLists() {
+		return Arbitraries.strings().list().ofMaxSize(1);
 	}
 
 	@Provide
-	Arbitrary<java.util.Map<String, Integer>> sizeMaps() {
-		return sizeLists().map(l -> {
-			java.util.Map<String, Integer> m = new java.util.LinkedHashMap<>();
-			for (int i = 0; i < l.size(); i++) {
-				m.put("k" + i, i);
-			}
-			return m;
-		});
+	Arbitrary<Map<String, Integer>> sizeMaps() {
+		return sizeLists()
+				.map(l -> range(0, l.size()).mapToObj(Integer::valueOf).collect(toMap(i -> "k" + i, identity())));
 	}
 
 	@Provide
-	Arbitrary<java.util.Map<String, Integer>> shortMaps() {
-		return shortLists().map(l -> {
-			if (l.isEmpty())
-				return java.util.Map.of();
-			return java.util.Map.of(l.get(0), 1);
-		});
+	Arbitrary<Map<String, Integer>> shortMaps() {
+		return shortLists().map(l -> l.isEmpty() ? Map.of() : Map.of(l.get(0), 1));
 	}
 
 	@Provide
 	Arbitrary<Object[]> sizeArrays() {
-		return sizeLists().map(list -> list.toArray(new Object[0]));
+		return sizeLists().map(l -> l.toArray(emptyObjectArray));
 	}
 
 	@Provide
 	Arbitrary<Object[]> shortArrays() {
-		return shortLists().map(list -> list.toArray(new Object[0]));
+		return shortLists().map(l -> l.toArray(emptyObjectArray));
 	}
 
 	@Provide
