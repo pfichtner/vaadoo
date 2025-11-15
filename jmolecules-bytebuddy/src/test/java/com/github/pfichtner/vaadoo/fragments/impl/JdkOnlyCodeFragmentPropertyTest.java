@@ -9,7 +9,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.time.LocalDate;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
@@ -134,21 +133,14 @@ class JdkOnlyCodeFragmentPropertyTest {
 	// AssertTrue / AssertFalse
 	@Property
 	void assertTrue_accepts_true(@ForAll boolean b) {
-		var a = anno(AssertTrue.class);
+		var t = anno(AssertTrue.class);
+		var f = anno(AssertFalse.class);
 		if (b) {
-			assertDoesNotThrow(() -> sut.check(a, b));
+			assertDoesNotThrow(() -> sut.check(t, b));
+			assertThrows(IllegalArgumentException.class, () -> sut.check(f, b));
 		} else {
-			assertThrows(IllegalArgumentException.class, () -> sut.check(a, b));
-		}
-	}
-
-	@Property
-	void assertFalse_accepts_false(@ForAll boolean b) {
-		var a = anno(AssertFalse.class);
-		if (!b) {
-			assertDoesNotThrow(() -> sut.check(a, b));
-		} else {
-			assertThrows(IllegalArgumentException.class, () -> sut.check(a, b));
+			assertThrows(IllegalArgumentException.class, () -> sut.check(t, b));
+			assertDoesNotThrow(() -> sut.check(f, b));
 		}
 	}
 
