@@ -579,7 +579,8 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Digits anno, int value) {
-		int length = (value == 0) ? 1 : (int) log10(abs(value)) + 1;
+		long absValue = (value == Integer.MIN_VALUE) ? ((long) Integer.MAX_VALUE) + 1L : abs((long) value);
+		int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
 		if (length > anno.integer()) {
 			throw new IllegalArgumentException(anno.message());
 		}
@@ -588,7 +589,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, long value) {
 		long absValue = (value == Long.MIN_VALUE) ? -(value + 1) : abs(value);
-		int length = (value == 0) ? 1 : (int) Math.log10(absValue) + 1;
+		int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
 		if (length > anno.integer()) {
 			throw new IllegalArgumentException(anno.message());
 		}
@@ -617,7 +618,8 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Integer value) {
 		if (value != null) {
-			int length = (value == 0) ? 1 : (int) log10(abs(value)) + 1;
+			long absValue = (value == Integer.MIN_VALUE) ? ((long) Integer.MAX_VALUE) + 1L : abs((long) value);
+			int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
 			if (length > anno.integer()) {
 				throw new IllegalArgumentException(anno.message());
 			}
@@ -628,7 +630,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	public void check(Digits anno, Long value) {
 		if (value != null) {
 			long absValue = (value == Long.MIN_VALUE) ? -(value + 1) : abs(value);
-			int length = (value == 0) ? 1 : (int) Math.log10(absValue) + 1;
+			int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
 			if (length > anno.integer()) {
 				throw new IllegalArgumentException(anno.message());
 			}
@@ -638,7 +640,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, BigInteger value) {
 		if (value != null) {
-			int length = value.toString().length();
+			int length = value.abs().toString().length();
 			if (length > anno.integer()) {
 				throw new IllegalArgumentException(anno.message());
 			}

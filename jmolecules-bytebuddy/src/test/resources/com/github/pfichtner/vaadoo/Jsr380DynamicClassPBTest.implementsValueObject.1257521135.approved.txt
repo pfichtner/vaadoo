@@ -70,7 +70,8 @@ implements ValueObject {
         if (monthDay2 != null && monthDay2.isBefore(MonthDay.now())) {
             throw new IllegalArgumentException("monthDay1 must be a date in the present or in the future");
         }
-        int n3 = n2 = n == 0 ? 1 : (int)Math.log10(Math.abs(n)) + 1;
+        long l = n == Integer.MIN_VALUE ? 0x80000000L : Math.abs((long)n);
+        int n3 = n2 = n == 0 ? 1 : (int)Math.log10(l) + 1;
         if (n2 > 0) {
             throw new IllegalArgumentException("int numeric value out of bounds (<0 digits>.<0 digits> expected)");
         }
