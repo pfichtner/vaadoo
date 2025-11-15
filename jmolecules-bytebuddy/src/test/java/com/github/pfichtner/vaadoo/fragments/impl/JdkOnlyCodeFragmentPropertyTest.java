@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
@@ -43,6 +44,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import lombok.Value;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;
@@ -57,6 +59,29 @@ import net.jqwik.time.api.Dates;
  * the negative cases.
  */
 class JdkOnlyCodeFragmentPropertyTest {
+
+	@Value
+	private static class Fixture {
+
+		ThrowingCallable throwingCallable;
+
+		public static Fixture of(ThrowingCallable throwingCallable) {
+			return new Fixture(throwingCallable);
+		}
+
+		public void noEx() {
+			assertThatNoException().isThrownBy(throwingCallable);
+		}
+
+		public void npe() {
+			assertThatNullPointerException().isThrownBy(throwingCallable).withMessage("theMessage");
+		}
+
+		public void iae() {
+			assertThatIllegalArgumentException().isThrownBy(throwingCallable).withMessage("theMessage");
+		}
+
+	}
 
 	private static final String[] emptyStringArray = new String[0];
 	private static final Object[] emptyObjectArray = new Object[0];
@@ -82,33 +107,33 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void notNull_should_accept_any_non_null_string(@ForAll("nonNullStrings") String s) {
 		var a = anno(NotNull.class);
-		assertThatNoException().isThrownBy(() -> sut.check(a, s));
+		Fixture.of(() -> sut.check(a, s)).noEx();
 	}
 
 	@Property
 	void notNull_should_throw_on_null() {
 		var a = anno(NotNull.class);
-		assertThatNullPointerException().isThrownBy(() -> sut.check(a, (Object) null)).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, (Object) null)).npe();
 	}
 
 	// NotBlank: non-blank strings should pass
 	@Property
 	void notBlank_passes_for_non_blank(@ForAll("nonBlankStrings") String s) {
 		var a = anno(NotBlank.class);
-		assertThatNoException().isThrownBy(() -> sut.check(a, s));
+		Fixture.of(() -> sut.check(a, s)).noEx();
 	}
 
 	@Property
 	void notBlank_fails_for_blank() {
 		var a = anno(NotBlank.class);
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, "   ")).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, "   ")).iae();
 	}
 
 	// Pattern: generated strings matching the pattern should pass
 	@Property
 	void pattern_matches_generated_values(@ForAll("twoDigits") String s) {
 		var a = anno(Pattern.class, Map.of("regexp", "\\d{2}"));
-		assertThatNoException().isThrownBy(() -> sut.check(a, s));
+		Fixture.of(() -> sut.check(a, s)).noEx();
 	}
 
 	// NotEmpty variants: char sequence, collection and map are covered in unit
@@ -117,87 +142,87 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void notEmpty_charsequence_passes(@ForAll("nonBlankStrings") String s) {
 		var a = anno(NotEmpty.class);
-		assertThatNoException().isThrownBy(() -> sut.check(a, s));
+		Fixture.of(() -> sut.check(a, s)).noEx();
 	}
 
 	@Property
 	void notEmpty_collection_passes(@ForAll("nonEmptyLists") List<String> l) {
 		var a = anno(NotEmpty.class);
-		assertThatNoException().isThrownBy(() -> sut.check(a, l));
+		Fixture.of(() -> sut.check(a, l)).noEx();
 	}
 
 	@Property
 	void notEmpty_map_passes(@ForAll("nonEmptyMaps") Map<String, Integer> m) {
 		var a = anno(NotEmpty.class);
-		assertThatNoException().isThrownBy(() -> sut.check(a, m));
+		Fixture.of(() -> sut.check(a, m)).noEx();
 	}
 
 	@Property
 	void notEmpty_array_fails_for_empty() {
 		var a = anno(NotEmpty.class);
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, emptyObjectArray)).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, emptyObjectArray)).iae();
 	}
 
 	// Size: generate valid sizes and invalid sizes explicitly
 	@Property
 	void size_accepts_values_within_bounds(@ForAll("sizeStrings") String s) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatNoException().isThrownBy(() -> sut.check(a, s));
+		Fixture.of(() -> sut.check(a, s)).noEx();
 	}
 
 	@Property
 	void size_rejects_too_short(@ForAll("shortStrings") String s) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, s)).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, s)).iae();
 	}
 
 	@Property
 	void size_collection_accepts_within_bounds(@ForAll("sizeLists") List<String> l) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatNoException().isThrownBy(() -> sut.check(a, l));
+		Fixture.of(() -> sut.check(a, l)).noEx();
 	}
 
 	@Property
 	void size_collection_rejects_too_short(@ForAll("shortLists") List<String> l) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, l)).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, l)).iae();
 	}
 
 	@Property
 	void size_map_accepts_within_bounds(@ForAll("sizeMaps") Map<String, Integer> m) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatNoException().isThrownBy(() -> sut.check(a, m));
+		Fixture.of(() -> sut.check(a, m)).noEx();
 	}
 
 	@Property
 	void size_map_rejects_too_short(@ForAll("shortMaps") Map<String, Integer> m) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, m)).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, m)).iae();
 	}
 
 	@Property
 	void size_array_accepts_within_bounds(@ForAll("sizeArrays") Object[] arr) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatNoException().isThrownBy(() -> sut.check(a, arr));
+		Fixture.of(() -> sut.check(a, arr)).noEx();
 	}
 
 	@Property
 	void size_array_rejects_too_short(@ForAll("shortArrays") Object[] arr) {
 		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, arr)).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, arr)).iae();
 	}
 
 	// AssertTrue / AssertFalse
 	@Property
 	void assertTrue_accepts_true(@ForAll boolean b) {
-		var t = anno(AssertTrue.class);
-		var f = anno(AssertFalse.class);
+		Fixture t = Fixture.of(() -> sut.check(anno(AssertTrue.class), b));
+		Fixture f = Fixture.of(() -> sut.check(anno(AssertFalse.class), b));
 		if (b) {
-			assertThatNoException().isThrownBy(() -> sut.check(t, b));
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(f, b)).withMessage("theMessage");
+			t.noEx();
+			f.iae();
 		} else {
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(t, b)).withMessage("theMessage");
-			assertThatNoException().isThrownBy(() -> sut.check(f, b));
+			t.iae();
+			f.noEx();
 		}
 	}
 
@@ -206,134 +231,139 @@ class JdkOnlyCodeFragmentPropertyTest {
 	void min_accepts_values_at_or_above(@ForAll int v) {
 		var a = anno(Min.class, Map.of("value", 0L));
 
-		byte bv = (byte) v;
-		short sv = (short) v;
-		int iv = v;
-		long lv = v;
-		Byte bObj = bv;
-		Short sObj = sv;
-		Integer iObj = iv;
-		Long lObj = lv;
-		BigInteger bi = BigInteger.valueOf(v);
-		BigDecimal bd = BigDecimal.valueOf(v);
+		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
+		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
+		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
+		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
+
+		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
+		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
+		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
+		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
+
+		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
+		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
 
 		// primitives
-		if (bv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
+		if ((byte) v >= 0)
+			fbp.noEx();
+		else {
+			fbp.iae();
+		}
 
-		if (sv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
+		if ((short) v >= 0)
+			fsp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
+			fsp.iae();
 
-		if (iv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
+		if ((int) v >= 0)
+			fip.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
+			fip.iae();
 
-		if (lv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
+		if ((long) v >= 0)
+			flp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
+			flp.iae();
 
 		// wrappers
-		if (bObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
+		if (Byte.valueOf((byte) v) >= 0)
+			fbob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
+			fbob.iae();
 
-		if (sObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
+		if (Short.valueOf((short) v) >= 0)
+			fsob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
+			fsob.iae();
 
-		if (iObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
+		if (Integer.valueOf((int) v) >= 0)
+			fiob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
+			fiob.iae();
 
-		if (lObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
+		if (Long.valueOf((long) v) >= 0)
+			flob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
+			flob.iae();
 
-		if (bi.compareTo(BigInteger.ZERO) >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
+		if (BigInteger.valueOf(v).compareTo(BigInteger.ZERO) >= 0)
+			fbi.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
+			fbi.iae();
 
-		if (bd.compareTo(BigDecimal.ZERO) >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
+		if (BigDecimal.valueOf(v).compareTo(BigDecimal.ZERO) >= 0)
+			fbd.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
+			fbd.iae();
 	}
 
 	@Property
 	void max_accepts_values_below_limit(@ForAll int v) {
 		var a = anno(Max.class, Map.of("value", 100L));
 
-		byte bv = (byte) v;
-		short sv = (short) v;
-		int iv = v;
-		long lv = v;
-		Byte bObj = bv;
-		Short sObj = sv;
-		Integer iObj = iv;
-		Long lObj = lv;
-		BigInteger bi = BigInteger.valueOf(v);
-		BigDecimal bd = BigDecimal.valueOf(v);
+		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
+		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
+		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
+		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
 
-		if (bv <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
+		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
+		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
+		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
+		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
 
-		if (sv <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
+		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
+		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
 
-		if (iv <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
+		if ((byte) v <= 100)
+			fbp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
+			fbp.iae();
 
-		if (lv <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
+		if ((short) v <= 100)
+			fsp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
+			fsp.iae();
 
-		if (bObj <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
+		if ((int) v <= 100)
+			fip.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
+			fip.iae();
 
-		if (sObj <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
+		if ((long) v <= 100)
+			flp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
+			flp.iae();
 
-		if (iObj <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
+		if (Byte.valueOf((byte) v) <= 100)
+			fbob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
+			fbob.iae();
 
-		if (lObj <= 100)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
+		if (Short.valueOf((short) v) <= 100)
+			fsob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
+			fsob.iae();
 
-		if (bi.compareTo(BigInteger.valueOf(100)) <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
+		if (Integer.valueOf((int) v) <= 100)
+			fiob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
+			fiob.iae();
 
-		if (bd.compareTo(BigDecimal.valueOf(100)) <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
+		if (Long.valueOf((long) v) <= 100)
+			flob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
+			flob.iae();
+
+		if (BigInteger.valueOf(v).compareTo(BigInteger.valueOf(100)) <= 0)
+			fbi.noEx();
+		else
+			fbi.iae();
+
+		if (BigDecimal.valueOf(v).compareTo(BigDecimal.valueOf(100)) <= 0)
+			fbd.noEx();
+		else
+			fbd.iae();
 	}
 
 	// DecimalMin / DecimalMax for CharSequence values (strings representing
@@ -341,145 +371,149 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Property
 	void decimalMin_accepts_strings_greater_or_equal(@ForAll("numericStringsGE2") String s) {
 		var a = anno(DecimalMin.class, Map.of("value", "2"));
-		assertThatNoException().isThrownBy(() -> sut.check(a, s));
+		Fixture.of(() -> sut.check(a, s)).noEx();
 	}
 
 	@Property
 	void decimalMin_accepts_numbers_greater_or_equal(@ForAll int v) {
 		var a = anno(DecimalMin.class, Map.of("value", "2"));
 
-		byte bv = (byte) v;
-		short sv = (short) v;
-		int iv = v;
-		long lv = v;
-		Byte bObj = bv;
-		Short sObj = sv;
-		Integer iObj = iv;
-		Long lObj = lv;
-		BigInteger bi = BigInteger.valueOf(v);
-		BigDecimal bd = BigDecimal.valueOf(v);
+		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
+		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
+		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
+		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
 
-		if (bv >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
+		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
+		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
+		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
+		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
 
-		if (sv >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
+		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
+		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
 
-		if (iv >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
+		if ((byte) v >= 2)
+			fbp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
+			fbp.iae();
 
-		if (lv >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
+		if ((short) v >= 2)
+			fsp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
+			fsp.iae();
 
-		if (bObj >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
+		if ((int) v >= 2)
+			fip.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
+			fip.iae();
 
-		if (sObj >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
+		if ((long) v >= 2)
+			flp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
+			flp.iae();
 
-		if (iObj >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
+		if (Byte.valueOf((byte) v) >= 2)
+			fbob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
+			fbob.iae();
 
-		if (lObj >= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
+		if (Short.valueOf((short) v) >= 2)
+			fsob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
+			fsob.iae();
 
-		if (bi.compareTo(BigInteger.valueOf(2)) >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
+		if (Integer.valueOf((int) v) >= 2)
+			fiob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
+			fiob.iae();
 
-		if (bd.compareTo(BigDecimal.valueOf(2)) >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
+		if (Long.valueOf((long) v) >= 2)
+			flob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
+			flob.iae();
+
+		if (BigInteger.valueOf(v).compareTo(BigInteger.valueOf(2)) >= 0)
+			fbi.noEx();
+		else
+			fbi.iae();
+
+		if (BigDecimal.valueOf(v).compareTo(BigDecimal.valueOf(2)) >= 0)
+			fbd.noEx();
+		else
+			fbd.iae();
 	}
 
 	@Property
 	void decimalMax_rejects_greater_strings(@ForAll("numericStringsGT5") String s) {
 		var a = anno(DecimalMax.class, Map.of("value", "5"));
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, s)).withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, s)).iae();
 	}
 
 	@Property
 	void decimalMax_rejects_greater_numbers(@ForAll int v) {
 		var a = anno(DecimalMax.class, Map.of("value", "5"));
 
-		byte bv = (byte) v;
-		short sv = (short) v;
-		int iv = v;
-		long lv = v;
-		Byte bObj = bv;
-		Short sObj = sv;
-		Integer iObj = iv;
-		Long lObj = lv;
-		BigInteger bi = BigInteger.valueOf(v);
-		BigDecimal bd = BigDecimal.valueOf(v);
+		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
+		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
+		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
+		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
 
-		if (bv <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
+		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
+		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
+		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
+		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
 
-		if (sv <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
+		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
+		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
 
-		if (iv <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
+		if ((byte) v <= 5)
+			fbp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
+			fbp.iae();
 
-		if (lv <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
+		if ((short) v <= 5)
+			fsp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
+			fsp.iae();
 
-		if (bObj <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
+		if ((int) v <= 5)
+			fip.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
+			fip.iae();
 
-		if (sObj <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
+		if ((long) v <= 5)
+			flp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
+			flp.iae();
 
-		if (iObj <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
+		if (Byte.valueOf((byte) v) <= 5)
+			fbob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
+			fbob.iae();
 
-		if (lObj <= 5)
-			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
+		if (Short.valueOf((short) v) <= 5)
+			fsob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
+			fsob.iae();
 
-		if (bi.compareTo(BigInteger.valueOf(5)) <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
+		if (Integer.valueOf((int) v) <= 5)
+			fiob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
+			fiob.iae();
 
-		if (bd.compareTo(BigDecimal.valueOf(5)) <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
+		if (Long.valueOf((long) v) <= 5)
+			flob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
+			flob.iae();
+
+		if (BigInteger.valueOf(v).compareTo(BigInteger.valueOf(5)) <= 0)
+			fbi.noEx();
+		else
+			fbi.iae();
+
+		if (BigDecimal.valueOf(v).compareTo(BigDecimal.valueOf(5)) <= 0)
+			fbd.noEx();
+		else
+			fbd.iae();
 	}
 
 	// Digits and sign related constraints
@@ -487,68 +521,70 @@ class JdkOnlyCodeFragmentPropertyTest {
 	void digits_rejects_too_many_integer_digits(@ForAll int v) {
 		var a = anno(Digits.class, Map.of("integer", 2, "fraction", 0));
 
-		byte bv = (byte) v;
-		short sv = (short) v;
-		int iv = v;
-		long lv = v;
-		Byte bObj = bv;
-		Short sObj = sv;
-		Integer iObj = iv;
-		Long lObj = lv;
-		BigInteger bi = BigInteger.valueOf(v);
-		BigDecimal bd = BigDecimal.valueOf(v);
+		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
+		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
+		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
+		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
+
+		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
+		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
+		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
+		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
+
+		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
+		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
 
 		Predicate<Long> fits = x -> abs(x) <= 99;
 
-		if (fits.test((long) bv))
-			assertThatNoException().isThrownBy(() -> sut.check(a, bv));
+		if (fits.test((long) (byte) v))
+			fbp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bv)).withMessage("theMessage");
+			fbp.iae();
 
-		if (fits.test((long) sv))
-			assertThatNoException().isThrownBy(() -> sut.check(a, sv));
+		if (fits.test((long) (short) v))
+			fsp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sv)).withMessage("theMessage");
+			fsp.iae();
 
-		if (fits.test((long) iv))
-			assertThatNoException().isThrownBy(() -> sut.check(a, iv));
+		if (fits.test((long) (int) v))
+			fip.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iv)).withMessage("theMessage");
+			fip.iae();
 
-		if (fits.test(lv))
-			assertThatNoException().isThrownBy(() -> sut.check(a, lv));
+		if (fits.test((long) v))
+			flp.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lv)).withMessage("theMessage");
+			flp.iae();
 
-		if (fits.test(bObj.longValue()))
-			assertThatNoException().isThrownBy(() -> sut.check(a, bObj));
+		if (fits.test(Byte.valueOf((byte) v).longValue()))
+			fbob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bObj)).withMessage("theMessage");
+			fbob.iae();
 
-		if (fits.test(sObj.longValue()))
-			assertThatNoException().isThrownBy(() -> sut.check(a, sObj));
+		if (fits.test(Short.valueOf((short) v).longValue()))
+			fsob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, sObj)).withMessage("theMessage");
+			fsob.iae();
 
-		if (fits.test(iObj.longValue()))
-			assertThatNoException().isThrownBy(() -> sut.check(a, iObj));
+		if (fits.test(Integer.valueOf((int) v).longValue()))
+			fiob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, iObj)).withMessage("theMessage");
+			fiob.iae();
 
-		if (fits.test(lObj.longValue()))
-			assertThatNoException().isThrownBy(() -> sut.check(a, lObj));
+		if (fits.test(Long.valueOf((long) v).longValue()))
+			flob.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, lObj)).withMessage("theMessage");
+			flob.iae();
 
-		if (bi.abs().toString().length() <= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bi));
+		if (BigInteger.valueOf(v).abs().toString().length() <= 2)
+			fbi.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bi)).withMessage("theMessage");
+			fbi.iae();
 
-		if (bd.abs().toBigInteger().toString().length() <= 2)
-			assertThatNoException().isThrownBy(() -> sut.check(a, bd));
+		if (BigDecimal.valueOf(v).abs().toBigInteger().toString().length() <= 2)
+			fbd.noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, bd)).withMessage("theMessage");
+			fbd.iae();
 	}
 
 	@Property
@@ -560,232 +596,233 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 		byte bv = (byte) v;
 		short sv = (short) v;
-		int iv = v;
-		long lv = v;
-		Byte bObj = bv;
-		Short sObj = sv;
-		Integer iObj = iv;
-		Long lObj = lv;
+		int iv = (int) v;
+		long lv = (long) v;
+		Byte bObj = Byte.valueOf((byte) v);
+		Short sObj = Short.valueOf((short) v);
+		Integer iObj = Integer.valueOf((int) v);
+		Long lObj = Long.valueOf((long) v);
+
 		BigInteger bi = BigInteger.valueOf(v);
 		BigDecimal bd = BigDecimal.valueOf(v);
 
 		// Positive
-		if (bv > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, bv));
-		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bv)).withMessage("theMessage");
+		if (bv > 0) {
+			Fixture f1 = Fixture.of(() -> sut.check(p, bv));
+			f1.noEx();
+		} else
+			Fixture.of(() -> sut.check(p, bv)).iae();
 
 		if (sv > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, sv));
+			Fixture.of(() -> sut.check(p, sv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, sv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, sv)).iae();
 
 		if (iv > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, iv));
+			Fixture.of(() -> sut.check(p, iv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, iv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, iv)).iae();
 
 		if (lv > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, lv));
+			Fixture.of(() -> sut.check(p, lv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, lv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, lv)).iae();
 
 		if (bObj > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, bObj));
+			Fixture.of(() -> sut.check(p, bObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, bObj)).iae();
 
 		if (sObj > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, sObj));
+			Fixture.of(() -> sut.check(p, sObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, sObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, sObj)).iae();
 
 		if (iObj > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, iObj));
+			Fixture.of(() -> sut.check(p, iObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, iObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, iObj)).iae();
 
 		if (lObj > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, lObj));
+			Fixture.of(() -> sut.check(p, lObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, lObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, lObj)).iae();
 
 		if (bi.compareTo(BigInteger.ZERO) > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, bi));
+			Fixture.of(() -> sut.check(p, bi)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bi)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, bi)).iae();
 
 		if (bd.compareTo(BigDecimal.ZERO) > 0)
-			assertThatNoException().isThrownBy(() -> sut.check(p, bd));
+			Fixture.of(() -> sut.check(p, bd)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(p, bd)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(p, bd)).iae();
 
 		// PositiveOrZero
 		if (bv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, bv));
+			Fixture.of(() -> sut.check(pz, bv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, bv)).iae();
 
 		if (sv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, sv));
+			Fixture.of(() -> sut.check(pz, sv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, sv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, sv)).iae();
 
 		if (iv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, iv));
+			Fixture.of(() -> sut.check(pz, iv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, iv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, iv)).iae();
 
 		if (lv >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, lv));
+			Fixture.of(() -> sut.check(pz, lv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, lv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, lv)).iae();
 
 		if (bObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, bObj));
+			Fixture.of(() -> sut.check(pz, bObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, bObj)).iae();
 
 		if (sObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, sObj));
+			Fixture.of(() -> sut.check(pz, sObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, sObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, sObj)).iae();
 
 		if (iObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, iObj));
+			Fixture.of(() -> sut.check(pz, iObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, iObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, iObj)).iae();
 
 		if (lObj >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, lObj));
+			Fixture.of(() -> sut.check(pz, lObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, lObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, lObj)).iae();
 
 		if (bi.compareTo(BigInteger.ZERO) >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, bi));
+			Fixture.of(() -> sut.check(pz, bi)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bi)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, bi)).iae();
 
 		if (bd.compareTo(BigDecimal.ZERO) >= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(pz, bd));
+			Fixture.of(() -> sut.check(pz, bd)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pz, bd)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(pz, bd)).iae();
 
 		// Negative
 		if (bv < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, bv));
+			Fixture.of(() -> sut.check(n, bv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, bv)).iae();
 
 		if (sv < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, sv));
+			Fixture.of(() -> sut.check(n, sv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, sv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, sv)).iae();
 
 		if (iv < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, iv));
+			Fixture.of(() -> sut.check(n, iv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, iv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, iv)).iae();
 
 		if (lv < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, lv));
+			Fixture.of(() -> sut.check(n, lv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, lv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, lv)).iae();
 
 		if (bObj < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, bObj));
+			Fixture.of(() -> sut.check(n, bObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, bObj)).iae();
 
 		if (sObj < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, sObj));
+			Fixture.of(() -> sut.check(n, sObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, sObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, sObj)).iae();
 
 		if (iObj < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, iObj));
+			Fixture.of(() -> sut.check(n, iObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, iObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, iObj)).iae();
 
 		if (lObj < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, lObj));
+			Fixture.of(() -> sut.check(n, lObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, lObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, lObj)).iae();
 
 		if (bi.compareTo(BigInteger.ZERO) < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, bi));
+			Fixture.of(() -> sut.check(n, bi)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bi)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, bi)).iae();
 
 		if (bd.compareTo(BigDecimal.ZERO) < 0)
-			assertThatNoException().isThrownBy(() -> sut.check(n, bd));
+			Fixture.of(() -> sut.check(n, bd)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(n, bd)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(n, bd)).iae();
 
 		// NegativeOrZero
 		if (bv <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, bv));
+			Fixture.of(() -> sut.check(nz, bv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, bv)).iae();
 
 		if (sv <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, sv));
+			Fixture.of(() -> sut.check(nz, sv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, sv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, sv)).iae();
 
 		if (iv <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, iv));
+			Fixture.of(() -> sut.check(nz, iv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, iv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, iv)).iae();
 
 		if (lv <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, lv));
+			Fixture.of(() -> sut.check(nz, lv)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, lv)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, lv)).iae();
 
 		if (bObj <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, bObj));
+			Fixture.of(() -> sut.check(nz, bObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, bObj)).iae();
 
 		if (sObj <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, sObj));
+			Fixture.of(() -> sut.check(nz, sObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, sObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, sObj)).iae();
 
 		if (iObj <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, iObj));
+			Fixture.of(() -> sut.check(nz, iObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, iObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, iObj)).iae();
 
 		if (lObj <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, lObj));
+			Fixture.of(() -> sut.check(nz, lObj)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, lObj)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, lObj)).iae();
 
 		if (bi.compareTo(BigInteger.ZERO) <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, bi));
+			Fixture.of(() -> sut.check(nz, bi)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bi)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, bi)).iae();
 
 		if (bd.compareTo(BigDecimal.ZERO) <= 0)
-			assertThatNoException().isThrownBy(() -> sut.check(nz, bd));
+			Fixture.of(() -> sut.check(nz, bd)).noEx();
 		else
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(nz, bd)).withMessage("theMessage");
+			Fixture.of(() -> sut.check(nz, bd)).iae();
 	}
 
 	// Temporal: Past / Future for LocalDate
 	@Property
 	void past_accepts_dates_before_today(@ForAll("pastDates") LocalDate d) {
 		var a = anno(Past.class);
-		assertThatNoException().isThrownBy(() -> sut.check(a, d));
+		Fixture.of(() -> sut.check(a, d)).noEx();
 	}
 
 	@Test
 	void future_rejects_past_date() {
 		var a = anno(jakarta.validation.constraints.Future.class);
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(a, LocalDate.now().minusDays(1)))
-				.withMessage("theMessage");
+		Fixture.of(() -> sut.check(a, LocalDate.now().minusDays(1))).iae();
 	}
 
 	@Property
@@ -794,8 +831,8 @@ class JdkOnlyCodeFragmentPropertyTest {
 		var futureAnno = anno(Future.class);
 
 		// future dates should be rejected by @Past and accepted by @Future
-		assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pastAnno, d)).withMessage("theMessage");
-		assertThatNoException().isThrownBy(() -> sut.check(futureAnno, d));
+		Fixture.of(() -> sut.check(pastAnno, d)).iae();
+		Fixture.of(() -> sut.check(futureAnno, d)).noEx();
 	}
 
 	@Property
@@ -805,14 +842,14 @@ class JdkOnlyCodeFragmentPropertyTest {
 		LocalDate today = LocalDate.now();
 
 		// FutureOrPresent should accept today and future dates
-		assertThatNoException().isThrownBy(() -> sut.check(futureOrPresent, d));
+		Fixture.of(() -> sut.check(futureOrPresent, d)).noEx();
 
 		// PastOrPresent should reject strictly future dates, but accept today
+		Fixture fixture = Fixture.of(() -> sut.check(pastOrPresent, d));
 		if (d.isAfter(today)) {
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(pastOrPresent, d))
-					.withMessage("theMessage");
+			fixture.iae();
 		} else {
-			assertThatNoException().isThrownBy(() -> sut.check(pastOrPresent, d));
+			fixture.noEx();
 		}
 	}
 
@@ -823,14 +860,14 @@ class JdkOnlyCodeFragmentPropertyTest {
 		LocalDate today = LocalDate.now();
 
 		// PastOrPresent should accept today and past dates
-		assertThatNoException().isThrownBy(() -> sut.check(pastOrPresent, d));
+		Fixture.of(() -> sut.check(pastOrPresent, d)).noEx();
 
 		// FutureOrPresent should reject strictly past dates, but accept today
+		Fixture fixture = Fixture.of(() -> sut.check(futureOrPresent, d));
 		if (d.isBefore(today)) {
-			assertThatIllegalArgumentException().isThrownBy(() -> sut.check(futureOrPresent, d))
-					.withMessage("theMessage");
+			fixture.iae();
 		} else {
-			assertThatNoException().isThrownBy(() -> sut.check(futureOrPresent, d));
+			fixture.noEx();
 		}
 	}
 
