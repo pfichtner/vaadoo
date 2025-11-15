@@ -73,7 +73,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		if (charSequence == null) {
 			throw new NullPointerException(anno.message());
 		}
-		if (charSequence.toString().trim().length() <= 0) {
+		if (charSequence.toString().trim().length() == 0) {
 			throw new IllegalArgumentException(anno.message());
 		}
 	}
@@ -143,7 +143,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		if (charSequence == null) {
 			throw new NullPointerException(anno.message());
 		}
-		if (charSequence.length() <= 0) {
+		if (charSequence.length() == 0) {
 			throw new IllegalArgumentException(anno.message());
 		}
 	}
@@ -152,7 +152,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		if (collection == null) {
 			throw new NullPointerException(anno.message());
 		}
-		if (collection.size() <= 0) {
+		if (collection.size() == 0) {
 			throw new IllegalArgumentException(anno.message());
 		}
 	}
@@ -162,7 +162,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		if (map == null) {
 			throw new NullPointerException(anno.message());
 		}
-		if (map.size() <= 0) {
+		if (map.size() == 0) {
 			throw new IllegalArgumentException(anno.message());
 		}
 	}
@@ -172,7 +172,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		if (objects == null) {
 			throw new NullPointerException(anno.message());
 		}
-		if (objects.length <= 0) {
+		if (objects.length == 0) {
 			throw new IllegalArgumentException(anno.message());
 		}
 	}

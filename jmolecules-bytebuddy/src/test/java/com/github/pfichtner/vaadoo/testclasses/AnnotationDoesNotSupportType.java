@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 @ValueObject
 public class AnnotationDoesNotSupportType {
 
-	private Integer someInteger;
+	private final Integer someInteger;
 
 	public AnnotationDoesNotSupportType(@NotEmpty Integer someInteger) {
 		this.someInteger = someInteger;

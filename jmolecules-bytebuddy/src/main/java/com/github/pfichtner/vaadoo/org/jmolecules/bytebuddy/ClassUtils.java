@@ -28,8 +28,6 @@ import java.lang.reflect.Array;
  * @author Sam Brannen
  * @author Sebastien Deleuze
  * @since 1.1
- * @see TypeUtils
- * @see ReflectionUtils
  */
 public abstract class ClassUtils {
 

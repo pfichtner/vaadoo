@@ -106,7 +106,7 @@ implements ValueObject {
         if (stringArray == null) {
             throw new NullPointerException("stringArray must not be empty");
         }
-        if (stringArray.length <= 0) {
+        if (stringArray.length == 0) {
             throw new IllegalArgumentException("stringArray must not be empty");
         }
         if (new BigDecimal(by).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {

@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,7 +56,7 @@ class PluginUtils {
 	// private static final String GENERATED_BY = "jMolecules ByteBuddy Plugin";
 	private static final String GENERATED_BY = "vaadoo ByteBuddy Plugin";
 
-	private static Function<AnnotationDescription.Builder, AnnotationDescription.Builder> ADD_GENERATED_BY_TO_VALUE = b -> b
+	private static final Function<AnnotationDescription.Builder, AnnotationDescription.Builder> ADD_GENERATED_BY_TO_VALUE = b -> b
 			.defineArray("value", GENERATED_BY);
 	public static Map<String, Function<AnnotationDescription.Builder, AnnotationDescription.Builder>> ANNO_BUILDERS = Map.of( //
 			"javax.annotation.processing.Generated", ADD_GENERATED_BY_TO_VALUE, //
@@ -204,30 +203,6 @@ class PluginUtils {
 	}
 
 	/**
-	 * Returns a {@link Supplier} memoizing the value provided by the given source {@link Supplier} to avoid multiple
-	 * lookups of the original value.
-	 *
-	 * @param <T> the actual value type
-	 * @param source must not be {@literal null}.
-	 * @return
-	 * @since 0.6
-	 */
-	static <T> Supplier<T> memoized(Supplier<T> source) {
-		return new Supplier<T>() {
-
-			private T instance;
-
-			@Override
-			public T get() {
-				if (instance == null) {
-					instance = source.get();
-				}
-				return instance;
-			}
-		};
-	}
-
-	/**
 	 * Loggable field representation.
 	 *
 	 * @param field field to log about.
@@ -323,7 +298,7 @@ class PluginUtils {
 	private static String getShortName(String fullyQualifiedTypeName) {
 		int lastDotIndex = fullyQualifiedTypeName.lastIndexOf('.');
 		return lastDotIndex == -1 ? fullyQualifiedTypeName
-				: fullyQualifiedTypeName.substring(lastDotIndex, fullyQualifiedTypeName.length());
+				: fullyQualifiedTypeName.substring(lastDotIndex);
 	}
 
 	private static Optional<AnnotationDescription> getGeneratedTypeAnnotation(ElementType type) {

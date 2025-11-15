@@ -51,13 +51,12 @@ class JMoleculesTypeBuilder extends JMoleculesType {
 	}
 
 	/**
-	 * Creates a new {@link JMoleculesType} for the given {@link ModuleLogger} and
+	 * Creates a new {@link JMoleculesType} for the given ModuleLogger and
 	 * {@link Builder}.
 	 *
 	 * @param logger  must not be {@literal null}.
 	 * @param builder must not be {@literal null}.
-	 * @return
-	 */
+     */
 	public static JMoleculesTypeBuilder of(Log logger, Builder<?> builder) {
 		if (logger == null) {
 			throw new IllegalArgumentException("PluginLogger must not be null!");

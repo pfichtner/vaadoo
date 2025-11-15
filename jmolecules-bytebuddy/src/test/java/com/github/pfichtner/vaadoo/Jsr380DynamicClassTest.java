@@ -15,6 +15,12 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
+import jakarta.validation.constraints.NotNull;
+import org.junit.jupiter.api.Test;
+
 import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
@@ -23,16 +29,6 @@ import static com.github.pfichtner.vaadoo.Transformer.transform;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
-import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
-import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
-import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
-
-import jakarta.validation.constraints.NotNull;
 
 class Jsr380DynamicClassTest {
 

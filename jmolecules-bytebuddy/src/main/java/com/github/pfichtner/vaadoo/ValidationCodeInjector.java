@@ -79,7 +79,7 @@ public class ValidationCodeInjector {
 
 		private final SlotInfo srcSlot;
 		private final SlotInfo tgtSlot;
-		private SlotInfo offset;
+		private final SlotInfo offset;
 
 		@Value
 		@RequiredArgsConstructor
@@ -268,9 +268,9 @@ public class ValidationCodeInjector {
 							return defaultValue;
 						}
 						throw new IllegalStateException(format("'%s' does not define attribute '%s'", owner, name));
-					};
+					}
 
-					@Override
+                    @Override
 					public void visitInsn(int opcode) {
 						if (!isReturnOpcode(opcode)) {
 							super.visitInsn(opcode);
@@ -294,9 +294,9 @@ public class ValidationCodeInjector {
 							args[0] = format((String) args[0], targetParam.name());
 						}
 						super.visitInvokeDynamicInsn(name, descriptor, handle, args);
-					};
+					}
 
-				};
+                };
 			}
 			return super.visitMethod(access, name, descriptor, signature, exceptions);
 		}

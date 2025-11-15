@@ -6,7 +6,7 @@ import org.jmolecules.ddd.annotation.ValueObject;
 @ValueObject
 public class CustomExampleWithCustomMessage {
 
-	private String iban;
+	private final String iban;
 
 	public CustomExampleWithCustomMessage(@ValidIbanWithMessage String iban, String ignore) {
 		this.iban = iban;

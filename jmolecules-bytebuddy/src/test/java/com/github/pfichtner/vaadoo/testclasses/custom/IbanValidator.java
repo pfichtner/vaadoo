@@ -9,7 +9,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 /**
  * A very simple IBAN validator (which only supports German IBANs).
- * 
+ * <p>
  * Important: this only checks format and length. To fully validate an IBAN you
  * must also perform the ISO 7064 mod-97 checksum (convert letters → numbers and
  * check remainder 1).

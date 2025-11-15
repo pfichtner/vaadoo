@@ -47,7 +47,7 @@ class JMoleculesVaadooPluginTests {
 	void emptyClassIsUnchanged() throws Exception {
 		var transformed = transform(EmptyClass.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor();
-		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance());
+		assertThatNoException().isThrownBy(stringArgConstructor::newInstance);
 	}
 
 	@Test
@@ -83,7 +83,7 @@ class JMoleculesVaadooPluginTests {
 		assertSoftly(c -> {
 			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null)).satisfies(
 					e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage(notNull("a")));
-			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance((String) null, true))
+			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance(null, true))
 					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
 							.hasMessage(notNull("a")));
 		});

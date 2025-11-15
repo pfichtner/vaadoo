@@ -1,6 +1,7 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
 import static java.lang.reflect.Proxy.newProxyInstance;
+import static java.math.RoundingMode.UNNECESSARY;
 import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
@@ -82,22 +83,22 @@ class JdkOnlyCodeFragmentPBTest {
 
 		public void npe(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertException(NullPointerException.class, v, type);
+				assertException(b, NullPointerException.class, v, type);
 			}
 		}
 
 		public void iae(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
-				if (b) {
-					assertException(IllegalArgumentException.class, v, type);
-				} else {
-					accept(v, type);
-				}
+				assertException(b, IllegalArgumentException.class, v, type);
 			}
 		}
 
-		private void assertException(Class<? extends Exception> exceptionType, Object v, Class<?> type) {
-			assertThatExceptionOfType(exceptionType).isThrownBy(() -> accept(v, type)).withMessage("theMessage");
+		private void assertException(boolean b, Class<? extends Exception> exceptionType, Object v, Class<?> type) {
+			if (b) {
+				assertThatExceptionOfType(exceptionType).isThrownBy(() -> accept(v, type)).withMessage("theMessage");
+			} else {
+				assertThatNoException().isThrownBy(() -> accept(v, type));
+			}
 		}
 
 		private void accept(Object value, Class<?> param1Type) {
@@ -165,7 +166,9 @@ class JdkOnlyCodeFragmentPBTest {
 					return BigInteger.valueOf(n.longValue());
 				if (target == BigDecimal.class) {
 					BigDecimal bd = BigDecimal.valueOf(n.doubleValue());
-					return value.getClass() == Integer.class || value.getClass() == Long.class ? bd.setScale(0) : bd;
+					return value.getClass() == Integer.class || value.getClass() == Long.class
+							? bd.setScale(0, UNNECESSARY)
+							: bd;
 				}
 			}
 
@@ -435,10 +438,10 @@ class JdkOnlyCodeFragmentPBTest {
 
 	@Property
 	void zero_behaviour() {
-		positive_and_negative_behaviour_zero(0, byteTypes);
-		positive_and_negative_behaviour_zero(0, shortTypes);
-		positive_and_negative_behaviour_zero(0, intTypes);
-		positive_and_negative_behaviour_zero(0, longTypes);
+		positive_and_negative_behaviour_zero(byteTypes);
+		positive_and_negative_behaviour_zero(shortTypes);
+		positive_and_negative_behaviour_zero(intTypes);
+		positive_and_negative_behaviour_zero(longTypes);
 	}
 
 	@Property
@@ -497,11 +500,11 @@ class JdkOnlyCodeFragmentPBTest {
 		negativeOrZero.iae(true, v, types);
 	}
 
-	private void positive_and_negative_behaviour_zero(long v, Class<?>... types) {
-		positive.iae(true, v, types);
-		positiveOrZero.noEx(v, types);
-		negative.iae(true, v, types);
-		negativeOrZero.noEx(v, types);
+	private void positive_and_negative_behaviour_zero(Class<?>... types) {
+		positive.iae(true, (long) 0, types);
+		positiveOrZero.noEx((long) 0, types);
+		negative.iae(true, (long) 0, types);
+		negativeOrZero.noEx((long) 0, types);
 	}
 
 	// Temporal: Past / Future for LocalDate

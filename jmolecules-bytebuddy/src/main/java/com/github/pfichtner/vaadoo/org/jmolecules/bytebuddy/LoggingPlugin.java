@@ -15,8 +15,6 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
-import java.io.IOException;
-
 import net.bytebuddy.build.Plugin;
 
 /**
@@ -27,7 +25,7 @@ import net.bytebuddy.build.Plugin;
 public interface LoggingPlugin extends Plugin {
 
 	@Override
-	public default void close() throws IOException {
+	public default void close() {
 		PluginLogger.INSTANCE.flush();
 	}
 }

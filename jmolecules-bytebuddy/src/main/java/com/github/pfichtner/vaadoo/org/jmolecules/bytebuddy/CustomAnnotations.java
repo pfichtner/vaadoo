@@ -16,6 +16,7 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACONST_NULL;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
@@ -119,8 +120,8 @@ public final class CustomAnnotations {
 	private static Object defaultMessage(TypeDescription type) {
 		MethodList<InDefinedShape> list = type.getDeclaredMethods() //
 				.filter(named("message")) //
-				.filter(m -> m.getParameters().size() == 0);
-		return list.isEmpty() ? null : list.getOnly().getDefaultValue().resolve();
+				.filter(m -> m.getParameters().isEmpty());
+		return list.isEmpty() ? null : requireNonNull(list.getOnly().getDefaultValue()).resolve();
 	}
 
 }

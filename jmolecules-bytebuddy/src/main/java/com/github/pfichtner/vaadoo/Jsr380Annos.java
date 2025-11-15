@@ -109,9 +109,9 @@ public class Jsr380Annos {
 		public TypeDescription resolveSuperType(TypeDescription actual) {
 			return superType(actual, supportedSuperTypes).orElseThrow(() -> annotationOnTypeNotValid(anno(), actual,
 					supportedSuperTypes.stream().map(TypeDescription::getActualName).collect(toList())));
-		};
+		}
 
-	}
+    }
 
 	private static class SingleClassConfigEntry extends DefaultConfigEntry {
 

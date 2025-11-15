@@ -215,7 +215,7 @@ class Jsr380DynamicClassPBTest {
 	}
 
 	static boolean isAnExpectedException(Exception exception) {
-		return oks.stream().map(p -> p.test(exception)).anyMatch(Boolean.TRUE::equals);
+		return oks.stream().anyMatch(p -> p.test(exception));
 	}
 
 	static Predicate<Throwable> endsWith(Function<Throwable, String> mapper, String expectedMessage) {

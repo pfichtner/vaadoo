@@ -37,7 +37,7 @@ public final class Resources {
 
 		@Override
 		public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
-				boolean reload) throws IllegalAccessException, InstantiationException, IOException {
+				boolean reload) throws IOException {
 
 			Enumeration<URL> resources = loader
 					.getResources(toResourceName(toBundleName(baseName, locale), "properties"));

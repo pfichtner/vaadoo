@@ -105,8 +105,8 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 		@Delegate
 		@Getter(value = PRIVATE)
-		private final ParameterDefinition delegate;
-		private final String name;
+		ParameterDefinition delegate;
+		String name;
 
 	}
 
@@ -239,10 +239,9 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	}
 
 	private Builder<Object> base() {
-		Builder<Object> built = new ByteBuddy() //
+		return new ByteBuddy() //
 				.subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS) //
 				.name(classname);
-		return built;
 	}
 
 	private static AnnotationDescription createAnnotation(Class<? extends Annotation> ann) {

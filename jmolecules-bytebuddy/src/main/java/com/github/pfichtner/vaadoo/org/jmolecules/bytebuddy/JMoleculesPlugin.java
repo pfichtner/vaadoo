@@ -66,13 +66,11 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 			).flatMap(identity()).collect(toList());
 		});
 
-		delegates.computeIfAbsent(typeDescription, it -> {
-			return plugins.stream().filter(plugin -> plugin.matches(it)).peek(plugin -> {
-				if (plugin instanceof WithPreprocessor) {
-					((WithPreprocessor) plugin).onPreprocess(it, classFileLocator);
-				}
-			}).collect(toList());
-		});
+		delegates.computeIfAbsent(typeDescription, it -> plugins.stream().filter(p -> p.matches(it)).peek(plugin -> {
+            if (plugin instanceof WithPreprocessor) {
+                ((WithPreprocessor) plugin).onPreprocess(it, classFileLocator);
+            }
+        }).collect(toList()));
 	}
 
 	@Override

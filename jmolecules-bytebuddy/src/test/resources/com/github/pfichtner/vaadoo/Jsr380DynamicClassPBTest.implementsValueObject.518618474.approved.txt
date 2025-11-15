@@ -102,7 +102,7 @@ implements ValueObject {
         if (linkedList == null) {
             throw new NullPointerException("linkedList must not be empty");
         }
-        if (linkedList.size() <= 0) {
+        if (linkedList.size() == 0) {
             throw new IllegalArgumentException("linkedList must not be empty");
         }
         if (linkedList == null) {

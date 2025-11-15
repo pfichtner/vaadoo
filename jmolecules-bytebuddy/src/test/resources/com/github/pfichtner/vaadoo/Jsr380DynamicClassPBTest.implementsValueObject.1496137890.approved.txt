@@ -55,7 +55,7 @@ implements ValueObject {
         if (linkedHashMap == null) {
             throw new NullPointerException("linkedHashMap must not be empty");
         }
-        if (linkedHashMap.size() <= 0) {
+        if (linkedHashMap.size() == 0) {
             throw new IllegalArgumentException("linkedHashMap must not be empty");
         }
         if (minguoDate != null) {

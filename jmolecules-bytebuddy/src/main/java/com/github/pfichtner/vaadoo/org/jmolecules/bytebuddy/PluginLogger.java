@@ -15,6 +15,8 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
+import static java.lang.String.format;
+
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
@@ -50,7 +52,7 @@ enum PluginLogger {
 			throw new IllegalArgumentException("TypeDescription must not be null!");
 		}
 
-		if (name == null || name.trim().length() == 0) {
+		if (name == null || name.trim().isEmpty()) {
 			throw new IllegalArgumentException("Module name must not be null or empty!");
 		}
 
@@ -69,7 +71,7 @@ enum PluginLogger {
 					return;
 				}
 
-				log.info("□─ " + description);
+                log.info("□─ {}", description);
 				int i = 0;
 
 				for (LogEntry logEntry : moduleLogs) {
@@ -77,7 +79,7 @@ enum PluginLogger {
 					String module = logEntry.getModule();
 					String prefix = i + 1 == moduleLogs.size() ? "└─ " : "├─ ";
 
-					log.info(String.format("%s%s - %s", prefix, module, logEntry.getMessage()),
+					log.info(format("%s%s - %s", prefix, module, logEntry.getMessage()),
 							logEntry.getParameters());
 
 					i++;
@@ -98,22 +100,21 @@ enum PluginLogger {
 	@Value
 	private static class LogEntry implements Comparable<LogEntry> {
 
+		private static final Comparator<LogEntry> comparator = Comparator
+				.comparing(LogEntry::getModule)
+				.thenComparing(LogEntry::getExpandedMessage);
+		
 		String module;
 		String message;
 		Object[] parameters;
 
 		@Override
 		public int compareTo(LogEntry o) {
-
-			Comparator<LogEntry> comparator = Comparator
-					.comparing(LogEntry::getModule)
-					.thenComparing(LogEntry::getExpandedMessage);
-
 			return comparator.compare(this, o);
 		}
 
 		private String getExpandedMessage() {
-			return String.format(message.replace("{}", "%s"), parameters);
+			return format(message.replace("{}", "%s"), parameters);
 		}
 	}
 
