@@ -155,9 +155,8 @@ public class Parameters implements Iterable<Parameter> {
 
 		@Override
 		public TypeDescription[] annotations() {
-			return annotationList().stream() //
-					.map(AnnotationDescription::getAnnotationType) //
-					.map(TypeDescription::asErasure) //
+			return annotationList() //
+					.asTypeList()
 					.toArray(TypeDescription[]::new);
 		}
 
