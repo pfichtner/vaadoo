@@ -1,7 +1,7 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
-import static java.lang.Math.abs;
 import static java.lang.reflect.Proxy.newProxyInstance;
+import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
@@ -11,15 +11,16 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
@@ -63,36 +64,151 @@ class JdkOnlyCodeFragmentPropertyTest {
 	@Value
 	private static class Fixture {
 
-		ThrowingCallable throwingCallable;
+		Jsr380CodeFragment sut;
+		Annotation anno;
 
-		public static Fixture of(ThrowingCallable throwingCallable) {
-			return new Fixture(throwingCallable);
+		private static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz) {
+			return of(sut, clazz, emptyMap());
 		}
 
-		public void noEx() {
-			assertThatNoException().isThrownBy(throwingCallable);
+		private static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz, Map<String, Object> data) {
+			return new Fixture(sut, anno(clazz, data));
 		}
 
-		public void npe() {
-			assertThatNullPointerException().isThrownBy(throwingCallable).withMessage("theMessage");
+		public void noEx(Object v, Class<?>... types) {
+			for (Class<?> type : types) {
+				assertThatNoException().isThrownBy(() -> accept(v, type));
+			}
 		}
 
-		public void iae() {
-			assertThatIllegalArgumentException().isThrownBy(throwingCallable).withMessage("theMessage");
+		public void npe(Object v, Class<?>... types) {
+			for (Class<?> type : types) {
+				assertThatNullPointerException().isThrownBy(() -> accept(v, type)).withMessage("theMessage");
+			}
 		}
 
+		public void iae(Object v, Class<?>... types) {
+			for (Class<?> type : types) {
+				assertThatIllegalArgumentException().isThrownBy(() -> accept(v, type)).withMessage("theMessage");
+			}
+		}
+
+		private void accept(Object value, Class<?> param1Type) {
+			Method method = only(Arrays.stream(sut.getClass().getMethods()).filter(m -> m.getName().equals("check"))
+					.filter(m -> m.getParameterTypes().length == 2 && m.getParameterTypes()[0].isInstance(anno)
+							&& m.getParameterTypes()[1].isAssignableFrom(param1Type)));
+			try {
+				method.invoke(sut, anno, convert(param1Type, value));
+			} catch (IllegalAccessException | IllegalArgumentException e) {
+				throw new RuntimeException(e);
+			} catch (InvocationTargetException e) {
+				Throwable cause = e.getCause();
+				throw cause instanceof RuntimeException ? (RuntimeException) cause : new RuntimeException(e);
+			}
+		}
+
+		private static <T> T only(Stream<T> stream) {
+			return stream.reduce((_ign1, _ign2) -> {
+				throw new IllegalStateException("multiple elements");
+			}).orElseThrow(() -> new IllegalStateException("no match"));
+		}
+
+		private static Object convert(Class<?> target, Object value) {
+			if (value == null)
+				return null;
+
+			if (target == String.class)
+				return String.valueOf(value);
+
+			if (target.isPrimitive()) {
+				if (target == byte.class)
+					return ((Number) value).byteValue();
+				if (target == short.class)
+					return ((Number) value).shortValue();
+				if (target == int.class)
+					return ((Number) value).intValue();
+				if (target == long.class)
+					return ((Number) value).longValue();
+				if (target == float.class)
+					return ((Number) value).floatValue();
+				if (target == double.class)
+					return ((Number) value).doubleValue();
+				if (target == char.class)
+					return (char) ((Number) value).intValue();
+				if (target == boolean.class)
+					return value;
+			}
+
+			// wrapper types
+			if (Number.class.isAssignableFrom(target) && value instanceof Number) {
+				Number n = (Number) value;
+				if (target == Byte.class)
+					return n.byteValue();
+				if (target == Short.class)
+					return n.shortValue();
+				if (target == Integer.class)
+					return n.intValue();
+				if (target == Long.class)
+					return n.longValue();
+				if (target == Float.class)
+					return n.floatValue();
+				if (target == Double.class)
+					return n.doubleValue();
+				if (target == BigInteger.class)
+					return BigInteger.valueOf(n.longValue());
+				if (target == BigDecimal.class) {
+					BigDecimal bd = BigDecimal.valueOf(n.doubleValue());
+					return value.getClass() == Integer.class || value.getClass() == Long.class ? bd.setScale(0) : bd;
+				}
+			}
+
+			return target.cast(value);
+		}
 	}
 
-	private static final String[] emptyStringArray = new String[0];
-	private static final Object[] emptyObjectArray = new Object[0];
+	Jsr380CodeFragment sut = new JdkOnlyCodeFragment();
 
-	private static <A extends Annotation> A anno(Class<A> annotationType) {
-		return anno(annotationType, Map.of());
-	}
+	Class<?>[] booleanTypes = new Class<?>[] { boolean.class, Boolean.class };
+	Class<?>[] numberTypes = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
+			Integer.class, Long.class, BigInteger.class, BigDecimal.class };
+
+	Fixture notEmpty = Fixture.of(sut, NotEmpty.class);
+
+	Fixture notNull = Fixture.of(sut, NotNull.class);
+	Fixture notBlank = Fixture.of(sut, NotBlank.class);
+	Fixture pattern = Fixture.of(sut, Pattern.class, Map.of("regexp", "\\d{2}"));
+
+	Fixture size = Fixture.of(sut, Size.class, Map.of("min", 2, "max", 4));
+	Fixture digits = Fixture.of(sut, Digits.class, Map.of("integer", 2, "fraction", 0));
+	Fixture min = Fixture.of(sut, Min.class, Map.of("value", 0L));
+	Fixture max = Fixture.of(sut, Max.class, Map.of("value", 100L));
+	Fixture decimalMin = Fixture.of(sut, DecimalMin.class, Map.of("value", "2"));
+	Fixture decimalMax = Fixture.of(sut, DecimalMax.class, Map.of("value", "5"));
+
+	Fixture assertTrue = Fixture.of(sut, AssertTrue.class);
+	Fixture assertFalse = Fixture.of(sut, AssertFalse.class);
+
+	Fixture positive = Fixture.of(sut, Positive.class);
+	Fixture positiveOrZero = Fixture.of(sut, PositiveOrZero.class);
+	Fixture negative = Fixture.of(sut, Negative.class);
+	Fixture negativeOrZero = Fixture.of(sut, NegativeOrZero.class);
+
+	Fixture future = Fixture.of(sut, Future.class);
+	Fixture futureOrPresent = Fixture.of(sut, FutureOrPresent.class);
+	Fixture past = Fixture.of(sut, Past.class);
+	Fixture pastOrPresent = Fixture.of(sut, PastOrPresent.class);
+
+	Class<?>[] byteTypes = new Class<?>[] { byte.class, Byte.class };
+	Class<?>[] shortTypes = new Class<?>[] { short.class, Short.class };
+	Class<?>[] intTypes = new Class<?>[] { int.class, Integer.class };
+	Class<?>[] longTypes = new Class<?>[] { long.class, Long.class };
+
+	String[] emptyStringArray = new String[0];
+	Object[] emptyObjectArray = new Object[0];
 
 	private static <A extends Annotation> A anno(Class<A> annotationType, Map<String, Object> values) {
-		return annotationType.cast(newProxyInstance(annotationType.getClassLoader(), new Class<?>[] { annotationType },
-				(InvocationHandler) (p, m, a) -> {
+		return annotationType.cast(
+				newProxyInstance(annotationType.getClassLoader(), new Class<?>[] { annotationType }, (p, m, a) -> {
 					if (m.getName().equals("message")) {
 						return "theMessage";
 					}
@@ -101,39 +217,32 @@ class JdkOnlyCodeFragmentPropertyTest {
 				}));
 	}
 
-	Jsr380CodeFragment sut = new JdkOnlyCodeFragment();
-
 	// NotNull: generated non-null strings should never fail
 	@Property
 	void notNull_should_accept_any_non_null_string(@ForAll("nonNullStrings") String s) {
-		var a = anno(NotNull.class);
-		Fixture.of(() -> sut.check(a, s)).noEx();
+		notNull.noEx(s, String.class);
 	}
 
 	@Property
 	void notNull_should_throw_on_null() {
-		var a = anno(NotNull.class);
-		Fixture.of(() -> sut.check(a, (Object) null)).npe();
+		notNull.npe(null, Object.class);
 	}
 
 	// NotBlank: non-blank strings should pass
 	@Property
 	void notBlank_passes_for_non_blank(@ForAll("nonBlankStrings") String s) {
-		var a = anno(NotBlank.class);
-		Fixture.of(() -> sut.check(a, s)).noEx();
+		notBlank.noEx(s, String.class);
 	}
 
 	@Property
 	void notBlank_fails_for_blank() {
-		var a = anno(NotBlank.class);
-		Fixture.of(() -> sut.check(a, "   ")).iae();
+		notBlank.iae("   ", String.class);
 	}
 
 	// Pattern: generated strings matching the pattern should pass
 	@Property
 	void pattern_matches_generated_values(@ForAll("twoDigits") String s) {
-		var a = anno(Pattern.class, Map.of("regexp", "\\d{2}"));
-		Fixture.of(() -> sut.check(a, s)).noEx();
+		pattern.noEx(s, String.class);
 	}
 
 	// NotEmpty variants: char sequence, collection and map are covered in unit
@@ -141,733 +250,391 @@ class JdkOnlyCodeFragmentPropertyTest {
 	// here we at least property-test char sequences and arrays
 	@Property
 	void notEmpty_charsequence_passes(@ForAll("nonBlankStrings") String s) {
-		var a = anno(NotEmpty.class);
-		Fixture.of(() -> sut.check(a, s)).noEx();
+		notEmpty.noEx(s, String.class);
 	}
 
 	@Property
 	void notEmpty_collection_passes(@ForAll("nonEmptyLists") List<String> l) {
-		var a = anno(NotEmpty.class);
-		Fixture.of(() -> sut.check(a, l)).noEx();
+		notEmpty.noEx(l, List.class);
 	}
 
 	@Property
 	void notEmpty_map_passes(@ForAll("nonEmptyMaps") Map<String, Integer> m) {
-		var a = anno(NotEmpty.class);
-		Fixture.of(() -> sut.check(a, m)).noEx();
+		notEmpty.noEx(m, Map.class);
 	}
 
 	@Property
 	void notEmpty_array_fails_for_empty() {
-		var a = anno(NotEmpty.class);
-		Fixture.of(() -> sut.check(a, emptyObjectArray)).iae();
+		notEmpty.iae(emptyObjectArray, Object[].class);
 	}
 
 	// Size: generate valid sizes and invalid sizes explicitly
 	@Property
 	void size_accepts_values_within_bounds(@ForAll("sizeStrings") String s) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, s)).noEx();
+		size.noEx(s, String.class);
 	}
 
 	@Property
 	void size_rejects_too_short(@ForAll("shortStrings") String s) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, s)).iae();
+		size.iae(s, String.class);
 	}
 
 	@Property
 	void size_collection_accepts_within_bounds(@ForAll("sizeLists") List<String> l) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, l)).noEx();
+		size.noEx(l, List.class);
 	}
 
 	@Property
 	void size_collection_rejects_too_short(@ForAll("shortLists") List<String> l) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, l)).iae();
+		size.iae(l, List.class);
 	}
 
 	@Property
 	void size_map_accepts_within_bounds(@ForAll("sizeMaps") Map<String, Integer> m) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, m)).noEx();
+		size.noEx(m, Map.class);
 	}
 
 	@Property
 	void size_map_rejects_too_short(@ForAll("shortMaps") Map<String, Integer> m) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, m)).iae();
+		size.iae(m, Map.class);
 	}
 
 	@Property
 	void size_array_accepts_within_bounds(@ForAll("sizeArrays") Object[] arr) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, arr)).noEx();
+		size.noEx(arr, Object[].class);
 	}
 
 	@Property
 	void size_array_rejects_too_short(@ForAll("shortArrays") Object[] arr) {
-		var a = anno(Size.class, Map.of("min", 2, "max", 4));
-		Fixture.of(() -> sut.check(a, arr)).iae();
+		size.iae(arr, Object[].class);
 	}
 
 	// AssertTrue / AssertFalse
 	@Property
 	void assertTrue_accepts_true(@ForAll boolean b) {
-		Fixture t = Fixture.of(() -> sut.check(anno(AssertTrue.class), b));
-		Fixture f = Fixture.of(() -> sut.check(anno(AssertFalse.class), b));
 		if (b) {
-			t.noEx();
-			f.iae();
+			assertTrue.noEx(b, booleanTypes);
+			assertFalse.iae(b, booleanTypes);
 		} else {
-			t.iae();
-			f.noEx();
+			assertTrue.iae(b, booleanTypes);
+			assertFalse.noEx(b, booleanTypes);
 		}
 	}
 
 	// Min / Max for ints
 	@Property
-	void min_accepts_values_at_or_above(@ForAll int v) {
-		var a = anno(Min.class, Map.of("value", 0L));
-
-		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
-		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
-		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
-		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
-
-		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
-		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
-		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
-		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
-
-		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
-		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
-
-		// primitives
-		if ((byte) v >= 0)
-			fbp.noEx();
-		else {
-			fbp.iae();
+	void min_accepts_values_at_or_above(@ForAll byte v) {
+		if (v >= 0) {
+			min.noEx(v, byteTypes);
+		} else {
+			min.iae(v, byteTypes);
 		}
+	}
 
-		if ((short) v >= 0)
-			fsp.noEx();
-		else
-			fsp.iae();
+	@Property
+	void min_accepts_values_at_or_above(@ForAll short v) {
+		if (v >= 0) {
+			min.noEx(v, shortTypes);
+		} else {
+			min.iae(v, shortTypes);
+		}
+	}
 
-		if ((int) v >= 0)
-			fip.noEx();
-		else
-			fip.iae();
+	@Property
+	void min_accepts_values_at_or_above(@ForAll int v) {
+		if (v >= 0) {
+			min.noEx(v, intTypes);
+		} else {
+			min.iae(v, intTypes);
+		}
+	}
 
-		if ((long) v >= 0)
-			flp.noEx();
-		else
-			flp.iae();
+	@Property
+	void min_accepts_values_at_or_above(@ForAll long v) {
+		if (v >= 0) {
+			min.noEx(v, longTypes);
+		} else {
+			min.iae(v, longTypes);
+		}
+	}
 
-		// wrappers
-		if (Byte.valueOf((byte) v) >= 0)
-			fbob.noEx();
-		else
-			fbob.iae();
+	@Property
+	void max_accepts_values_below_limit(@ForAll byte v) {
+		if (v <= 100) {
+			max.noEx(v, byteTypes);
+		} else {
+			max.iae(v, byteTypes);
+		}
+	}
 
-		if (Short.valueOf((short) v) >= 0)
-			fsob.noEx();
-		else
-			fsob.iae();
-
-		if (Integer.valueOf((int) v) >= 0)
-			fiob.noEx();
-		else
-			fiob.iae();
-
-		if (Long.valueOf((long) v) >= 0)
-			flob.noEx();
-		else
-			flob.iae();
-
-		if (BigInteger.valueOf(v).compareTo(BigInteger.ZERO) >= 0)
-			fbi.noEx();
-		else
-			fbi.iae();
-
-		if (BigDecimal.valueOf(v).compareTo(BigDecimal.ZERO) >= 0)
-			fbd.noEx();
-		else
-			fbd.iae();
+	@Property
+	void max_accepts_values_below_limit(@ForAll short v) {
+		if (v <= 100) {
+			max.noEx(v, shortTypes);
+		} else {
+			max.iae(v, shortTypes);
+		}
 	}
 
 	@Property
 	void max_accepts_values_below_limit(@ForAll int v) {
-		var a = anno(Max.class, Map.of("value", 100L));
-
-		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
-		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
-		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
-		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
-
-		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
-		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
-		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
-		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
-
-		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
-		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
-
-		if ((byte) v <= 100)
-			fbp.noEx();
-		else
-			fbp.iae();
-
-		if ((short) v <= 100)
-			fsp.noEx();
-		else
-			fsp.iae();
-
-		if ((int) v <= 100)
-			fip.noEx();
-		else
-			fip.iae();
-
-		if ((long) v <= 100)
-			flp.noEx();
-		else
-			flp.iae();
-
-		if (Byte.valueOf((byte) v) <= 100)
-			fbob.noEx();
-		else
-			fbob.iae();
-
-		if (Short.valueOf((short) v) <= 100)
-			fsob.noEx();
-		else
-			fsob.iae();
-
-		if (Integer.valueOf((int) v) <= 100)
-			fiob.noEx();
-		else
-			fiob.iae();
-
-		if (Long.valueOf((long) v) <= 100)
-			flob.noEx();
-		else
-			flob.iae();
-
-		if (BigInteger.valueOf(v).compareTo(BigInteger.valueOf(100)) <= 0)
-			fbi.noEx();
-		else
-			fbi.iae();
-
-		if (BigDecimal.valueOf(v).compareTo(BigDecimal.valueOf(100)) <= 0)
-			fbd.noEx();
-		else
-			fbd.iae();
+		if (v <= 100) {
+			max.noEx(v, intTypes);
+		} else {
+			max.iae(v, intTypes);
+		}
 	}
 
-	// DecimalMin / DecimalMax for CharSequence values (strings representing
-	// numbers)
 	@Property
-	void decimalMin_accepts_strings_greater_or_equal(@ForAll("numericStringsGE2") String s) {
-		var a = anno(DecimalMin.class, Map.of("value", "2"));
-		Fixture.of(() -> sut.check(a, s)).noEx();
+	void max_accepts_values_below_limit(@ForAll long v) {
+		if (v <= 100) {
+			max.noEx(v, longTypes);
+		} else {
+			max.iae(v, longTypes);
+		}
+	}
+
+	@Property
+	void decimalMin_accepts_numbers_greater_or_equal(@ForAll byte v) {
+		if (v >= 2) {
+			decimalMin.noEx(v, byteTypes);
+			decimalMin.noEx(v, String.class);
+		} else {
+			decimalMin.iae(v, byteTypes);
+			decimalMin.iae(v, String.class);
+		}
+	}
+
+	@Property
+	void decimalMin_accepts_numbers_greater_or_equal(@ForAll short v) {
+		if (v >= 2) {
+			decimalMin.noEx(v, shortTypes);
+			decimalMin.noEx(v, String.class);
+		} else {
+			decimalMin.iae(v, shortTypes);
+			decimalMin.iae(v, String.class);
+		}
 	}
 
 	@Property
 	void decimalMin_accepts_numbers_greater_or_equal(@ForAll int v) {
-		var a = anno(DecimalMin.class, Map.of("value", "2"));
-
-		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
-		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
-		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
-		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
-
-		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
-		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
-		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
-		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
-
-		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
-		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
-
-		if ((byte) v >= 2)
-			fbp.noEx();
-		else
-			fbp.iae();
-
-		if ((short) v >= 2)
-			fsp.noEx();
-		else
-			fsp.iae();
-
-		if ((int) v >= 2)
-			fip.noEx();
-		else
-			fip.iae();
-
-		if ((long) v >= 2)
-			flp.noEx();
-		else
-			flp.iae();
-
-		if (Byte.valueOf((byte) v) >= 2)
-			fbob.noEx();
-		else
-			fbob.iae();
-
-		if (Short.valueOf((short) v) >= 2)
-			fsob.noEx();
-		else
-			fsob.iae();
-
-		if (Integer.valueOf((int) v) >= 2)
-			fiob.noEx();
-		else
-			fiob.iae();
-
-		if (Long.valueOf((long) v) >= 2)
-			flob.noEx();
-		else
-			flob.iae();
-
-		if (BigInteger.valueOf(v).compareTo(BigInteger.valueOf(2)) >= 0)
-			fbi.noEx();
-		else
-			fbi.iae();
-
-		if (BigDecimal.valueOf(v).compareTo(BigDecimal.valueOf(2)) >= 0)
-			fbd.noEx();
-		else
-			fbd.iae();
+		if (v >= 2) {
+			decimalMin.noEx(v, intTypes);
+			decimalMin.noEx(v, String.class);
+		} else {
+			decimalMin.iae(v, intTypes);
+			decimalMin.iae(v, String.class);
+		}
 	}
 
 	@Property
-	void decimalMax_rejects_greater_strings(@ForAll("numericStringsGT5") String s) {
-		var a = anno(DecimalMax.class, Map.of("value", "5"));
-		Fixture.of(() -> sut.check(a, s)).iae();
+	void decimalMin_accepts_numbers_greater_or_equal(@ForAll long v) {
+		if (v >= 2) {
+			decimalMin.noEx(v, longTypes);
+			decimalMin.noEx(v, String.class);
+		} else {
+			decimalMin.iae(v, longTypes);
+			decimalMin.iae(v, String.class);
+		}
+	}
+
+	@Property
+	void decimalMax_rejects_greater_numbers(@ForAll byte v) {
+		if (v <= 5) {
+			decimalMax.noEx(v, byteTypes);
+			decimalMax.noEx(String.valueOf(v), String.class);
+		} else {
+			decimalMax.iae(v, byteTypes);
+			decimalMax.iae(String.valueOf(v), String.class);
+		}
+	}
+
+	@Property
+	void decimalMax_rejects_greater_numbers(@ForAll short v) {
+		if (v <= 5) {
+			decimalMax.noEx(v, shortTypes);
+			decimalMax.noEx(String.valueOf(v), String.class);
+		} else {
+			decimalMax.iae(v, shortTypes);
+			decimalMax.iae(String.valueOf(v), String.class);
+		}
 	}
 
 	@Property
 	void decimalMax_rejects_greater_numbers(@ForAll int v) {
-		var a = anno(DecimalMax.class, Map.of("value", "5"));
+		if (v <= 5) {
+			decimalMax.noEx(v, intTypes);
+			decimalMax.noEx(String.valueOf(v), String.class);
+		} else {
+			decimalMax.iae(v, intTypes);
+			decimalMax.iae(String.valueOf(v), String.class);
+		}
+	}
 
-		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
-		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
-		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
-		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
-
-		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
-		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
-		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
-		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
-
-		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
-		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
-
-		if ((byte) v <= 5)
-			fbp.noEx();
-		else
-			fbp.iae();
-
-		if ((short) v <= 5)
-			fsp.noEx();
-		else
-			fsp.iae();
-
-		if ((int) v <= 5)
-			fip.noEx();
-		else
-			fip.iae();
-
-		if ((long) v <= 5)
-			flp.noEx();
-		else
-			flp.iae();
-
-		if (Byte.valueOf((byte) v) <= 5)
-			fbob.noEx();
-		else
-			fbob.iae();
-
-		if (Short.valueOf((short) v) <= 5)
-			fsob.noEx();
-		else
-			fsob.iae();
-
-		if (Integer.valueOf((int) v) <= 5)
-			fiob.noEx();
-		else
-			fiob.iae();
-
-		if (Long.valueOf((long) v) <= 5)
-			flob.noEx();
-		else
-			flob.iae();
-
-		if (BigInteger.valueOf(v).compareTo(BigInteger.valueOf(5)) <= 0)
-			fbi.noEx();
-		else
-			fbi.iae();
-
-		if (BigDecimal.valueOf(v).compareTo(BigDecimal.valueOf(5)) <= 0)
-			fbd.noEx();
-		else
-			fbd.iae();
+	@Property
+	void decimalMax_rejects_greater_numbers(@ForAll long v) {
+		if (v <= 5) {
+			decimalMax.noEx(v, longTypes);
+			decimalMax.noEx(String.valueOf(v), String.class);
+		} else {
+			decimalMax.iae(v, longTypes);
+			decimalMax.iae(String.valueOf(v), String.class);
+		}
 	}
 
 	// Digits and sign related constraints
 	@Property
-	void digits_rejects_too_many_integer_digits(@ForAll int v) {
-		var a = anno(Digits.class, Map.of("integer", 2, "fraction", 0));
-
-		Fixture fbp = Fixture.of(() -> sut.check(a, (byte) v));
-		Fixture fsp = Fixture.of(() -> sut.check(a, (short) v));
-		Fixture fip = Fixture.of(() -> sut.check(a, (int) v));
-		Fixture flp = Fixture.of(() -> sut.check(a, (long) v));
-
-		Fixture fbob = Fixture.of(() -> sut.check(a, Byte.valueOf((byte) v)));
-		Fixture fsob = Fixture.of(() -> sut.check(a, Short.valueOf((short) v)));
-		Fixture fiob = Fixture.of(() -> sut.check(a, Integer.valueOf((int) v)));
-		Fixture flob = Fixture.of(() -> sut.check(a, Long.valueOf((long) v)));
-
-		Fixture fbi = Fixture.of(() -> sut.check(a, BigInteger.valueOf(v)));
-		Fixture fbd = Fixture.of(() -> sut.check(a, BigDecimal.valueOf(v)));
-
-		Predicate<Long> fits = x -> abs(x) <= 99;
-
-		if (fits.test((long) (byte) v))
-			fbp.noEx();
-		else
-			fbp.iae();
-
-		if (fits.test((long) (short) v))
-			fsp.noEx();
-		else
-			fsp.iae();
-
-		if (fits.test((long) (int) v))
-			fip.noEx();
-		else
-			fip.iae();
-
-		if (fits.test((long) v))
-			flp.noEx();
-		else
-			flp.iae();
-
-		if (fits.test(Byte.valueOf((byte) v).longValue()))
-			fbob.noEx();
-		else
-			fbob.iae();
-
-		if (fits.test(Short.valueOf((short) v).longValue()))
-			fsob.noEx();
-		else
-			fsob.iae();
-
-		if (fits.test(Integer.valueOf((int) v).longValue()))
-			fiob.noEx();
-		else
-			fiob.iae();
-
-		if (fits.test(Long.valueOf((long) v).longValue()))
-			flob.noEx();
-		else
-			flob.iae();
-
-		if (BigInteger.valueOf(v).abs().toString().length() <= 2)
-			fbi.noEx();
-		else
-			fbi.iae();
-
-		if (BigDecimal.valueOf(v).abs().toBigInteger().toString().length() <= 2)
-			fbd.noEx();
-		else
-			fbd.iae();
+	void digits_rejects_too_many_integer_digits(@ForAll byte v) {
+		if (v >= -99 && v <= 99) {
+			digits.noEx(v, byteTypes);
+		} else {
+			digits.iae(v, byteTypes);
+		}
 	}
 
 	@Property
-	void positive_and_negative_behaviour(@ForAll int v) {
-		var p = anno(Positive.class);
-		var pz = anno(PositiveOrZero.class);
-		var n = anno(Negative.class);
-		var nz = anno(NegativeOrZero.class);
+	void digits_rejects_too_many_integer_digits(@ForAll short v) {
+		if (v >= -99 && v <= 99) {
+			digits.noEx(v, shortTypes);
+		} else {
+			digits.iae(v, shortTypes);
+		}
+	}
 
-		byte bv = (byte) v;
-		short sv = (short) v;
-		int iv = (int) v;
-		long lv = (long) v;
-		Byte bObj = Byte.valueOf((byte) v);
-		Short sObj = Short.valueOf((short) v);
-		Integer iObj = Integer.valueOf((int) v);
-		Long lObj = Long.valueOf((long) v);
+	@Property
+	void digits_rejects_too_many_integer_digits(@ForAll int v) {
+		if (v >= -99 && v <= 99) {
+			digits.noEx(v, intTypes);
+		} else {
+			digits.iae(v, intTypes);
+		}
+	}
 
-		BigInteger bi = BigInteger.valueOf(v);
-		BigDecimal bd = BigDecimal.valueOf(v);
+	@Property
+	void digits_rejects_too_many_integer_digits(@ForAll long v) {
+		if (v >= -99 && v <= 99) {
+			digits.noEx(v, longTypes);
+		} else {
+			digits.iae(v, longTypes);
+		}
+	}
 
-		// Positive
-		if (bv > 0) {
-			Fixture f1 = Fixture.of(() -> sut.check(p, bv));
-			f1.noEx();
-		} else
-			Fixture.of(() -> sut.check(p, bv)).iae();
+	@Property
+	void zero_behaviour() {
+		positive_and_negative_behaviour_zero(0, byteTypes);
+		positive_and_negative_behaviour_zero(0, shortTypes);
+		positive_and_negative_behaviour_zero(0, intTypes);
+		positive_and_negative_behaviour_zero(0, longTypes);
+	}
 
-		if (sv > 0)
-			Fixture.of(() -> sut.check(p, sv)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, sv)).iae();
+	@Property
+	void positive_behaviour(@ForAll @net.jqwik.api.constraints.Positive byte v) {
+		positive_and_negative_behaviour_greater_zero(v, byteTypes);
+	}
 
-		if (iv > 0)
-			Fixture.of(() -> sut.check(p, iv)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, iv)).iae();
+	@Property
+	void negative_behaviour(@ForAll @net.jqwik.api.constraints.Negative byte v) {
+		positive_and_negative_behaviour_less_zero(v, byteTypes);
+	}
 
-		if (lv > 0)
-			Fixture.of(() -> sut.check(p, lv)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, lv)).iae();
+	@Property
+	void positive_behaviour(@ForAll @net.jqwik.api.constraints.Positive short v) {
+		positive_and_negative_behaviour_greater_zero(v, shortTypes);
+	}
 
-		if (bObj > 0)
-			Fixture.of(() -> sut.check(p, bObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, bObj)).iae();
+	@Property
+	void negative_behaviour(@ForAll @net.jqwik.api.constraints.Negative short v) {
+		positive_and_negative_behaviour_less_zero(v, shortTypes);
+	}
 
-		if (sObj > 0)
-			Fixture.of(() -> sut.check(p, sObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, sObj)).iae();
+	@Property
+	void positive_behaviour(@ForAll @net.jqwik.api.constraints.Positive int v) {
+		positive_and_negative_behaviour_greater_zero(v, intTypes);
+	}
 
-		if (iObj > 0)
-			Fixture.of(() -> sut.check(p, iObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, iObj)).iae();
+	@Property
+	void negative_behaviour(@ForAll @net.jqwik.api.constraints.Negative int v) {
+		positive_and_negative_behaviour_less_zero(v, intTypes);
+	}
 
-		if (lObj > 0)
-			Fixture.of(() -> sut.check(p, lObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, lObj)).iae();
+	@Property
+	void positive_behaviour(@ForAll @net.jqwik.api.constraints.Positive long v) {
+		positive_and_negative_behaviour_greater_zero(v, longTypes);
+	}
 
-		if (bi.compareTo(BigInteger.ZERO) > 0)
-			Fixture.of(() -> sut.check(p, bi)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, bi)).iae();
+	@Property
+	void negative_behaviour(@ForAll @net.jqwik.api.constraints.Negative long v) {
+		positive_and_negative_behaviour_less_zero(v, longTypes);
+	}
 
-		if (bd.compareTo(BigDecimal.ZERO) > 0)
-			Fixture.of(() -> sut.check(p, bd)).noEx();
-		else
-			Fixture.of(() -> sut.check(p, bd)).iae();
+	// TODO add BigInteger, BigDecimal
 
-		// PositiveOrZero
-		if (bv >= 0)
-			Fixture.of(() -> sut.check(pz, bv)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, bv)).iae();
+	private void positive_and_negative_behaviour_less_zero(long v, Class<?>... types) {
+		positive.iae(v, types);
+		positiveOrZero.iae(v, types);
+		negative.noEx(v, types);
+		negativeOrZero.noEx(v, types);
+	}
 
-		if (sv >= 0)
-			Fixture.of(() -> sut.check(pz, sv)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, sv)).iae();
+	private void positive_and_negative_behaviour_greater_zero(long v, Class<?>... types) {
+		positive.noEx(v, types);
+		positiveOrZero.noEx(v, types);
+		negative.iae(v, types);
+		negativeOrZero.iae(v, types);
+	}
 
-		if (iv >= 0)
-			Fixture.of(() -> sut.check(pz, iv)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, iv)).iae();
-
-		if (lv >= 0)
-			Fixture.of(() -> sut.check(pz, lv)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, lv)).iae();
-
-		if (bObj >= 0)
-			Fixture.of(() -> sut.check(pz, bObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, bObj)).iae();
-
-		if (sObj >= 0)
-			Fixture.of(() -> sut.check(pz, sObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, sObj)).iae();
-
-		if (iObj >= 0)
-			Fixture.of(() -> sut.check(pz, iObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, iObj)).iae();
-
-		if (lObj >= 0)
-			Fixture.of(() -> sut.check(pz, lObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, lObj)).iae();
-
-		if (bi.compareTo(BigInteger.ZERO) >= 0)
-			Fixture.of(() -> sut.check(pz, bi)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, bi)).iae();
-
-		if (bd.compareTo(BigDecimal.ZERO) >= 0)
-			Fixture.of(() -> sut.check(pz, bd)).noEx();
-		else
-			Fixture.of(() -> sut.check(pz, bd)).iae();
-
-		// Negative
-		if (bv < 0)
-			Fixture.of(() -> sut.check(n, bv)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, bv)).iae();
-
-		if (sv < 0)
-			Fixture.of(() -> sut.check(n, sv)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, sv)).iae();
-
-		if (iv < 0)
-			Fixture.of(() -> sut.check(n, iv)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, iv)).iae();
-
-		if (lv < 0)
-			Fixture.of(() -> sut.check(n, lv)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, lv)).iae();
-
-		if (bObj < 0)
-			Fixture.of(() -> sut.check(n, bObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, bObj)).iae();
-
-		if (sObj < 0)
-			Fixture.of(() -> sut.check(n, sObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, sObj)).iae();
-
-		if (iObj < 0)
-			Fixture.of(() -> sut.check(n, iObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, iObj)).iae();
-
-		if (lObj < 0)
-			Fixture.of(() -> sut.check(n, lObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, lObj)).iae();
-
-		if (bi.compareTo(BigInteger.ZERO) < 0)
-			Fixture.of(() -> sut.check(n, bi)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, bi)).iae();
-
-		if (bd.compareTo(BigDecimal.ZERO) < 0)
-			Fixture.of(() -> sut.check(n, bd)).noEx();
-		else
-			Fixture.of(() -> sut.check(n, bd)).iae();
-
-		// NegativeOrZero
-		if (bv <= 0)
-			Fixture.of(() -> sut.check(nz, bv)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, bv)).iae();
-
-		if (sv <= 0)
-			Fixture.of(() -> sut.check(nz, sv)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, sv)).iae();
-
-		if (iv <= 0)
-			Fixture.of(() -> sut.check(nz, iv)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, iv)).iae();
-
-		if (lv <= 0)
-			Fixture.of(() -> sut.check(nz, lv)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, lv)).iae();
-
-		if (bObj <= 0)
-			Fixture.of(() -> sut.check(nz, bObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, bObj)).iae();
-
-		if (sObj <= 0)
-			Fixture.of(() -> sut.check(nz, sObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, sObj)).iae();
-
-		if (iObj <= 0)
-			Fixture.of(() -> sut.check(nz, iObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, iObj)).iae();
-
-		if (lObj <= 0)
-			Fixture.of(() -> sut.check(nz, lObj)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, lObj)).iae();
-
-		if (bi.compareTo(BigInteger.ZERO) <= 0)
-			Fixture.of(() -> sut.check(nz, bi)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, bi)).iae();
-
-		if (bd.compareTo(BigDecimal.ZERO) <= 0)
-			Fixture.of(() -> sut.check(nz, bd)).noEx();
-		else
-			Fixture.of(() -> sut.check(nz, bd)).iae();
+	private void positive_and_negative_behaviour_zero(long v, Class<?>... types) {
+		positive.iae(v, types);
+		positiveOrZero.noEx(v, types);
+		negative.iae(v, types);
+		negativeOrZero.noEx(v, types);
 	}
 
 	// Temporal: Past / Future for LocalDate
 	@Property
 	void past_accepts_dates_before_today(@ForAll("pastDates") LocalDate d) {
-		var a = anno(Past.class);
-		Fixture.of(() -> sut.check(a, d)).noEx();
+		past.noEx(d, LocalDate.class);
 	}
 
 	@Test
 	void future_rejects_past_date() {
-		var a = anno(jakarta.validation.constraints.Future.class);
-		Fixture.of(() -> sut.check(a, LocalDate.now().minusDays(1))).iae();
+		future.iae(LocalDate.now().minusDays(1), LocalDate.class);
 	}
 
 	@Property
 	void future_dates_are_future_and_rejected_by_past(@ForAll("futureDates") LocalDate d) {
-		var pastAnno = anno(Past.class);
-		var futureAnno = anno(Future.class);
-
 		// future dates should be rejected by @Past and accepted by @Future
-		Fixture.of(() -> sut.check(pastAnno, d)).iae();
-		Fixture.of(() -> sut.check(futureAnno, d)).noEx();
+		past.iae(d, LocalDate.class);
+		future.noEx(d, LocalDate.class);
 	}
 
 	@Property
 	void futureOrPresent_accepts_present_and_future(@ForAll("futureOrPresentDates") LocalDate d) {
-		var futureOrPresent = anno(FutureOrPresent.class);
-		var pastOrPresent = anno(PastOrPresent.class);
 		LocalDate today = LocalDate.now();
 
 		// FutureOrPresent should accept today and future dates
-		Fixture.of(() -> sut.check(futureOrPresent, d)).noEx();
+		futureOrPresent.noEx(d, LocalDate.class);
 
 		// PastOrPresent should reject strictly future dates, but accept today
-		Fixture fixture = Fixture.of(() -> sut.check(pastOrPresent, d));
 		if (d.isAfter(today)) {
-			fixture.iae();
+			pastOrPresent.iae(d, LocalDate.class);
 		} else {
-			fixture.noEx();
+			pastOrPresent.noEx(d, LocalDate.class);
 		}
 	}
 
 	@Property
 	void pastOrPresent_accepts_present_and_past(@ForAll("pastOrPresentDates") LocalDate d) {
-		var pastOrPresent = anno(PastOrPresent.class);
-		var futureOrPresent = anno(FutureOrPresent.class);
 		LocalDate today = LocalDate.now();
 
 		// PastOrPresent should accept today and past dates
-		Fixture.of(() -> sut.check(pastOrPresent, d)).noEx();
+		pastOrPresent.noEx(d, LocalDate.class);
 
 		// FutureOrPresent should reject strictly past dates, but accept today
-		Fixture fixture = Fixture.of(() -> sut.check(futureOrPresent, d));
 		if (d.isBefore(today)) {
-			fixture.iae();
+			futureOrPresent.iae(d, LocalDate.class);
 		} else {
-			fixture.noEx();
+			futureOrPresent.noEx(d, LocalDate.class);
 		}
 	}
 
@@ -946,8 +713,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Provide
 	Arbitrary<Map<String, Integer>> sizeMaps() {
-		return sizeLists()
-				.map(l -> range(0, l.size()).mapToObj(Integer::valueOf).collect(toMap(i -> "k" + i, identity())));
+		return sizeLists().map(l -> range(0, l.size()).boxed().collect(toMap(i -> "k" + i, identity())));
 	}
 
 	@Provide
