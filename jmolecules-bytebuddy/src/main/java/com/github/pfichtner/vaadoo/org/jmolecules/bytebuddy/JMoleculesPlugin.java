@@ -18,6 +18,7 @@ package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
+import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,11 +30,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.build.Plugin.WithPreprocessor;
+import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 
@@ -50,7 +55,7 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	private final VaadooConfiguration configuration;
 
 	public JMoleculesPlugin(File outputFolder) {
-		this.configuration = new VaadooConfiguration(outputFolder);
+		this.configuration = new FileBasedVaadooConfiguration(outputFolder);
 	}
 
 	@Override
@@ -60,17 +65,16 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 		}
 
 		List<LoggingPlugin> plugins = globalPlugins.computeIfAbsent(classFileLocator, locator -> {
-			ClassWorld world = ClassWorld.of(locator);
 			return Stream.of( //
-					vaadooPlugin(world) //
+					vaadooPlugin() //
 			).flatMap(identity()).collect(toList());
 		});
 
 		delegates.computeIfAbsent(typeDescription, it -> plugins.stream().filter(p -> p.matches(it)).peek(plugin -> {
-            if (plugin instanceof WithPreprocessor) {
-                ((WithPreprocessor) plugin).onPreprocess(it, classFileLocator);
-            }
-        }).collect(toList()));
+			if (plugin instanceof WithPreprocessor) {
+				((WithPreprocessor) plugin).onPreprocess(it, classFileLocator);
+			}
+		}).collect(toList()));
 	}
 
 	@Override
@@ -86,22 +90,28 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 				(it, plugin) -> (Builder) plugin.apply(it, typeDescription, classFileLocator), (left, right) -> right);
 	}
 
-	private static Stream<LoggingPlugin> vaadooPlugin(ClassWorld world) {
-		return Stream.of(new VaadooPlugin());
-		// TODO does vaadoo depend on something to get active at all?
-//		return world.isAvailable("org.axonframework.spring.stereotype.Aggregate") //
-//				? Stream.of(new VaadooPlugin()) //
-//				: Stream.empty();
+	private Stream<LoggingPlugin> vaadooPlugin() {
+		return Stream.of(new VaadooPlugin(configuration));
+	}
+
+	public static interface VaadooConfiguration {
+
+		public boolean include(TypeDescription description);
+
+		public boolean customAnnotationsEnabled();
+
+		public boolean matches(TypeDescription target);
+
 	}
 
 	@Slf4j
-	private static class VaadooConfiguration {
+	private static class FileBasedVaadooConfiguration implements VaadooConfiguration {
 
 		private static final String VAADOO_CONFIG = "vaadoo.config";
 
 		private final Properties properties = new Properties();
 
-		public VaadooConfiguration(File outputFolder) {
+		public FileBasedVaadooConfiguration(File outputFolder) {
 			Path projectRoot = detectProjectRoot(outputFolder);
 			loadProperties(detectConfiguration(projectRoot), outputFolder);
 
@@ -131,13 +141,13 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 		}
 
 		public boolean include(TypeDescription description) {
-			String value = properties.getProperty("bytebuddy.include", "");
+			String value = getPackagesToInclude();
 			return value.trim().isEmpty() || Stream.of(value.split("\\,")).map(String::trim).map(it -> it.concat("."))
 					.anyMatch(description.getName()::startsWith);
 		}
 
 		private String getPackagesToInclude() {
-			return properties.getProperty("bytebuddy.include");
+			return properties.getProperty("bytebuddy.include", "");
 		}
 
 		private static Path detectProjectRoot(File file) {
@@ -161,6 +171,43 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 			return detectConfiguration(folder.getParent());
 		}
+
+		public boolean customAnnotationsEnabled() {
+			return Boolean
+					.parseBoolean(properties.getProperty("vaadoo.customAnnotationsEnabled", String.valueOf(true)));
+		}
+
+		public boolean matches(TypeDescription target) {
+			if (target.isAnnotation() || PluginUtils.isCglibProxyType(target)) {
+				return false;
+			}
+
+			if (implementsValueObject(target)) {
+				return true;
+			}
+			if (hasValueObjectAnnotation(target)) {
+				return true;
+			}
+
+			Generic superType = target.getSuperClass();
+			return target.isRecord()
+					|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
+		}
+
+		private boolean implementsValueObject(TypeDescription target) {
+			return !target.getInterfaces().filter(nameMatches("org.jmolecules.ddd.types.ValueObject")).isEmpty();
+		}
+
+		private boolean hasValueObjectAnnotation(TypeDescription target) {
+			return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
+					.flatMap(AnnotationList::stream) //
+					.anyMatch(typeIs("org.jmolecules.ddd.annotation.ValueObject"));
+		}
+
+		private Predicate<? super AnnotationDescription> typeIs(String annoName) {
+			return it -> it.getAnnotationType().getName().equals(annoName);
+		}
+
 	}
 
 	private static boolean hasBuildFile(Path folder) {

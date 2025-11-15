@@ -43,8 +43,10 @@ import com.github.pfichtner.vaadoo.Parameters;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.VaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 
+import lombok.RequiredArgsConstructor;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
@@ -58,11 +60,14 @@ import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.jar.asm.Type;
 
+@RequiredArgsConstructor
 class VaadooImplementor {
 
 	private static final String VALIDATE_METHOD_BASE_NAME = "validate";
 
 	private static final Class<? extends Jsr380CodeFragment> FRAGMENT_CLASS = com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment.class;
+
+	private final VaadooConfiguration configuration;
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
 		TypeDescription typeDescription = type.getTypeDescription();
@@ -104,7 +109,7 @@ class VaadooImplementor {
 				.defineMethod(validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
 				.withParameters(parameters.types()).intercept( //
 						new Implementation.Simple(
-								new StaticValidateAppender(parameters, validateMethodName, FRAGMENT_CLASS))));
+								new StaticValidateAppender(parameters, validateMethodName, FRAGMENT_CLASS, configuration.customAnnotationsEnabled()))));
 	}
 
 	private static Builder<?> wrap(Builder<?> builder, int flags) {
@@ -127,15 +132,14 @@ class VaadooImplementor {
 		private final String validateMethodName;
 		private final Class<? extends Jsr380CodeFragment> fragmentClass;
 		private final List<Method> codeFragmentMethods;
-
-		// TODO customAnnotationsEnabled
-		private boolean customAnnotationsEnabled = true;
+		private final boolean customAnnotationsEnabled;
 
 		public StaticValidateAppender(Parameters parameters, String validateMethodName,
-				Class<? extends Jsr380CodeFragment> fragmentClass) {
+				Class<? extends Jsr380CodeFragment> fragmentClass, boolean customAnnotationsEnabled) {
 			this.parameters = parameters;
 			this.validateMethodName = validateMethodName;
 			this.fragmentClass = fragmentClass;
+			this.customAnnotationsEnabled = customAnnotationsEnabled;
 			this.codeFragmentMethods = Arrays.asList(fragmentClass.getMethods());
 		}
 

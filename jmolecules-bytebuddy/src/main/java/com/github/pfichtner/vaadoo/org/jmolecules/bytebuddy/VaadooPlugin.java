@@ -15,17 +15,10 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
-import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
-
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.VaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 
-import net.bytebuddy.description.annotation.AnnotationDescription;
-import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 
@@ -59,34 +52,17 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
  */
 class VaadooPlugin implements LoggingPlugin {
 
-	private static final VaadooImplementor VAADOO_IMPLEMENTOR = new VaadooImplementor();
+	private final VaadooConfiguration configuration;
+	private final VaadooImplementor vaadooImplementor;
+
+	public VaadooPlugin(VaadooConfiguration configuration) {
+		this.configuration = configuration;
+		this.vaadooImplementor = new VaadooImplementor(configuration);
+	}
 
 	@Override
 	public boolean matches(TypeDescription target) {
-		if (target.isAnnotation() || PluginUtils.isCglibProxyType(target)) {
-			return false;
-		}
-
-		if (!target.getInterfaces().filter(nameMatches("org.jmolecules.ddd.types.ValueObject")).isEmpty()) {
-			return true;
-		}
-		if (hasAnyJMoleculesAnnotation(target)) {
-			return true;
-		}
-
-		Generic superType = target.getSuperClass();
-		return target.isRecord()
-				|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
-	}
-
-	private boolean hasAnyJMoleculesAnnotation(TypeDescription target) {
-		return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
-				.flatMap(AnnotationList::stream) //
-				.anyMatch(typeIs("org.jmolecules.ddd.annotation.ValueObject"));
-	}
-
-	private Predicate<? super AnnotationDescription> typeIs(String annoName) {
-		return it -> it.getAnnotationType().getName().equals(annoName);
+		return configuration.matches(target);
 	}
 
 	@Override
@@ -96,7 +72,7 @@ class VaadooPlugin implements LoggingPlugin {
 	}
 
 	private JMoleculesTypeBuilder handleEntity(JMoleculesTypeBuilder type) {
-		return type.map(VAADOO_IMPLEMENTOR::implementVaadoo);
+		return type.map(vaadooImplementor::implementVaadoo);
 	}
 
 }
