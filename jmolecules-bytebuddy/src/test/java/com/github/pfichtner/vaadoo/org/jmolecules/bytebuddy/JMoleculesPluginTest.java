@@ -15,6 +15,7 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.tryLoadConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -22,10 +23,12 @@ import java.net.URISyntaxException;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.FileBasedVaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.DefaultVaadooConfig;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.PropertiesVaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.VaadooConfiguration;
 
 /**
- * Tests for {@link FileBasedVaadooConfiguration}.
+ * Tests for {@link PropertiesVaadooConfiguration}.
  *
  * @author Oliver Drotbohm
  * @author Peter Fichtner
@@ -35,19 +38,20 @@ class JMoleculesConfigurationTests {
 	@Test
 	void detectsConfigurationInRootFolder() {
 		File file = getFolder("config/direct");
-		assertThat(new FileBasedVaadooConfiguration(file).getProperty("in")).isEqualTo("direct");
+		VaadooConfiguration tryLoadConfig = tryLoadConfig(file);
+		assertThat(((PropertiesVaadooConfiguration) tryLoadConfig).getProperty("in")).isEqualTo("direct");
 	}
 
 	@Test
 	void stopsTraversingAtNonBuildFolder() {
 		File file = getFolder("config/none");
-		assertThat(new FileBasedVaadooConfiguration(file).getProperty("in")).isNull();
+		assertThat((tryLoadConfig(file))).isExactlyInstanceOf(DefaultVaadooConfig.class);
 	}
 
 	@Test
 	void detectsConfigInParentBuildFolder() {
 		File file = getFolder("config/intermediate/nested");
-		assertThat(new FileBasedVaadooConfiguration(file).getProperty("intermediate")).isNull();
+		assertThat(((PropertiesVaadooConfiguration) tryLoadConfig(file)).getProperty("intermediate")).isNull();
 	}
 
 	private static File getFolder(String name) {

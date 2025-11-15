@@ -54,8 +54,11 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	private final Map<TypeDescription, List<? extends LoggingPlugin>> delegates = new HashMap<>();
 	private final VaadooConfiguration configuration;
 
+	private static final String VAADOO_CONFIG = "vaadoo.config";
+	private static final VaadooConfiguration DEFAULT_VAADOO_CONFIG = new DefaultVaadooConfig();
+
 	public JMoleculesPlugin(File outputFolder) {
-		this.configuration = new FileBasedVaadooConfiguration(outputFolder);
+		this.configuration = JMoleculesPlugin.tryLoadConfig(outputFolder);
 	}
 
 	@Override
@@ -94,6 +97,80 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 		return Stream.of(new VaadooPlugin(configuration));
 	}
 
+	public static VaadooConfiguration tryLoadConfig(File outputFolder) {
+		Path projectRoot = PropertiesVaadooConfiguration.detectProjectRoot(outputFolder);
+		Properties loaded = loadProperties(PropertiesVaadooConfiguration.detectConfiguration(projectRoot),
+				outputFolder);
+		return loaded == null ? DEFAULT_VAADOO_CONFIG : new PropertiesVaadooConfiguration(loaded);
+	}
+
+	private static Properties loadProperties(File configuration, File outputFolder) {
+		if (configuration == null) {
+			logNoConfigFound(outputFolder);
+			return null;
+		}
+
+		try {
+			Properties properties = new Properties();
+			properties.load(new FileInputStream(configuration));
+			return properties;
+		} catch (FileNotFoundException e) {
+			logNoConfigFound(outputFolder);
+			return null;
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	private static void logNoConfigFound(File outputFolder) {
+		log.info("No {} found traversing {}", VAADOO_CONFIG, outputFolder.getAbsolutePath());
+	}
+
+	static final class DefaultVaadooConfig implements VaadooConfiguration {
+
+		@Override
+		public boolean matches(TypeDescription target) {
+			if (target.isAnnotation() || PluginUtils.isCglibProxyType(target)) {
+				return false;
+			}
+
+			if (implementsValueObject(target)) {
+				return true;
+			}
+			if (hasValueObjectAnnotation(target)) {
+				return true;
+			}
+
+			Generic superType = target.getSuperClass();
+			return target.isRecord()
+					|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
+		}
+
+		private boolean implementsValueObject(TypeDescription target) {
+			return !target.getInterfaces().filter(nameMatches("org.jmolecules.ddd.types.ValueObject")).isEmpty();
+		}
+
+		private boolean hasValueObjectAnnotation(TypeDescription target) {
+			return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
+					.flatMap(AnnotationList::stream) //
+					.anyMatch(typeIs("org.jmolecules.ddd.annotation.ValueObject"));
+		}
+
+		private Predicate<? super AnnotationDescription> typeIs(String annoName) {
+			return it -> it.getAnnotationType().getName().equals(annoName);
+		}
+
+		@Override
+		public boolean include(TypeDescription description) {
+			return true;
+		}
+
+		@Override
+		public boolean customAnnotationsEnabled() {
+			return true;
+		}
+	}
+
 	public static interface VaadooConfiguration {
 
 		public boolean include(TypeDescription description);
@@ -105,43 +182,16 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	}
 
 	@Slf4j
-	static class FileBasedVaadooConfiguration implements VaadooConfiguration {
+	static class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
-		private static final String VAADOO_CONFIG = "vaadoo.config";
+		private final Properties properties;
 
-		private final Properties properties = new Properties();
-
-		public FileBasedVaadooConfiguration tryLoad(File outputFolder) {
-			return new FileBasedVaadooConfiguration(outputFolder);
-		}
-
-		public FileBasedVaadooConfiguration(File outputFolder) {
-			Path projectRoot = detectProjectRoot(outputFolder);
-			loadProperties(detectConfiguration(projectRoot), outputFolder);
-
+		public PropertiesVaadooConfiguration(Properties properties) {
+			this.properties = properties;
 			String toInclude = getPackagesToInclude();
 			if (toInclude != null) {
 				log.info("Applying code generation to types located in package(s): {}.", toInclude);
 			}
-		}
-
-		private void loadProperties(File configuration, File outputFolder) {
-			if (configuration == null) {
-				logNoConfigFound(outputFolder);
-				return;
-			}
-
-			try {
-				this.properties.load(new FileInputStream(configuration));
-			} catch (FileNotFoundException e) {
-				logNoConfigFound(outputFolder);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-		}
-
-		public void logNoConfigFound(File outputFolder) {
-			log.info("No {} found traversing {}", VAADOO_CONFIG, outputFolder.getAbsolutePath());
 		}
 
 		public boolean include(TypeDescription description) {
@@ -186,34 +236,7 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 		}
 
 		public boolean matches(TypeDescription target) {
-			if (target.isAnnotation() || PluginUtils.isCglibProxyType(target)) {
-				return false;
-			}
-
-			if (implementsValueObject(target)) {
-				return true;
-			}
-			if (hasValueObjectAnnotation(target)) {
-				return true;
-			}
-
-			Generic superType = target.getSuperClass();
-			return target.isRecord()
-					|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
-		}
-
-		private boolean implementsValueObject(TypeDescription target) {
-			return !target.getInterfaces().filter(nameMatches("org.jmolecules.ddd.types.ValueObject")).isEmpty();
-		}
-
-		private boolean hasValueObjectAnnotation(TypeDescription target) {
-			return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
-					.flatMap(AnnotationList::stream) //
-					.anyMatch(typeIs("org.jmolecules.ddd.annotation.ValueObject"));
-		}
-
-		private Predicate<? super AnnotationDescription> typeIs(String annoName) {
-			return it -> it.getAnnotationType().getName().equals(annoName);
+			return true;
 		}
 
 	}
