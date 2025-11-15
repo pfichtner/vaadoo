@@ -105,11 +105,15 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	}
 
 	@Slf4j
-	private static class FileBasedVaadooConfiguration implements VaadooConfiguration {
+	static class FileBasedVaadooConfiguration implements VaadooConfiguration {
 
 		private static final String VAADOO_CONFIG = "vaadoo.config";
 
 		private final Properties properties = new Properties();
+
+		public FileBasedVaadooConfiguration tryLoad(File outputFolder) {
+			return new FileBasedVaadooConfiguration(outputFolder);
+		}
 
 		public FileBasedVaadooConfiguration(File outputFolder) {
 			Path projectRoot = detectProjectRoot(outputFolder);
@@ -175,6 +179,10 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 		public boolean customAnnotationsEnabled() {
 			return Boolean
 					.parseBoolean(properties.getProperty("vaadoo.customAnnotationsEnabled", String.valueOf(true)));
+		}
+
+		String getProperty(String key) {
+			return properties.getProperty(key);
 		}
 
 		public boolean matches(TypeDescription target) {
