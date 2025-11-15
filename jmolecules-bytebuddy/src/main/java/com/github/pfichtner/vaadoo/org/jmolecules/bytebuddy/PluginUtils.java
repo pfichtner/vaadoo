@@ -52,7 +52,7 @@ import net.bytebuddy.matcher.ElementMatcher.Junction;
  */
 class PluginUtils {
 
-	// this differs from jMolecukes, was: 
+	// this differs from jMolecules, was: 
 	// private static final String GENERATED_BY = "jMolecules ByteBuddy Plugin";
 	private static final String GENERATED_BY = "vaadoo ByteBuddy Plugin";
 
