@@ -58,7 +58,7 @@ import net.jqwik.time.api.Dates;
  * a wide variety of valid values and also specific invalid value generators for
  * the negative cases.
  */
-class JdkOnlyCodeFragmentPropertyTest {
+class JdkOnlyCodeFragmentPBTest {
 
 	@Value
 	private static class Fixture {
