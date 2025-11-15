@@ -6,9 +6,8 @@ import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -81,16 +80,24 @@ class JdkOnlyCodeFragmentPropertyTest {
 			}
 		}
 
-		public void npe(Object v, Class<?>... types) {
+		public void npe(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertThatNullPointerException().isThrownBy(() -> accept(v, type)).withMessage("theMessage");
+				assertException(NullPointerException.class, v, type);
 			}
 		}
 
-		public void iae(Object v, Class<?>... types) {
+		public void iae(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertThatIllegalArgumentException().isThrownBy(() -> accept(v, type)).withMessage("theMessage");
+				if (b) {
+					assertException(IllegalArgumentException.class, v, type);
+				} else {
+					accept(v, type);
+				}
 			}
+		}
+
+		private void assertException(Class<? extends Exception> exceptionType, Object v, Class<?> type) {
+			assertThatExceptionOfType(exceptionType).isThrownBy(() -> accept(v, type)).withMessage("theMessage");
 		}
 
 		private void accept(Object value, Class<?> param1Type) {
@@ -225,7 +232,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Property
 	void notNull_should_throw_on_null() {
-		notNull.npe(null, Object.class);
+		notNull.npe(true, null, Object.class);
 	}
 
 	// NotBlank: non-blank strings should pass
@@ -236,7 +243,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Property
 	void notBlank_fails_for_blank() {
-		notBlank.iae("   ", String.class);
+		notBlank.iae(true, "   ", String.class);
 	}
 
 	// Pattern: generated strings matching the pattern should pass
@@ -265,7 +272,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Property
 	void notEmpty_array_fails_for_empty() {
-		notEmpty.iae(emptyObjectArray, Object[].class);
+		notEmpty.iae(true, emptyObjectArray, Object[].class);
 	}
 
 	// Size: generate valid sizes and invalid sizes explicitly
@@ -276,7 +283,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Property
 	void size_rejects_too_short(@ForAll("shortStrings") String s) {
-		size.iae(s, String.class);
+		size.iae(true, s, String.class);
 	}
 
 	@Property
@@ -286,7 +293,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Property
 	void size_collection_rejects_too_short(@ForAll("shortLists") List<String> l) {
-		size.iae(l, List.class);
+		size.iae(true, l, List.class);
 	}
 
 	@Property
@@ -296,7 +303,7 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Property
 	void size_map_rejects_too_short(@ForAll("shortMaps") Map<String, Integer> m) {
-		size.iae(m, Map.class);
+		size.iae(true, m, Map.class);
 	}
 
 	@Property
@@ -306,217 +313,124 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Property
 	void size_array_rejects_too_short(@ForAll("shortArrays") Object[] arr) {
-		size.iae(arr, Object[].class);
+		size.iae(true, arr, Object[].class);
 	}
 
 	// AssertTrue / AssertFalse
 	@Property
 	void assertTrue_accepts_true(@ForAll boolean b) {
-		if (b) {
-			assertTrue.noEx(b, booleanTypes);
-			assertFalse.iae(b, booleanTypes);
-		} else {
-			assertTrue.iae(b, booleanTypes);
-			assertFalse.noEx(b, booleanTypes);
-		}
+		assertTrue.iae(!b, b, booleanTypes);
+		assertFalse.iae(b, b, booleanTypes);
 	}
 
 	// Min / Max for ints
 	@Property
 	void min_accepts_values_at_or_above(@ForAll byte v) {
-		if (v >= 0) {
-			min.noEx(v, byteTypes);
-		} else {
-			min.iae(v, byteTypes);
-		}
+		min.iae(v < 0, v, byteTypes);
 	}
 
 	@Property
 	void min_accepts_values_at_or_above(@ForAll short v) {
-		if (v >= 0) {
-			min.noEx(v, shortTypes);
-		} else {
-			min.iae(v, shortTypes);
-		}
+		min.iae(v < 0, v, shortTypes);
 	}
 
 	@Property
 	void min_accepts_values_at_or_above(@ForAll int v) {
-		if (v >= 0) {
-			min.noEx(v, intTypes);
-		} else {
-			min.iae(v, intTypes);
-		}
+		min.iae(v < 0, v, intTypes);
 	}
 
 	@Property
 	void min_accepts_values_at_or_above(@ForAll long v) {
-		if (v >= 0) {
-			min.noEx(v, longTypes);
-		} else {
-			min.iae(v, longTypes);
-		}
+		min.iae(v < 0, v, longTypes);
 	}
 
 	@Property
 	void max_accepts_values_below_limit(@ForAll byte v) {
-		if (v <= 100) {
-			max.noEx(v, byteTypes);
-		} else {
-			max.iae(v, byteTypes);
-		}
+		max.iae(v > 100, v, byteTypes);
 	}
 
 	@Property
 	void max_accepts_values_below_limit(@ForAll short v) {
-		if (v <= 100) {
-			max.noEx(v, shortTypes);
-		} else {
-			max.iae(v, shortTypes);
-		}
+		max.iae(v > 100, v, shortTypes);
 	}
 
 	@Property
 	void max_accepts_values_below_limit(@ForAll int v) {
-		if (v <= 100) {
-			max.noEx(v, intTypes);
-		} else {
-			max.iae(v, intTypes);
-		}
+		max.iae(v > 100, v, intTypes);
 	}
 
 	@Property
 	void max_accepts_values_below_limit(@ForAll long v) {
-		if (v <= 100) {
-			max.noEx(v, longTypes);
-		} else {
-			max.iae(v, longTypes);
-		}
+		max.iae(v > 100, v, longTypes);
 	}
 
 	@Property
 	void decimalMin_accepts_numbers_greater_or_equal(@ForAll byte v) {
-		if (v >= 2) {
-			decimalMin.noEx(v, byteTypes);
-			decimalMin.noEx(v, String.class);
-		} else {
-			decimalMin.iae(v, byteTypes);
-			decimalMin.iae(v, String.class);
-		}
+		decimalMin.iae(v < 2, v, byteTypes);
+		decimalMin.iae(v < 2, v, String.class);
 	}
 
 	@Property
 	void decimalMin_accepts_numbers_greater_or_equal(@ForAll short v) {
-		if (v >= 2) {
-			decimalMin.noEx(v, shortTypes);
-			decimalMin.noEx(v, String.class);
-		} else {
-			decimalMin.iae(v, shortTypes);
-			decimalMin.iae(v, String.class);
-		}
+		decimalMin.iae(v < 2, v, shortTypes);
+		decimalMin.iae(v < 2, v, String.class);
 	}
 
 	@Property
 	void decimalMin_accepts_numbers_greater_or_equal(@ForAll int v) {
-		if (v >= 2) {
-			decimalMin.noEx(v, intTypes);
-			decimalMin.noEx(v, String.class);
-		} else {
-			decimalMin.iae(v, intTypes);
-			decimalMin.iae(v, String.class);
-		}
+		decimalMin.iae(v < 2, v, intTypes);
+		decimalMin.iae(v < 2, v, String.class);
 	}
 
 	@Property
 	void decimalMin_accepts_numbers_greater_or_equal(@ForAll long v) {
-		if (v >= 2) {
-			decimalMin.noEx(v, longTypes);
-			decimalMin.noEx(v, String.class);
-		} else {
-			decimalMin.iae(v, longTypes);
-			decimalMin.iae(v, String.class);
-		}
+		decimalMin.iae(v < 2, v, longTypes);
+		decimalMin.iae(v < 2, v, String.class);
 	}
 
 	@Property
 	void decimalMax_rejects_greater_numbers(@ForAll byte v) {
-		if (v <= 5) {
-			decimalMax.noEx(v, byteTypes);
-			decimalMax.noEx(String.valueOf(v), String.class);
-		} else {
-			decimalMax.iae(v, byteTypes);
-			decimalMax.iae(String.valueOf(v), String.class);
-		}
+		decimalMax.iae(v > 5, v, byteTypes);
+		decimalMax.iae(v > 5, String.valueOf(v), String.class);
 	}
 
 	@Property
 	void decimalMax_rejects_greater_numbers(@ForAll short v) {
-		if (v <= 5) {
-			decimalMax.noEx(v, shortTypes);
-			decimalMax.noEx(String.valueOf(v), String.class);
-		} else {
-			decimalMax.iae(v, shortTypes);
-			decimalMax.iae(String.valueOf(v), String.class);
-		}
+		decimalMax.iae(v > 5, v, shortTypes);
+		decimalMax.iae(v > 5, String.valueOf(v), String.class);
 	}
 
 	@Property
 	void decimalMax_rejects_greater_numbers(@ForAll int v) {
-		if (v <= 5) {
-			decimalMax.noEx(v, intTypes);
-			decimalMax.noEx(String.valueOf(v), String.class);
-		} else {
-			decimalMax.iae(v, intTypes);
-			decimalMax.iae(String.valueOf(v), String.class);
-		}
+		decimalMax.iae(v > 5, v, intTypes);
+		decimalMax.iae(v > 5, String.valueOf(v), String.class);
 	}
 
 	@Property
 	void decimalMax_rejects_greater_numbers(@ForAll long v) {
-		if (v <= 5) {
-			decimalMax.noEx(v, longTypes);
-			decimalMax.noEx(String.valueOf(v), String.class);
-		} else {
-			decimalMax.iae(v, longTypes);
-			decimalMax.iae(String.valueOf(v), String.class);
-		}
+		decimalMax.iae(v > 5, v, longTypes);
+		decimalMax.iae(v > 5, String.valueOf(v), String.class);
 	}
 
 	// Digits and sign related constraints
 	@Property
 	void digits_rejects_too_many_integer_digits(@ForAll byte v) {
-		if (v >= -99 && v <= 99) {
-			digits.noEx(v, byteTypes);
-		} else {
-			digits.iae(v, byteTypes);
-		}
+		digits.iae(v < -99 || v > 99, v, byteTypes);
 	}
 
 	@Property
 	void digits_rejects_too_many_integer_digits(@ForAll short v) {
-		if (v >= -99 && v <= 99) {
-			digits.noEx(v, shortTypes);
-		} else {
-			digits.iae(v, shortTypes);
-		}
+		digits.iae(v < -99 || v > 99, v, shortTypes);
 	}
 
 	@Property
 	void digits_rejects_too_many_integer_digits(@ForAll int v) {
-		if (v >= -99 && v <= 99) {
-			digits.noEx(v, intTypes);
-		} else {
-			digits.iae(v, intTypes);
-		}
+		digits.iae(v < -99 || v > 99, v, intTypes);
 	}
 
 	@Property
 	void digits_rejects_too_many_integer_digits(@ForAll long v) {
-		if (v >= -99 && v <= 99) {
-			digits.noEx(v, longTypes);
-		} else {
-			digits.iae(v, longTypes);
-		}
+		digits.iae(v < -99 || v > 99, v, longTypes);
 	}
 
 	@Property
@@ -570,8 +484,8 @@ class JdkOnlyCodeFragmentPropertyTest {
 	// TODO add BigInteger, BigDecimal
 
 	private void positive_and_negative_behaviour_less_zero(long v, Class<?>... types) {
-		positive.iae(v, types);
-		positiveOrZero.iae(v, types);
+		positive.iae(true, v, types);
+		positiveOrZero.iae(true, v, types);
 		negative.noEx(v, types);
 		negativeOrZero.noEx(v, types);
 	}
@@ -579,14 +493,14 @@ class JdkOnlyCodeFragmentPropertyTest {
 	private void positive_and_negative_behaviour_greater_zero(long v, Class<?>... types) {
 		positive.noEx(v, types);
 		positiveOrZero.noEx(v, types);
-		negative.iae(v, types);
-		negativeOrZero.iae(v, types);
+		negative.iae(true, v, types);
+		negativeOrZero.iae(true, v, types);
 	}
 
 	private void positive_and_negative_behaviour_zero(long v, Class<?>... types) {
-		positive.iae(v, types);
+		positive.iae(true, v, types);
 		positiveOrZero.noEx(v, types);
-		negative.iae(v, types);
+		negative.iae(true, v, types);
 		negativeOrZero.noEx(v, types);
 	}
 
@@ -598,44 +512,32 @@ class JdkOnlyCodeFragmentPropertyTest {
 
 	@Test
 	void future_rejects_past_date() {
-		future.iae(LocalDate.now().minusDays(1), LocalDate.class);
+		future.iae(true, LocalDate.now().minusDays(1), LocalDate.class);
 	}
 
 	@Property
 	void future_dates_are_future_and_rejected_by_past(@ForAll("futureDates") LocalDate d) {
 		// future dates should be rejected by @Past and accepted by @Future
-		past.iae(d, LocalDate.class);
+		past.iae(true, d, LocalDate.class);
 		future.noEx(d, LocalDate.class);
 	}
 
 	@Property
 	void futureOrPresent_accepts_present_and_future(@ForAll("futureOrPresentDates") LocalDate d) {
-		LocalDate today = LocalDate.now();
-
 		// FutureOrPresent should accept today and future dates
 		futureOrPresent.noEx(d, LocalDate.class);
 
 		// PastOrPresent should reject strictly future dates, but accept today
-		if (d.isAfter(today)) {
-			pastOrPresent.iae(d, LocalDate.class);
-		} else {
-			pastOrPresent.noEx(d, LocalDate.class);
-		}
+		pastOrPresent.iae(d.isAfter(LocalDate.now()), d, LocalDate.class);
 	}
 
 	@Property
 	void pastOrPresent_accepts_present_and_past(@ForAll("pastOrPresentDates") LocalDate d) {
-		LocalDate today = LocalDate.now();
-
 		// PastOrPresent should accept today and past dates
 		pastOrPresent.noEx(d, LocalDate.class);
 
 		// FutureOrPresent should reject strictly past dates, but accept today
-		if (d.isBefore(today)) {
-			futureOrPresent.iae(d, LocalDate.class);
-		} else {
-			futureOrPresent.noEx(d, LocalDate.class);
-		}
+		futureOrPresent.iae(d.isBefore(LocalDate.now()), d, LocalDate.class);
 	}
 
 	/* --- Arbitraries --- */
