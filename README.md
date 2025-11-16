@@ -53,7 +53,7 @@ class MyDomainObject {
 
 Ough, what a mess and waste of time! Manual constructor checks are messy, error-prone, and hard to maintain—they repeat the same boilerplate, can be forgotten or mistyped, and mix validation with business logic.
 
-And this is where vaadoo comes into play. Vaadoo is a compiler plugin that generates this boilerplate code for you. Checks are added to the bytecode so you get rid of a JSR 380 validation library. The generated code does nor depend on JSR 380 API- nor on JSR 380 validation libaries anymore. 
+And this is where Vaadoo comes into play. Vaadoo is a compiler plugin that generates all this boilerplate code for you. Checks are woven directly into the bytecode, so you get rid of any runtime JSR 380 dependency. Everything needed for validation is compiled directly into your classes—there are no runtime dependencies required, making your domain objects fully self-validating and ready to use immediately.
 
 PS: This is getting real fun with lombok ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/vaadoo-tests/lombok.config)) and records! 
 ```java
@@ -144,9 +144,11 @@ build on top of https://github.com/raphw/byte-buddy/tree/master/byte-buddy-maven
 
 ## Advantages
 - No reflection, what and how to check will be decided during compile- not during runtime. 
-  - Faster (at least 3-4x and up to 10x faster than validation via reflection, depending on the validations included)
-  - Can be used in environments where reflection is hard or impossible (e.g. native images)
-  - No dependencies to additional jars/libraries during runtime, everything is compiled into the classes
+- Faster (at least 3-4x and up to 10x faster than validation via reflection, depending on the validations included)
+- Zero runtime dependency: When using the JdkOnlyCodeFragment, everything needed for validation is compiled directly into each class. No additional jars, libraries, or runtime setup is required.
+- Fully self-contained: Once compiled, the domain objects are completely self-validating.
+- Can be used in environments where reflection is hard or impossible (e.g. native images)
+- Safe for environments with limited resources or restricted classloading.
 
 ## Other projects/approaches
 - https://github.com/opensanca/service-validator
