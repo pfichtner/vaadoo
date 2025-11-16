@@ -15,17 +15,22 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
-import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.tryLoadConfig;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.File;
+import java.lang.module.Configuration;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.DefaultVaadooConfig;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.PropertiesVaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.VaadooConfiguration;
+
+import net.bytebuddy.dynamic.ClassFileLocator;
 
 /**
  * Tests for {@link PropertiesVaadooConfiguration}.
@@ -38,20 +43,38 @@ class JMoleculesConfigurationTests {
 	@Test
 	void detectsConfigurationInRootFolder() {
 		File file = getFolder("config/direct");
-		VaadooConfiguration tryLoadConfig = tryLoadConfig(file);
-		assertThat(((PropertiesVaadooConfiguration) tryLoadConfig).getProperty("in")).isEqualTo("direct");
+		assertThat(tryLoadConfig(file)).hasValueSatisfying(c -> assertThat(c.getProperty("in")).isEqualTo("direct"));
 	}
 
 	@Test
 	void stopsTraversingAtNonBuildFolder() {
 		File file = getFolder("config/none");
-		assertThat((tryLoadConfig(file))).isExactlyInstanceOf(DefaultVaadooConfig.class);
+		assertThat((tryLoadConfig(file))).isEmpty();
 	}
 
 	@Test
 	void detectsConfigInParentBuildFolder() {
 		File file = getFolder("config/intermediate/nested");
-		assertThat(((PropertiesVaadooConfiguration) tryLoadConfig(file)).getProperty("intermediate")).isNull();
+		assertThat(tryLoadConfig(file)).hasValueSatisfying(c -> assertThat(c.getProperty("intermediate")).isNull());
+	}
+
+	@Test
+	void returnsJMoleculesSpecificConfigWithJMoleculesInClasspath() {
+		File file = getFolder("config/none");
+		ClassWorld classWorld = ClassWorld.of(ClassFileLocator.ForClassLoader.ofSystemLoader());
+		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
+			assertThat(jMoleculesPlugin.configuration(classWorld))
+					.isExactlyInstanceOf(DefaultJMoleculesVaadooConfig.class);
+		}
+	}
+
+	@Test
+	void returnsDefaultWithoutJmoleculesInClasspath() {
+		File file = getFolder("config/none");
+		ClassWorld classWorld = ClassWorld.of(ClassFileLocator.NoOp.INSTANCE);
+		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
+			assertThat(jMoleculesPlugin.configuration(classWorld)).isExactlyInstanceOf(DefaultVaadooConfig.class);
+		}
 	}
 
 	private static File getFolder(String name) {

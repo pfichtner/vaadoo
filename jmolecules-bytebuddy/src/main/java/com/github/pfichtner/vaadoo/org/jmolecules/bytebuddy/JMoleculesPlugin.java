@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -52,24 +53,25 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	private final Map<ClassFileLocator, List<LoggingPlugin>> globalPlugins = new HashMap<>();
 	private final Map<TypeDescription, List<? extends LoggingPlugin>> delegates = new HashMap<>();
-	private final VaadooConfiguration configuration;
+	private final PropertiesVaadooConfiguration configuration;
 
 	private static final String VAADOO_CONFIG = "vaadoo.config";
-	private static final VaadooConfiguration DEFAULT_VAADOO_CONFIG = new DefaultVaadooConfig();
 
 	public JMoleculesPlugin(File outputFolder) {
-		this.configuration = JMoleculesPlugin.tryLoadConfig(outputFolder);
+		this.configuration = tryLoadConfig(outputFolder).orElse(null);
 	}
 
 	@Override
 	public void onPreprocess(TypeDescription typeDescription, ClassFileLocator classFileLocator) {
+		ClassWorld world = ClassWorld.of(classFileLocator);
+		VaadooConfiguration configuration = configuration(world);
 		if (!configuration.include(typeDescription) || PluginUtils.isCglibProxyType(typeDescription)) {
 			return;
 		}
 
 		List<LoggingPlugin> plugins = globalPlugins.computeIfAbsent(classFileLocator, locator -> {
 			return Stream.of( //
-					vaadooPlugin() //
+					vaadooPlugin(configuration) //
 			).flatMap(identity()).collect(toList());
 		});
 
@@ -93,15 +95,42 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 				(it, plugin) -> (Builder) plugin.apply(it, typeDescription, classFileLocator), (left, right) -> right);
 	}
 
-	private Stream<LoggingPlugin> vaadooPlugin() {
+	private Stream<LoggingPlugin> vaadooPlugin(VaadooConfiguration configuration) {
 		return Stream.of(new VaadooPlugin(configuration));
 	}
 
-	public static VaadooConfiguration tryLoadConfig(File outputFolder) {
+	VaadooConfiguration configuration(ClassWorld world) {
+		return configuration == null //
+				? DefaultJMoleculesVaadooConfig.isApplicable(world) //
+						? new DefaultJMoleculesVaadooConfig()
+						: new DefaultVaadooConfig() //
+				: configuration;
+	}
+
+	static Optional<PropertiesVaadooConfiguration> tryLoadConfig(File outputFolder) {
 		Path projectRoot = PropertiesVaadooConfiguration.detectProjectRoot(outputFolder);
-		Properties loaded = loadProperties(PropertiesVaadooConfiguration.detectConfiguration(projectRoot),
-				outputFolder);
-		return loaded == null ? DEFAULT_VAADOO_CONFIG : new PropertiesVaadooConfiguration(loaded);
+		File file = detectConfiguration(projectRoot);
+		return Optional.ofNullable(loadProperties(file, outputFolder)).map(PropertiesVaadooConfiguration::new);
+	}
+
+	private static File detectConfiguration(Path folder) {
+		if (!hasBuildFile(folder)) {
+			return null;
+		}
+
+		File candidate = folder.resolve(VAADOO_CONFIG).toFile();
+
+		if (candidate.exists()) {
+			log.info("Found {} at {}", VAADOO_CONFIG, candidate.getAbsolutePath());
+			return candidate;
+		}
+
+		return detectConfiguration(folder.getParent());
+	}
+
+	private static boolean hasBuildFile(Path folder) {
+		return Stream.of("pom.xml", "build.gradle", "build.gradle.kts").map(folder::resolve).map(Path::toFile)
+				.anyMatch(File::exists);
 	}
 
 	private static Properties loadProperties(File configuration, File outputFolder) {
@@ -127,6 +156,29 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	}
 
 	static final class DefaultVaadooConfig implements VaadooConfiguration {
+
+		@Override
+		public boolean matches(TypeDescription target) {
+			return true;
+
+		}
+
+		@Override
+		public boolean include(TypeDescription description) {
+			return true;
+		}
+
+		@Override
+		public boolean customAnnotationsEnabled() {
+			return true;
+		}
+	}
+
+	static final class DefaultJMoleculesVaadooConfig implements VaadooConfiguration {
+
+		static boolean isApplicable(ClassWorld world) {
+			return world.isAvailable("org.jmolecules.ddd.types.ValueObject");
+		}
 
 		@Override
 		public boolean matches(TypeDescription target) {
@@ -169,6 +221,7 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 		public boolean customAnnotationsEnabled() {
 			return true;
 		}
+
 	}
 
 	public static interface VaadooConfiguration {
@@ -211,21 +264,6 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 					.orElseGet(file::toPath);
 		}
 
-		private static File detectConfiguration(Path folder) {
-			if (!hasBuildFile(folder)) {
-				return null;
-			}
-
-			File candidate = folder.resolve(VAADOO_CONFIG).toFile();
-
-			if (candidate.exists()) {
-				log.info("Found {} at {}", VAADOO_CONFIG, candidate.getAbsolutePath());
-				return candidate;
-			}
-
-			return detectConfiguration(folder.getParent());
-		}
-
 		public boolean customAnnotationsEnabled() {
 			return Boolean
 					.parseBoolean(properties.getProperty("vaadoo.customAnnotationsEnabled", String.valueOf(true)));
@@ -239,11 +277,6 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 			return true;
 		}
 
-	}
-
-	private static boolean hasBuildFile(Path folder) {
-		return Stream.of("pom.xml", "build.gradle", "build.gradle.kts").map(folder::resolve).map(Path::toFile)
-				.anyMatch(File::exists);
 	}
 
 }
