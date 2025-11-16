@@ -30,11 +30,11 @@ import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDescription.Generic;
 
-public class DefaultJMoleculesVaadooConfiguration implements VaadooConfiguration {
+class DefaultJMoleculesVaadooConfiguration implements VaadooConfiguration {
 
 	private static final String jmoleculesValueObjectInterface = "org.jmolecules.ddd.types.ValueObject";
 
-	public static Optional<VaadooConfiguration> tryCreate(ClassWorld classWorld) {
+	static Optional<VaadooConfiguration> jMoleculesVaadooConfigurationIfApplicable(ClassWorld classWorld) {
 		return isApplicable(classWorld) //
 				? Optional.of(new DefaultJMoleculesVaadooConfiguration()) //
 				: empty();

@@ -24,14 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.description.type.TypeDescription;
 
 @Slf4j
-public class PropertiesVaadooConfiguration implements VaadooConfiguration {
+class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	static final String VAADOO_CUSTOM_ANNOTATIONS_ENABLED = "vaadoo.customAnnotationsEnabled";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_CLASS = "vaadoo.jsr380CodeFragmentClass";
 
 	private final Properties properties;
 
-	public PropertiesVaadooConfiguration(Properties properties) {
+	PropertiesVaadooConfiguration(Properties properties) {
 		this.properties = properties;
 		String toInclude = getPackagesToInclude();
 		if (toInclude != null) {
@@ -61,13 +61,16 @@ public class PropertiesVaadooConfiguration implements VaadooConfiguration {
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass() {
 		String fragmentClass = properties.getProperty(VAADOO_JSR380_CODE_FRAGMENT_CLASS);
-		if (fragmentClass == null) {
-			return VaadooConfiguration.super.jsr380CodeFragmentClass();
-		}
+		return fragmentClass == null //
+				? VaadooConfiguration.super.jsr380CodeFragmentClass() //
+				: loadClass(fragmentClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Class<? extends Jsr380CodeFragment> loadClass(String fragmentClass) {
 		try {
 			return (Class<? extends Jsr380CodeFragment>) Class.forName(fragmentClass);
 		} catch (ClassNotFoundException e) {

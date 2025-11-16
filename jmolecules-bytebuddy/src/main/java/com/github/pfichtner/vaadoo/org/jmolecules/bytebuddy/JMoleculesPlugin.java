@@ -20,23 +20,14 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Stream;
 
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultJMoleculesVaadooConfiguration;
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfigurationSupplier;
 
-import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.build.Plugin.WithPreprocessor;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
@@ -47,23 +38,20 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
  * @author Simon Zambrovski
  * @author Peter Fichtner
  */
-@Slf4j
 public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	private final Map<ClassFileLocator, List<LoggingPlugin>> globalPlugins = new HashMap<>();
 	private final Map<TypeDescription, List<? extends LoggingPlugin>> delegates = new HashMap<>();
-	private final PropertiesVaadooConfiguration configuration;
-
-	private static final String VAADOO_CONFIG = "vaadoo.config";
+	private final VaadooConfigurationSupplier configurationSupplier;
 
 	public JMoleculesPlugin(File outputFolder) {
-		this.configuration = tryLoadConfig(outputFolder).orElse(null);
+		this.configurationSupplier = new VaadooConfigurationSupplier(outputFolder);
 	}
 
 	@Override
 	public void onPreprocess(TypeDescription typeDescription, ClassFileLocator classFileLocator) {
 		ClassWorld world = ClassWorld.of(classFileLocator);
-		VaadooConfiguration configuration = configuration(world);
+		VaadooConfiguration configuration = configurationSupplier.configuration(world);
 		if (!configuration.include(typeDescription) || PluginUtils.isCglibProxyType(typeDescription)) {
 			return;
 		}
@@ -96,68 +84,6 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	private Stream<LoggingPlugin> vaadooPlugin(VaadooConfiguration configuration) {
 		return Stream.of(new VaadooPlugin(configuration));
-	}
-
-	VaadooConfiguration configuration(ClassWorld world) {
-		if (configuration == null) {
-			return DefaultJMoleculesVaadooConfiguration.tryCreate(world).orElseGet(() -> VaadooConfiguration.DEFAULT);
-		}
-		return configuration;
-	}
-
-	private static Optional<PropertiesVaadooConfiguration> tryLoadConfig(File outputFolder) {
-		Path projectRoot = detectProjectRoot(outputFolder);
-		File file = detectConfiguration(projectRoot);
-		return Optional.ofNullable(loadProperties(file, outputFolder)).map(PropertiesVaadooConfiguration::new);
-	}
-
-	private static Path detectProjectRoot(File file) {
-		String path = file.getAbsolutePath();
-		return Stream.of("target/classes", "build/classes").filter(path::contains)
-				.map(it -> new File(path.substring(0, path.indexOf(it) - 1))).map(File::toPath).findFirst()
-				.orElseGet(file::toPath);
-	}
-
-	private static File detectConfiguration(Path folder) {
-		if (!hasBuildFile(folder)) {
-			return null;
-		}
-
-		File candidate = folder.resolve(VAADOO_CONFIG).toFile();
-
-		if (candidate.exists()) {
-			log.info("Found {} at {}", VAADOO_CONFIG, candidate.getAbsolutePath());
-			return candidate;
-		}
-
-		return detectConfiguration(folder.getParent());
-	}
-
-	private static boolean hasBuildFile(Path folder) {
-		return Stream.of("pom.xml", "build.gradle", "build.gradle.kts").map(folder::resolve).map(Path::toFile)
-				.anyMatch(File::exists);
-	}
-
-	private static Properties loadProperties(File configuration, File outputFolder) {
-		if (configuration == null) {
-			logNoConfigFound(outputFolder);
-			return null;
-		}
-
-		try {
-			Properties properties = new Properties();
-			properties.load(new FileInputStream(configuration));
-			return properties;
-		} catch (FileNotFoundException e) {
-			logNoConfigFound(outputFolder);
-			return null;
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	private static void logNoConfigFound(File outputFolder) {
-		log.info("No {} found traversing {}", VAADOO_CONFIG, outputFolder.getAbsolutePath());
 	}
 
 }

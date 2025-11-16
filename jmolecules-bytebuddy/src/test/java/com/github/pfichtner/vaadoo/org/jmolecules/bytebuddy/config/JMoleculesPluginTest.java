@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
+package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,9 +22,7 @@ import java.net.URISyntaxException;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultJMoleculesVaadooConfiguration;
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration;
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.ClassWorld;
 
 import net.bytebuddy.dynamic.ClassFileLocator;
 
@@ -41,41 +39,32 @@ class JMoleculesConfigurationTests {
 
 	@Test
 	void detectsConfigurationInRootFolder() {
-		File file = getFolder("config/direct");
-		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
-			assertThat(jMoleculesPlugin.configuration(defaultClassWorld))
-					.isInstanceOfSatisfying(PropertiesVaadooConfiguration.class, p -> {
-						assertThat(p.getProperty("in")).isEqualTo("direct");
-					});
-		}
+		File file = getFolder("example-configs/direct");
+		assertThat(configFromSut(file, defaultClassWorld)).isInstanceOfSatisfying(PropertiesVaadooConfiguration.class,
+				p -> assertThat(p.getProperty("in")).isEqualTo("direct"));
 	}
 
 	@Test
 	void detectsConfigInParentBuildFolder() {
-		File file = getFolder("config/intermediate/nested");
-		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
-			assertThat(jMoleculesPlugin.configuration(defaultClassWorld))
-					.isInstanceOfSatisfying(PropertiesVaadooConfiguration.class, p -> {
-						assertThat(p.getProperty("intermediate")).isNull();
-					});
-		}
+		File file = getFolder("example-configs/intermediate/nested");
+		assertThat(configFromSut(file, defaultClassWorld)).isInstanceOfSatisfying(PropertiesVaadooConfiguration.class,
+				p -> assertThat(p.getProperty("intermediate")).isNull());
 	}
 
 	@Test
 	void stopsTraversingAtNonBuildFolder() {
-		File file = getFolder("config/none");
-		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
-			assertThat(jMoleculesPlugin.configuration(defaultClassWorld))
-					.isInstanceOf(DefaultJMoleculesVaadooConfiguration.class);
-		}
+		File file = getFolder("example-configs/none");
+		assertThat(configFromSut(file, defaultClassWorld)).isInstanceOf(DefaultJMoleculesVaadooConfiguration.class);
 	}
 
 	@Test
 	void returnsDefaultWithoutJmoleculesInClasspath() {
-		File file = getFolder("config/none");
-		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
-			assertThat(jMoleculesPlugin.configuration(emptyClassWorld)).isSameAs(VaadooConfiguration.DEFAULT);
-		}
+		File file = getFolder("example-configs/none");
+		assertThat(configFromSut(file, emptyClassWorld)).isSameAs(VaadooConfiguration.DEFAULT);
+	}
+
+	private VaadooConfiguration configFromSut(File file, ClassWorld emptyClassWorld2) {
+		return new VaadooConfigurationSupplier(file).configuration(emptyClassWorld2);
 	}
 
 	private static File getFolder(String name) {
