@@ -71,6 +71,11 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.SoftAssertionsProvider.ThrowingRunnable;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.api.function.ThrowingConsumer;
+
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
@@ -199,9 +204,9 @@ class Jsr380DynamicClassPBTest {
 
 	static Arbitrary<ParameterDefinition> invalidParameterConfigGen() {
 		return Arbitraries.of(ANNO_TO_TYPES.keySet()).flatMap(a -> {
-			Set<Class<?>> validTypes = ANNO_TO_TYPES.getOrDefault(a, emptyList()).stream()
+			var validTypes = ANNO_TO_TYPES.getOrDefault(a, emptyList()).stream()
 					.flatMap(v -> resolveAllSubtypes(v).stream()).collect(toSet());
-			List<Class<?>> invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
+			var invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
 					.filter(t -> validTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
 			return invalidTypes.isEmpty() //
 					? Arbitraries.of(new DefaultParameterDefinition(Object.class)) //
@@ -303,27 +308,27 @@ class Jsr380DynamicClassPBTest {
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
-		var approver = new Approver(new Transformer());
-		approver.approveTransformed(params);
+		new Approver(new Transformer()).approveTransformed(params);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObjectWeavingInGuavaCode(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
-		File projectRoot = useFragmentClass(GuavaCodeFragment.class);
-		try {
-			var approver = new Approver(new Transformer().projectRoot(projectRoot));
-			approver.approveTransformed(params);
-		} finally {
-			deleteRecursively(projectRoot);
-			assert !projectRoot.exists();
-		}
+		var projectRoot = useFragmentClass(GuavaCodeFragment.class);
+		withProjectRoot(projectRoot,
+				() -> new Approver(new Transformer().projectRoot(projectRoot)).approveTransformed(params));
 	}
 
-	private static void deleteRecursively(File projectRoot) throws IOException {
-		try (Stream<Path> paths = Files.walk(projectRoot.toPath())) {
-			paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+	private static void withProjectRoot(File projectRoot, ThrowingRunnable executable) throws Exception {
+		try {
+			executable.run();
+		} finally {
+			try (Stream<Path> paths = Files.walk(projectRoot.toPath())) {
+				paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+			}
+			assert !projectRoot.exists();
 		}
+
 	}
 
 	private static File useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) throws IOException {
