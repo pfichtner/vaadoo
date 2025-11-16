@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
+package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
-import java.io.IOException;
+import net.bytebuddy.description.type.TypeDescription;
 
-import lombok.RequiredArgsConstructor;
-import net.bytebuddy.dynamic.ClassFileLocator;
+public interface VaadooConfiguration {
 
-@RequiredArgsConstructor(staticName = "of")
-public class ClassWorld {
+	public boolean include(TypeDescription description);
 
-	private final ClassFileLocator locator;
+	public boolean customAnnotationsEnabled();
 
-	public boolean isAvailable(String name) {
-		try {
-			return locator.locate(name).isResolved();
-		} catch (IOException e) {
-			return false;
-		}
-	}
+	public boolean matches(TypeDescription target);
+
 }

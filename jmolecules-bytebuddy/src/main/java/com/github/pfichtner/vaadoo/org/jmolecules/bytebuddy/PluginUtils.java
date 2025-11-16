@@ -50,7 +50,7 @@ import net.bytebuddy.matcher.ElementMatcher.Junction;
  * @author Oliver Drotbohm
  * @author Peter Fichtner
  */
-class PluginUtils {
+public class PluginUtils {
 
 	// this differs from jMolecules, was: 
 	// private static final String GENERATED_BY = "jMolecules ByteBuddy Plugin";
@@ -245,7 +245,7 @@ class PluginUtils {
 	 * @param definition must not be {@literal null}.
 	 * @since 0.17
 	 */
-	static boolean isCglibProxyType(TypeDefinition definition) {
+	public static boolean isCglibProxyType(TypeDefinition definition) {
 		return definition.getTypeName().contains("$$");
 	}
 

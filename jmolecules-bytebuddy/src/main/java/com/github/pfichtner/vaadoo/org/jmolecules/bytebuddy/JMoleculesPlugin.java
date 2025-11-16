@@ -16,10 +16,8 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
 import static java.util.Collections.emptyList;
-import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
-import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,15 +30,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultJMoleculesVaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultVaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.build.Plugin.WithPreprocessor;
-import net.bytebuddy.description.annotation.AnnotationDescription;
-import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 
@@ -102,15 +101,23 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	VaadooConfiguration configuration(ClassWorld world) {
 		if (configuration == null) {
-			return DefaultJMoleculesVaadooConfig.tryCreate(world).orElseGet(() -> new DefaultVaadooConfig());
+			return DefaultJMoleculesVaadooConfiguration.tryCreate(world)
+					.orElseGet(() -> new DefaultVaadooConfiguration());
 		}
 		return configuration;
 	}
 
-	static Optional<PropertiesVaadooConfiguration> tryLoadConfig(File outputFolder) {
-		Path projectRoot = PropertiesVaadooConfiguration.detectProjectRoot(outputFolder);
+	private static Optional<PropertiesVaadooConfiguration> tryLoadConfig(File outputFolder) {
+		Path projectRoot = detectProjectRoot(outputFolder);
 		File file = detectConfiguration(projectRoot);
 		return Optional.ofNullable(loadProperties(file, outputFolder)).map(PropertiesVaadooConfiguration::new);
+	}
+
+	private static Path detectProjectRoot(File file) {
+		String path = file.getAbsolutePath();
+		return Stream.of("target/classes", "build/classes").filter(path::contains)
+				.map(it -> new File(path.substring(0, path.indexOf(it) - 1))).map(File::toPath).findFirst()
+				.orElseGet(file::toPath);
 	}
 
 	private static File detectConfiguration(Path folder) {
@@ -153,138 +160,6 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	private static void logNoConfigFound(File outputFolder) {
 		log.info("No {} found traversing {}", VAADOO_CONFIG, outputFolder.getAbsolutePath());
-	}
-
-	static final class DefaultVaadooConfig implements VaadooConfiguration {
-
-		@Override
-		public boolean matches(TypeDescription target) {
-			return true;
-
-		}
-
-		@Override
-		public boolean include(TypeDescription description) {
-			return true;
-		}
-
-		@Override
-		public boolean customAnnotationsEnabled() {
-			return true;
-		}
-	}
-
-	static final class DefaultJMoleculesVaadooConfig implements VaadooConfiguration {
-
-		private static final String jmoleculesValueObjectInterface = "org.jmolecules.ddd.types.ValueObject";
-
-		public static Optional<VaadooConfiguration> tryCreate(ClassWorld classWorld) {
-			return isApplicable(classWorld) //
-					? Optional.of(new DefaultJMoleculesVaadooConfig()) //
-					: empty();
-		}
-
-		private static boolean isApplicable(ClassWorld world) {
-			return world.isAvailable(jmoleculesValueObjectInterface);
-		}
-
-		@Override
-		public boolean matches(TypeDescription target) {
-			if (target.isAnnotation() || PluginUtils.isCglibProxyType(target)) {
-				return false;
-			}
-
-			if (implementsValueObject(target)) {
-				return true;
-			}
-			if (hasValueObjectAnnotation(target)) {
-				return true;
-			}
-
-			Generic superType = target.getSuperClass();
-			return target.isRecord()
-					|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
-		}
-
-		private boolean implementsValueObject(TypeDescription target) {
-			return !target.getInterfaces().filter(nameMatches(jmoleculesValueObjectInterface)).isEmpty();
-		}
-
-		private boolean hasValueObjectAnnotation(TypeDescription target) {
-			return Stream.of(target.getDeclaredAnnotations(), target.getInheritedAnnotations()) //
-					.flatMap(AnnotationList::stream) //
-					.anyMatch(typeIs("org.jmolecules.ddd.annotation.ValueObject"));
-		}
-
-		private Predicate<? super AnnotationDescription> typeIs(String annoName) {
-			return it -> it.getAnnotationType().getName().equals(annoName);
-		}
-
-		@Override
-		public boolean include(TypeDescription description) {
-			return true;
-		}
-
-		@Override
-		public boolean customAnnotationsEnabled() {
-			return true;
-		}
-
-	}
-
-	public static interface VaadooConfiguration {
-
-		public boolean include(TypeDescription description);
-
-		public boolean customAnnotationsEnabled();
-
-		public boolean matches(TypeDescription target);
-
-	}
-
-	@Slf4j
-	static class PropertiesVaadooConfiguration implements VaadooConfiguration {
-
-		private final Properties properties;
-
-		public PropertiesVaadooConfiguration(Properties properties) {
-			this.properties = properties;
-			String toInclude = getPackagesToInclude();
-			if (toInclude != null) {
-				log.info("Applying code generation to types located in package(s): {}.", toInclude);
-			}
-		}
-
-		public boolean include(TypeDescription description) {
-			String value = getPackagesToInclude();
-			return value.trim().isEmpty() || Stream.of(value.split("\\,")).map(String::trim).map(it -> it.concat("."))
-					.anyMatch(description.getName()::startsWith);
-		}
-
-		private String getPackagesToInclude() {
-			return properties.getProperty("bytebuddy.include", "");
-		}
-
-		private static Path detectProjectRoot(File file) {
-			String path = file.getAbsolutePath();
-			return Stream.of("target/classes", "build/classes").filter(path::contains)
-					.map(it -> new File(path.substring(0, path.indexOf(it) - 1))).map(File::toPath).findFirst()
-					.orElseGet(file::toPath);
-		}
-
-		public boolean customAnnotationsEnabled() {
-			return Boolean
-					.parseBoolean(properties.getProperty("vaadoo.customAnnotationsEnabled", String.valueOf(true)));
-		}
-
-		String getProperty(String key) {
-			return properties.getProperty(key);
-		}
-
-		public boolean matches(TypeDescription target) {
-			return true;
-		}
-
 	}
 
 }
