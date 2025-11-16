@@ -15,8 +15,6 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -25,7 +23,9 @@ import java.util.HashMap;
 
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
 
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.build.Plugin.WithPreprocessor;
 import net.bytebuddy.description.type.TypeDescription;
@@ -35,17 +35,20 @@ import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ByteArrayClassLoader;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 
-@RequiredArgsConstructor(access = PRIVATE)
+@Setter
+@Accessors(fluent = true, chain = true)
+@NoArgsConstructor
 public final class Transformer {
 
-	private static final boolean DUMP_CLASS_FILES_TO_TEMP = false;
+	private boolean dumpClassFilesToTemp;
+	private File projectRoot = new File("jmolecules-bytebuddy-tests");
 
-	public static Unloaded<?> transform(DynamicType unloaded) throws Exception {
+	public Unloaded<?> transform(DynamicType unloaded) throws Exception {
 		return transform(unloaded.getTypeDescription(),
 				ClassFileLocator.Simple.of(unloaded.getTypeDescription().getName(), unloaded.getBytes()));
 	}
 
-	public static Class<?> transform(Class<?> clazz) throws Exception {
+	public Class<?> transform(Class<?> clazz) throws Exception {
 		Unloaded<?> transformed = transform(new TypeDescription.ForLoadedType(clazz),
 				ClassFileLocator.ForClassLoader.of(clazz.getClassLoader()));
 		var allTypes = new HashMap<String, byte[]>();
@@ -56,9 +59,11 @@ public final class Transformer {
 		return classLoader.loadClass(transformed.getTypeDescription().getName());
 	}
 
-	public static Unloaded<?> transform(TypeDescription typeDescription, ClassFileLocator cfl) throws IOException {
-		try (WithPreprocessor plugin = new JMoleculesPlugin(dummyRoot())) {
-			var locator = new ClassFileLocator.Compound(cfl, ClassFileLocator.ForClassLoader.ofSystemLoader());
+	public Unloaded<?> transform(TypeDescription typeDescription, ClassFileLocator classFileLocator)
+			throws IOException {
+		try (WithPreprocessor plugin = new JMoleculesPlugin(projectRoot)) {
+			var locator = new ClassFileLocator.Compound(classFileLocator,
+					ClassFileLocator.ForClassLoader.ofSystemLoader());
 			plugin.onPreprocess(typeDescription, locator);
 
 			var byteBuddy = new ByteBuddy();
@@ -67,7 +72,7 @@ public final class Transformer {
 
 			Unloaded<?> transformed = transformedBuilder.make();
 
-			if (DUMP_CLASS_FILES_TO_TEMP) {
+			if (dumpClassFilesToTemp) {
 				transformed.saveIn(Files.createTempDirectory("generated-class").toFile());
 			}
 
@@ -84,10 +89,6 @@ public final class Transformer {
 			Throwable cause = e.getCause();
 			throw cause instanceof Exception ? (Exception) cause : new RuntimeException(e);
 		}
-	}
-
-	private static File dummyRoot() {
-		return new File("jmolecules-bytebuddy-tests");
 	}
 
 }

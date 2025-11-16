@@ -15,7 +15,6 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import static com.github.pfichtner.vaadoo.Transformer.transform;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static org.approvaltests.Approvals.verify;
@@ -60,7 +59,7 @@ class ApprovalUtil {
 
 	public static void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass)
 			throws Exception {
-		Unloaded<?> transformedClass = transform(generatedClass);
+		Unloaded<?> transformedClass = new Transformer().transform(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
 

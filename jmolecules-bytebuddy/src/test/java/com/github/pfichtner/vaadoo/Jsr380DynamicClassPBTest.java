@@ -19,7 +19,6 @@ import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
-import static com.github.pfichtner.vaadoo.Transformer.transform;
 import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
@@ -83,6 +82,8 @@ import net.jqwik.api.Tuple;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
 class Jsr380DynamicClassPBTest {
+
+	static final Transformer transformer = new Transformer();
 
 	static final Map<Class<?>, List<Class<?>>> SUPERTYPE_TO_SUBTYPES = Map.ofEntries(
 			entry(Object.class,
@@ -181,7 +182,7 @@ class Jsr380DynamicClassPBTest {
 		var unloaded = a(testClass("com.example.InvalidGenerated").thatImplementsValueObject()
 				.withConstructor(new ConstructorDefinition(params)));
 		newInstance(unloaded, args(params));
-		assertThatIllegalStateException().isThrownBy(() -> transform(unloaded))
+		assertThatIllegalStateException().isThrownBy(() -> transformer.transform(unloaded))
 				.withMessageContaining("not allowed, allowed only on");
 	}
 
@@ -206,7 +207,7 @@ class Jsr380DynamicClassPBTest {
 		Object[] args = args(params);
 		newInstance(unloaded, args);
 		try {
-			newInstance(transform(unloaded), args);
+			newInstance(transformer.transform(unloaded), args);
 		} catch (Exception e) {
 			if (!isAnExpectedException(e)) {
 				throw e;
@@ -290,7 +291,7 @@ class Jsr380DynamicClassPBTest {
 		var checksum = ParameterDefinition.stableChecksum(params);
 		var testClass = a(testClass("com.example.Generated_" + checksum) //
 				.withConstructor(new ConstructorDefinition(params)));
-		var transformedClass = transform(testClass);
+		var transformedClass = transformer.transform(testClass);
 		newInstance(transformedClass, args(params));
 	}
 

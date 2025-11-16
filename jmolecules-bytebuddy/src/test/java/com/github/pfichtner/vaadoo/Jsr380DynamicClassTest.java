@@ -15,20 +15,21 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
-import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
-import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
-import jakarta.validation.constraints.NotNull;
-import org.junit.jupiter.api.Test;
-
 import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
-import static com.github.pfichtner.vaadoo.Transformer.transform;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
+import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
+
+import jakarta.validation.constraints.NotNull;
 
 class Jsr380DynamicClassTest {
 
@@ -39,6 +40,8 @@ class Jsr380DynamicClassTest {
 	ConstructorDefinition notNullObjectConstructor = new ConstructorDefinition(
 			new DefaultParameterDefinition(Object.class, NotNull.class));
 	Object[] nullArg = new Object[] { null };
+
+	Transformer transformer = new Transformer();
 
 	@Test
 	void noArg() throws Exception {
@@ -57,8 +60,10 @@ class Jsr380DynamicClassTest {
 
 	@Test
 	void implementingValueObjectAndAnnotatedByValueObjectIsTheSame() throws Exception {
-		var transformed1 = transform(a(classThatImplementsValueObject.withConstructor(notNullObjectConstructor)));
-		var transformed2 = transform(a(classAnnotatedByValueObject.withConstructor(notNullObjectConstructor)));
+		var transformed1 = transformer
+				.transform(a(classThatImplementsValueObject.withConstructor(notNullObjectConstructor)));
+		var transformed2 = transformer
+				.transform(a(classAnnotatedByValueObject.withConstructor(notNullObjectConstructor)));
 		var e1 = assertThrows(RuntimeException.class, () -> newInstance(transformed1, nullArg));
 		var e2 = assertThrows(RuntimeException.class, () -> newInstance(transformed2, nullArg));
 		assertThat(e1).isExactlyInstanceOf(e2.getClass()).hasMessage(e2.getMessage());
@@ -66,7 +71,7 @@ class Jsr380DynamicClassTest {
 
 	@Test
 	void implementingEntityDoesNotAddBytecode() throws Exception {
-		var transformed = transform(a(baseTestClass.withInterface(org.jmolecules.ddd.types.Entity.class) //
+		var transformed = transformer.transform(a(baseTestClass.withInterface(org.jmolecules.ddd.types.Entity.class) //
 				.withConstructor(notNullObjectConstructor)));
 		newInstance(transformed, nullArg);
 	}

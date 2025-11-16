@@ -15,7 +15,6 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import static com.github.pfichtner.vaadoo.Transformer.transform;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
@@ -43,23 +42,25 @@ import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMes
 
 class JMoleculesVaadooPluginTests {
 
+	static Transformer transformer = new Transformer();
+
 	@Test
 	void emptyClassIsUnchanged() throws Exception {
-		var transformed = transform(EmptyClass.class);
+		var transformed = transformer.transform(EmptyClass.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor();
 		assertThatNoException().isThrownBy(stringArgConstructor::newInstance);
 	}
 
 	@Test
 	void classWithAttribute() throws Exception {
-		var transformed = transform(ClassWithAttribute.class);
+		var transformed = transformer.transform(ClassWithAttribute.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance((String) null));
 	}
 
 	@Test
 	void classWithNotNullAttribute() throws Exception {
-		var transformed = transform(ClassWithNotNullAttribute.class);
+		var transformed = transformer.transform(ClassWithNotNullAttribute.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
 				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
@@ -68,7 +69,7 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void valueObjectWithAttribute() throws Exception {
-		var transformed = transform(ValueObjectWithAttribute.class);
+		var transformed = transformer.transform(ValueObjectWithAttribute.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
 				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
@@ -77,21 +78,20 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void valueObjectWithTwoConstructors() throws Exception {
-		var transformed = transform(TwoConstructorsValueObject.class);
+		var transformed = transformer.transform(TwoConstructorsValueObject.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		var stringBooleanArgConstructor = transformed.getDeclaredConstructor(String.class, boolean.class);
 		assertSoftly(c -> {
 			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null)).satisfies(
 					e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage(notNull("a")));
-			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance(null, true))
-					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
-							.hasMessage(notNull("a")));
+			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance(null, true)).satisfies(
+					e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage(notNull("a")));
 		});
 	}
 
 	@Test
 	void regex() throws Exception {
-		var transformed = transform(ValueObjectWithRegexAttribute.class);
+		var transformed = transformer.transform(ValueObjectWithRegexAttribute.class);
 		var constructor = transformed.getDeclaredConstructor(String.class);
 		constructor.newInstance("42");
 		assertThatException().isThrownBy(() -> constructor.newInstance("4")).satisfies(e -> assertThat(e.getCause())
@@ -101,7 +101,7 @@ class JMoleculesVaadooPluginTests {
 
 	@Test
 	void wrongType() {
-		assertThatException().isThrownBy(() -> transform(AnnotationDoesNotSupportType.class))
+		assertThatException().isThrownBy(() -> transformer.transform(AnnotationDoesNotSupportType.class))
 				.satisfies(e -> assertThat(e).isInstanceOf(IllegalStateException.class)
 						.hasMessage("Annotation" + " " + "jakarta.validation.constraints.NotEmpty"
 								+ " on type java.lang.Integer not allowed, " + "allowed only on types: "
@@ -118,8 +118,8 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	static List<Arguments> customExampleSource() throws Exception {
-		var transformed1 = transform(CustomExample.class);
-		var transformed2 = transform(CustomExampleWithCustomMessage.class);
+		var transformed1 = transformer.transform(CustomExample.class);
+		var transformed2 = transformer.transform(CustomExampleWithCustomMessage.class);
 		String validIban = "DE02 6005 0101 0002 0343 04";
 		String invalidIban = "DE02";
 		return List.of( //
