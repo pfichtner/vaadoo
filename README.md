@@ -104,7 +104,7 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 
 ### Default behavior
 1. If a `vaadoo.config` exists → its configuration is used.
-2. If no config is found and **jmolecules** is on the classpath → jmolecules value objects are enhanced.
+2. If no config is found and **jmolecules** is on the classpath → jmolecules value objects and records are enhanced.
 3. If neither applies → **all classes** are enhanced (default fallback).
 
 ## Integration

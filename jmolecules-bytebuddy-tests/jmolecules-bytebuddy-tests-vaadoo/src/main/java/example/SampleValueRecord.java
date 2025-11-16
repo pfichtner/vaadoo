@@ -15,10 +15,9 @@
  */
 package example;
 
-import org.jmolecules.ddd.types.ValueObject;
-
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-public record SampleValueRecord(@NotNull @NotEmpty String value) implements ValueObject {
+// records are automatically handled as value objects, no need to implement ValueObject nor to annotate
+public record SampleValueRecord(@NotNull @NotEmpty String value) {
 }
