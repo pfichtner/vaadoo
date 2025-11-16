@@ -1,17 +1,19 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
-import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.*;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_CLASS;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_TYPE;
+import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.util.EnumSet;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EmptySource;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
@@ -20,17 +22,14 @@ import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfigu
 
 class PropertiesVaadooConfigurationTest {
 
+	private static final Class<? extends Jsr380CodeFragment> defaultFragmentClass = JdkOnlyCodeFragment.class;
+
 	Properties properties = new Properties();
 	PropertiesVaadooConfiguration sut = new PropertiesVaadooConfiguration(properties);
 
 	@Test
-	void doesReturnDefaultFragmentClass() {
-		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(JdkOnlyCodeFragment.class);
-	}
-
-	@Test
 	void ifNoFragmentClassAndNoFragmentTypeIsSetThenJdkOnlyFragmentIsReturned() {
-		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(JdkOnlyCodeFragment.class);
+		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(defaultFragmentClass);
 	}
 
 	@Test
@@ -39,17 +38,38 @@ class PropertiesVaadooConfigurationTest {
 		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(GuavaCodeFragment.class);
 	}
 
+	@Test
+	void ifFragmentTypeIsInvalidValueThenDefaultFragmentClassIsReturned() {
+		properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, "XXXXX-INVALID-XXXX");
+		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(defaultFragmentClass);
+	}
+
 	@ParameterizedTest
-	@EnumSource
-	@NullSource
-	void ifFragmentClassIsSetItIsUsed(KnownFragmentClass knownFragmentClass) {
-		Object dummyFragmentClass = Proxy.newProxyInstance(getClass().getClassLoader(),
-				new Class<?>[] { Jsr380CodeFragment.class }, (InvocationHandler) (__p, __m, __a) -> null);
+	@MethodSource("knownFragmentClassNames")
+	void ifFragmentClassIsSetItIsUsedAndFragmenTypeGetsIgnored(String knownFragmentClassName) {
+		var dummyFragmentClass = dummyFragmentClass();
+		var jsr380CodeFragmentClass = loadFragmentType(knownFragmentClassName, dummyFragmentClass);
+		assertThat(jsr380CodeFragmentClass).isEqualTo(dummyFragmentClass.getClass());
+	}
+
+	static Stream<String> knownFragmentClassNames() {
+		return concat(
+				EnumSet.allOf(KnownFragmentClass.class).stream().map(KnownFragmentClass::name)
+						.flatMap(n -> Stream.of(n, n.toLowerCase(), n.toUpperCase())),
+				Stream.of(" ", "XXXXX-INVALID-XXXX", null));
+	}
+
+	private Class<? extends Jsr380CodeFragment> loadFragmentType(String knownFragmentClass, Object dummyFragmentClass) {
 		if (knownFragmentClass != null) {
-			properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, knownFragmentClass.name());
+			properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, knownFragmentClass);
 		}
 		properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_CLASS, dummyFragmentClass.getClass().getName());
-		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(dummyFragmentClass.getClass());
+		return sut.jsr380CodeFragmentClass();
+	}
+
+	private static Object dummyFragmentClass() {
+		return Proxy.newProxyInstance(PropertiesVaadooConfigurationTest.class.getClassLoader(),
+				new Class<?>[] { Jsr380CodeFragment.class }, (InvocationHandler) (__p, __m, __a) -> null);
 	}
 
 }

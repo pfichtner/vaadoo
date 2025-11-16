@@ -25,6 +25,8 @@ import net.bytebuddy.description.type.TypeDescription;
 
 public interface VaadooConfiguration {
 
+	public static final KnownFragmentClass DEFAULT_KNOWN_FRAGMENT_CLASS = KnownFragmentClass.JDK_ONLY;
+
 	@RequiredArgsConstructor
 	@Getter
 	public static enum KnownFragmentClass {
@@ -51,11 +53,12 @@ public interface VaadooConfiguration {
 	}
 
 	public default KnownFragmentClass jsrFragmentType() {
-		return KnownFragmentClass.JDK_ONLY;
+		return DEFAULT_KNOWN_FRAGMENT_CLASS;
 	}
 
 	public default Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass() {
-		return jsrFragmentType().getFragmentClass();
+		KnownFragmentClass jsrFragmentType = jsrFragmentType();
+		return (jsrFragmentType == null ? DEFAULT_KNOWN_FRAGMENT_CLASS : jsrFragmentType).getFragmentClass();
 	}
 
 }

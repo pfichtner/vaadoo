@@ -15,6 +15,7 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
+import java.util.EnumSet;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -66,7 +67,8 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 	public KnownFragmentClass jsrFragmentType() {
 		String fragmentType = properties.getProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE);
 		return fragmentType == null ? VaadooConfiguration.super.jsrFragmentType()
-				: KnownFragmentClass.valueOf(fragmentType);
+				: EnumSet.allOf(KnownFragmentClass.class).stream() //
+						.filter(e -> e.name().equalsIgnoreCase(fragmentType)).findFirst().orElse(null);
 	}
 
 	@Override
