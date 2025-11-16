@@ -15,17 +15,15 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
-import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.*;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.tryLoadConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.io.File;
-import java.lang.module.Configuration;
 import java.net.URISyntaxException;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.DefaultJMoleculesVaadooConfig;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.DefaultVaadooConfig;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.PropertiesVaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin.VaadooConfiguration;
@@ -60,20 +58,20 @@ class JMoleculesConfigurationTests {
 
 	@Test
 	void returnsJMoleculesSpecificConfigWithJMoleculesInClasspath() {
-		File file = getFolder("config/none");
-		ClassWorld classWorld = ClassWorld.of(ClassFileLocator.ForClassLoader.ofSystemLoader());
-		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
-			assertThat(jMoleculesPlugin.configuration(classWorld))
-					.isExactlyInstanceOf(DefaultJMoleculesVaadooConfig.class);
-		}
+		ClassFileLocator classFileLocator = ClassFileLocator.ForClassLoader.ofSystemLoader();
+		assertConfigLoadedIs(classFileLocator, DefaultJMoleculesVaadooConfig.class);
 	}
 
 	@Test
 	void returnsDefaultWithoutJmoleculesInClasspath() {
+		ClassFileLocator classFileLocator = ClassFileLocator.NoOp.INSTANCE;
+		assertConfigLoadedIs(classFileLocator, DefaultVaadooConfig.class);
+	}
+
+	private void assertConfigLoadedIs(ClassFileLocator classFileLocator, Class<? extends VaadooConfiguration> type) {
 		File file = getFolder("config/none");
-		ClassWorld classWorld = ClassWorld.of(ClassFileLocator.NoOp.INSTANCE);
 		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
-			assertThat(jMoleculesPlugin.configuration(classWorld)).isExactlyInstanceOf(DefaultVaadooConfig.class);
+			assertThat(jMoleculesPlugin.configuration(ClassWorld.of(classFileLocator))).isExactlyInstanceOf(type);
 		}
 	}
 
