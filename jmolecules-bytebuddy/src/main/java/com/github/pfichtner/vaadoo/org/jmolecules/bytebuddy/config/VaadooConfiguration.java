@@ -16,11 +16,24 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import net.bytebuddy.description.type.TypeDescription;
 
 public interface VaadooConfiguration {
+
+	@RequiredArgsConstructor
+	@Getter
+	public static enum KnownFragmentClass {
+		JDK_ONLY(JdkOnlyCodeFragment.class), //
+		GUAVA(GuavaCodeFragment.class) //
+		;
+
+		private final Class<? extends Jsr380CodeFragment> fragmentClass;
+	}
 
 	VaadooConfiguration DEFAULT = new VaadooConfiguration() {
 	};
@@ -37,8 +50,12 @@ public interface VaadooConfiguration {
 		return true;
 	}
 
+	public default KnownFragmentClass jsrFragmentType() {
+		return KnownFragmentClass.JDK_ONLY;
+	}
+
 	public default Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass() {
-		return JdkOnlyCodeFragment.class;
+		return jsrFragmentType().getFragmentClass();
 	}
 
 }

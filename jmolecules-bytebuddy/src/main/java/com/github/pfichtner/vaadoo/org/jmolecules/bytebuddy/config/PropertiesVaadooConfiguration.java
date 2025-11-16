@@ -27,6 +27,7 @@ import net.bytebuddy.description.type.TypeDescription;
 class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	static final String VAADOO_CUSTOM_ANNOTATIONS_ENABLED = "vaadoo.customAnnotationsEnabled";
+	static final String VAADOO_JSR380_CODE_FRAGMENT_TYPE = "vaadoo.jsr380CodeFragmentType";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_CLASS = "vaadoo.jsr380CodeFragmentClass";
 
 	private final Properties properties;
@@ -59,6 +60,13 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	public boolean matches(TypeDescription target) {
 		return true;
+	}
+
+	@Override
+	public KnownFragmentClass jsrFragmentType() {
+		String fragmentType = properties.getProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE);
+		return fragmentType == null ? VaadooConfiguration.super.jsrFragmentType()
+				: KnownFragmentClass.valueOf(fragmentType);
 	}
 
 	@Override
