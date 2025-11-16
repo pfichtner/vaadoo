@@ -2,13 +2,13 @@
 <img src="https://pfichtner.github.io/assets/vaadoo/vaadoo.png" alt="vaadoo logo" height="120px" align="right" />
 </a>
 
-[![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml)
+[![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml)
 
 # Vaadoo-PoC
 Validating automatically domain objects: It's magic
 
-# ⚠️ Important
-This project is a reimplementation of an initial proof of concept (PoC). It is not feature complete yet and still missing at least:
+## ⚠️ Important
+This project is a reimplementation of an [initial proof of concept (PoC)](https://github.com/pfichtner/vaadoo-poc). It is not feature complete yet and still missing at least:
 - Caching of the generated regexp (so its significant slower when using @Pattern(...))
 - Support for container element validation like ```List<@NotBlank String> list```
 Further development is ongoing.
