@@ -21,6 +21,7 @@ import static com.github.pfichtner.vaadoo.Transformer.newInstance;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfigurationSupplier.VAADOO_CONFIG;
 import static java.lang.Math.min;
 import static java.lang.String.format;
+import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
@@ -28,6 +29,7 @@ import static java.util.Map.Entry.comparingByKey;
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -301,7 +303,8 @@ class Jsr380DynamicClassPBTest {
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
-		new Approver(new Transformer()).approveTransformed(params);
+		var approver = new Approver(new Transformer());
+		approver.approveTransformed(params);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -309,29 +312,37 @@ class Jsr380DynamicClassPBTest {
 			throws Exception {
 		File projectRoot = useFragmentClass(GuavaCodeFragment.class);
 		try {
-			new Approver(new Transformer().projectRoot(projectRoot)).approveTransformed(params);
+			var approver = new Approver(new Transformer().projectRoot(projectRoot));
+			approver.approveTransformed(params);
 		} finally {
 			deleteRecursively(projectRoot);
 			assert !projectRoot.exists();
 		}
 	}
 
-	private void deleteRecursively(File projectRoot) throws IOException {
+	private static void deleteRecursively(File projectRoot) throws IOException {
 		try (Stream<Path> paths = Files.walk(projectRoot.toPath())) {
 			paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 		}
 	}
 
-	private File useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) throws IOException {
+	private static File useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) throws IOException {
 		File projectRoot = Files.createTempDirectory("project-root").toFile();
 		new File(projectRoot, "target/classes").mkdirs();
 		writeTo(new File(projectRoot, "pom.xml"), format("", GuavaCodeFragment.class.getName()));
 		writeTo(new File(projectRoot, VAADOO_CONFIG),
-				format("vaadoo.jsr380CodeFragmentClass=%s", fragmentClass.getName()));
+				Map.of("vaadoo.jsr380CodeFragmentClass", fragmentClass.getName()));
 		return projectRoot;
 	}
 
-	private void writeTo(File file, String text) throws IOException {
+	private static void writeTo(File file, Map<String, String> data) throws IOException {
+		String content = data.entrySet().stream() //
+				.map(t -> format("%s=%s", t.getKey(), t.getValue())) //
+				.collect(joining(lineSeparator()));
+		writeTo(file, content);
+	}
+
+	private static void writeTo(File file, String text) throws IOException {
 		try (FileWriter writer = new FileWriter(file)) {
 			writer.write(text);
 		}
