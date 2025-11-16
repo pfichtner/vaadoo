@@ -16,6 +16,7 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
 import static java.util.Collections.emptyList;
+import static java.util.Optional.empty;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
@@ -100,11 +101,10 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 	}
 
 	VaadooConfiguration configuration(ClassWorld world) {
-		return configuration == null //
-				? DefaultJMoleculesVaadooConfig.isApplicable(world) //
-						? new DefaultJMoleculesVaadooConfig()
-						: new DefaultVaadooConfig() //
-				: configuration;
+		if (configuration == null) {
+			return DefaultJMoleculesVaadooConfig.tryCreate(world).orElseGet(() -> new DefaultVaadooConfig());
+		}
+		return configuration;
 	}
 
 	static Optional<PropertiesVaadooConfiguration> tryLoadConfig(File outputFolder) {
@@ -176,8 +176,16 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	static final class DefaultJMoleculesVaadooConfig implements VaadooConfiguration {
 
-		static boolean isApplicable(ClassWorld world) {
-			return world.isAvailable("org.jmolecules.ddd.types.ValueObject");
+		private static final String jmoleculesValueObjectInterface = "org.jmolecules.ddd.types.ValueObject";
+
+		public static Optional<VaadooConfiguration> tryCreate(ClassWorld classWorld) {
+			return isApplicable(classWorld) //
+					? Optional.of(new DefaultJMoleculesVaadooConfig()) //
+					: empty();
+		}
+
+		private static boolean isApplicable(ClassWorld world) {
+			return world.isAvailable(jmoleculesValueObjectInterface);
 		}
 
 		@Override
@@ -199,7 +207,7 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 		}
 
 		private boolean implementsValueObject(TypeDescription target) {
-			return !target.getInterfaces().filter(nameMatches("org.jmolecules.ddd.types.ValueObject")).isEmpty();
+			return !target.getInterfaces().filter(nameMatches(jmoleculesValueObjectInterface)).isEmpty();
 		}
 
 		private boolean hasValueObjectAnnotation(TypeDescription target) {
