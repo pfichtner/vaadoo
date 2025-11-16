@@ -15,7 +15,6 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
@@ -33,8 +32,6 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.jqwik.api.ShrinkingMode.OFF;
-import static org.approvaltests.Approvals.settings;
-import static org.approvaltests.namer.NamerFactory.withParameters;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.io.File;
@@ -71,8 +68,6 @@ import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import org.approvaltests.namer.NamedEnvironment;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
@@ -306,7 +301,7 @@ class Jsr380DynamicClassPBTest {
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
-		approve(params, new Transformer());
+		new Approver(new Transformer()).approveTransformed(params);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -314,21 +309,10 @@ class Jsr380DynamicClassPBTest {
 			throws Exception {
 		File projectRoot = useFragmentClass(GuavaCodeFragment.class);
 		try {
-			approve(params, new Transformer().projectRoot(projectRoot));
+			new Approver(new Transformer().projectRoot(projectRoot)).approveTransformed(params);
 		} finally {
 			deleteRecursively(projectRoot);
 			assert !projectRoot.exists();
-		}
-	}
-
-	private void approve(List<ParameterDefinition> params, Transformer transformer) throws Exception {
-		settings().allowMultipleVerifyCallsForThisClass();
-		settings().allowMultipleVerifyCallsForThisMethod();
-		var checksum = ParameterDefinition.stableChecksum(params);
-		try (NamedEnvironment env = withParameters(checksum)) {
-			var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
-					.withConstructor(new ConstructorDefinition(params)));
-			approveTransformed(params, testClass, transformer);
 		}
 	}
 

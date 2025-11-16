@@ -15,24 +15,33 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static com.github.pfichtner.vaadoo.Buildable.a;
+import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
+import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.Approvals.verify;
+import static org.approvaltests.namer.NamerFactory.withParameters;
 
 import java.io.IOException;
 import java.util.List;
 
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Scrubber;
+import org.approvaltests.namer.NamedEnvironment;
 import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
 import org.approvaltests.scrubbers.RegExScrubber;
 
+import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
 
 import lombok.Value;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 
-class ApprovalUtil {
+@Value
+class Approver {
+
+	Transformer transformer;
 
 	@Value
 	private static class Storyboard {
@@ -57,13 +66,18 @@ class ApprovalUtil {
 		}
 	}
 
-	public static void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass)
-			throws Exception {
-		approveTransformed(params, generatedClass, new Transformer());
+	public void approveTransformed(List<ParameterDefinition> params) throws Exception {
+		settings().allowMultipleVerifyCallsForThisClass();
+		settings().allowMultipleVerifyCallsForThisMethod();
+		var checksum = ParameterDefinition.stableChecksum(params);
+		try (NamedEnvironment env = withParameters(checksum)) {
+			var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
+					.withConstructor(new ConstructorDefinition(params)));
+			approveTransformed(params, testClass);
+		}
 	}
 
-	public static void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass,
-			Transformer transformer) throws Exception, IOException {
+	public void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass) throws Exception {
 		Unloaded<?> transformedClass = transformer.transform(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}

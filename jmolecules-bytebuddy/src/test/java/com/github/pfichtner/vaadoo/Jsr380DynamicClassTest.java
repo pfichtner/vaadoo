@@ -15,7 +15,6 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
@@ -47,7 +46,7 @@ class Jsr380DynamicClassTest {
 	void noArg() throws Exception {
 		var noArgsConstructor = new ConstructorDefinition(emptyList());
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(noArgsConstructor));
-		approveTransformed(noArgsConstructor.params(), unloaded);
+		new Approver(new Transformer()).approveTransformed(noArgsConstructor.params(), unloaded);
 	}
 
 	@Test
@@ -55,7 +54,7 @@ class Jsr380DynamicClassTest {
 		var constructor = new ConstructorDefinition(
 				new DefaultParameterDefinition(Object.class, NotNull.class).withName("aNamedArgument"));
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
-		approveTransformed(constructor.params(), unloaded);
+		new Approver(new Transformer()).approveTransformed(constructor.params(), unloaded);
 	}
 
 	@Test
@@ -80,7 +79,7 @@ class Jsr380DynamicClassTest {
 	void alreadyHasValidateMethod() throws Exception {
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(notNullObjectConstructor)
 				.withMethod(new MethodDefinition("validate", emptyList())));
-		approveTransformed(notNullObjectConstructor.params(), unloaded);
+		new Approver(new Transformer()).approveTransformed(notNullObjectConstructor.params(), unloaded);
 	}
 
 }
