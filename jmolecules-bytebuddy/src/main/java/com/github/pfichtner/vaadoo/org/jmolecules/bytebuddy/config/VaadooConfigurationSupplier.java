@@ -31,6 +31,52 @@ import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.ClassWorld;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Supplies the effective {@link VaadooConfiguration} for the Vaadoo Byte Buddy
+ * instrumentation pipeline.
+ *
+ * <p>This class resolves configuration from two possible sources:
+ *
+ * <ol>
+ *   <li><strong>A local {@code vaadoo.config} properties file</strong> located
+ *       in the project's root directory.  
+ *       <p>The supplier attempts to detect the project root by examining the
+ *       build output folder (e.g. {@code target/classes} or
+ *       {@code build/classes}) and walking upward until it finds a recognized
+ *       build file ({@code pom.xml}, {@code build.gradle},
+ *       {@code build.gradle.kts}). If a {@code vaadoo.config} file exists in
+ *       that folder, it is loaded and converted to a
+ *       {@link PropertiesVaadooConfiguration} instance.</p>
+ *   </li>
+ *
+ *   <li><strong>A jMolecules-derived configuration</strong> discovered through
+ *       {@link DefaultJMoleculesVaadooConfiguration#jMoleculesVaadooConfigurationIfApplicable(ClassWorld)}.
+ *       <p>If no explicit configuration file is found, the supplier delegates
+ *       to the jMolecules-based detection mechanism. This allows Vaadoo to
+ *       automatically activate only when the current project uses jMolecules
+ *       types or conventions.</p>
+ *   </li>
+ * </ol>
+ *
+ * <p>If neither a config file nor a jMolecules-based configuration is available,
+ * {@link VaadooConfiguration#DEFAULT} is used.
+ *
+ * <p>The resolution order is therefore:
+ *
+ * <ol>
+ *   <li>Configuration from {@code vaadoo.config} (highest priority)</li>
+ *   <li>jMolecules-based auto-detection</li>
+ *   <li>Fallback to the default configuration</li>
+ * </ol>
+ *
+ * <p>This class is responsible only for discovering and supplying configuration.
+ * It performs no Byte Buddy transformations itself.
+ *
+ * <p>Logging is used to indicate whether a configuration file was found, which
+ * project root was detected, and when fallbacks occur.
+ *
+ * @author Peter Fichtner
+ */
 @Slf4j
 public class VaadooConfigurationSupplier {
 

@@ -30,6 +30,50 @@ import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDescription.Generic;
 
+/**
+ * Default {@link VaadooConfiguration} activated when the current project uses
+ * jMolecules' Value Object types or annotations.
+ *
+ * <p>
+ * This configuration is applied automatically when
+ * {@code org.jmolecules.ddd.types.ValueObject} is present in the
+ * {@link ClassWorld}. Detection is performed by
+ * {@link #jMoleculesVaadooConfigurationIfApplicable(ClassWorld)}, which returns
+ * an {@link Optional} containing an instance of this configuration only if
+ * jMolecules is on the classpath. This ensures that Vaadoo’s
+ * jMolecules-specific behavior is enabled only for projects that actually use
+ * jMolecules.
+ *
+ * <p>
+ * Once active, this configuration identifies target types that should receive
+ * Vaadoo Byte Buddy transformations based on jMolecules conventions:
+ *
+ * <ul>
+ * <li>Types implementing {@code org.jmolecules.ddd.types.ValueObject}</li>
+ * <li>Types annotated with {@code org.jmolecules.ddd.annotation.ValueObject}
+ * (declared or inherited)</li>
+ * <li>Java records (implicitly treated as value objects)</li>
+ * <li>Types whose superclasses match any of the above criteria</li>
+ * </ul>
+ *
+ * <p>
+ * Certain types are excluded from consideration:
+ *
+ * <ul>
+ * <li>Annotations</li>
+ * <li>CGLIB-generated proxy types</li>
+ * </ul>
+ *
+ * <p>
+ * This configuration enables all custom annotations
+ * ({@link #customAnnotationsEnabled()}) and does not restrict the set of types
+ * selected for instrumentation beyond the {@link #matches(TypeDescription)}
+ * predicate.
+ *
+ * <p>
+ * Note: This class encapsulates all jMolecules-specific detection logic so that
+ * VaadooPlugin does not need to inspect jMolecules types directly.
+ */
 class DefaultJMoleculesVaadooConfiguration implements VaadooConfiguration {
 
 	private static final String jmoleculesValueObjectInterface = "org.jmolecules.ddd.types.ValueObject";

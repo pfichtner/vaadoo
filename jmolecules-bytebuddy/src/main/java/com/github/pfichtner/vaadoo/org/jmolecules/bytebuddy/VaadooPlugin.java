@@ -39,10 +39,9 @@ import net.bytebuddy.dynamic.DynamicType.Builder;
  * long-term design. However, such integration is not guaranteed or required;
  * the plugin is designed to function fully on its own.
  * <p>
- * The plugin detects types related to {@code org.jmolecules} (e.g. interfaces,
- * annotations, or inheritance hierarchies) and applies Vaadoo-specific behavior
- * through {@link VaadooImplementor}. It uses {@link JMoleculesTypeBuilder} to
- * extend the Byte Buddy transformation pipeline for those identified types.
+ * The plugin applies Vaadoo-specific behavior through
+ * {@link VaadooImplementor}. It uses {@link JMoleculesTypeBuilder} to extend
+ * the Byte Buddy transformation pipeline for those identified types.
  *
  * <p>
  * <strong>Note:</strong> This class and the Vaadoo extensions are not part of
