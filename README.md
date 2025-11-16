@@ -4,7 +4,7 @@
 
 [![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml)
 
-# Vaadoo-PoC
+# Vaadoo
 Validating automatically domain objects: It's magic
 
 ## ⚠️ Important
@@ -21,7 +21,7 @@ When implementing an application using Spring it's very handy to use the JSR 380
   - Place the JSR 380 annotations on the DTO but then your internal valid state would rely on checks being done in a non-domain layer, so the domain is not able to valid its state itself. 
   - Again make your domain dependant on a JSR 380 implemenation. But then: Who would then ensure that validation is performed? 
 
-So if you decide, that none of these possibilites is an option you **cannot** just declare things like this...
+If you decide, that none of these possibilites is an option you **cannot** just declare things like this...
 
 ```java
 public class MyDomainObject {
@@ -34,7 +34,8 @@ public class MyDomainObject {
 }
 ```
 
-...but you would start implementing all those contraint checks using hand-written code into you domain objects to make them self-validating: 
+...because the constructor does not validate itself, something external must perform validation after (or before) constructing the object.
+That's why you would start implementing all those contraint checks using hand-written code into you domain objects to have them self-validating: 
 
 ```java
 public class MyDomainObject {
@@ -50,7 +51,7 @@ public class MyDomainObject {
 }
 ```
 
-Ough, what a mess and waste of time! 
+Ough, what a mess and waste of time! Manual constructor checks are messy, error-prone, and hard to maintain—they repeat the same boilerplate, can be forgotten or mistyped, and mix validation with business logic.
 
 And this is where vaadoo comes into play. Vaadoo is a compiler plugin that generates this boilerplate code for you. Checks are added to the bytecode so you get rid of a JSR 380 validation library. The generated code does nor depend on JSR 380 API- nor on JSR 380 validation libaries anymore. 
 
