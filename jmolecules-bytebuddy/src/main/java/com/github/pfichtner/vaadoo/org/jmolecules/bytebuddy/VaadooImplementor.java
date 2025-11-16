@@ -46,7 +46,6 @@ import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
-import lombok.RequiredArgsConstructor;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
@@ -60,14 +59,18 @@ import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.jar.asm.Type;
 
-@RequiredArgsConstructor
 class VaadooImplementor {
 
 	private static final String VALIDATE_METHOD_BASE_NAME = "validate";
 
-	private static final Class<? extends Jsr380CodeFragment> FRAGMENT_CLASS = com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment.class;
+	private final Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass;
 
-	private final VaadooConfiguration configuration;
+	private final boolean customAnnotationsEnabled;
+
+	public VaadooImplementor(VaadooConfiguration configuration) {
+		this.jsr380CodeFragmentClass = configuration.jsr380CodeFragmentClass();
+		this.customAnnotationsEnabled = configuration.customAnnotationsEnabled();
+	}
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
 		TypeDescription typeDescription = type.getTypeDescription();
@@ -108,8 +111,8 @@ class VaadooImplementor {
 		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
 				.defineMethod(validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
 				.withParameters(parameters.types()).intercept( //
-						new Implementation.Simple(
-								new StaticValidateAppender(parameters, validateMethodName, FRAGMENT_CLASS, configuration.customAnnotationsEnabled()))));
+						new Implementation.Simple(new StaticValidateAppender(parameters, validateMethodName,
+								jsr380CodeFragmentClass, customAnnotationsEnabled))));
 	}
 
 	private static Builder<?> wrap(Builder<?> builder, int flags) {

@@ -18,11 +18,16 @@ package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 import java.util.Properties;
 import java.util.stream.Stream;
 
+import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.description.type.TypeDescription;
 
 @Slf4j
 public class PropertiesVaadooConfiguration implements VaadooConfiguration {
+
+	static final String VAADOO_CUSTOM_ANNOTATIONS_ENABLED = "vaadoo.customAnnotationsEnabled";
+	static final String VAADOO_JSR380_CODE_FRAGMENT_CLASS = "vaadoo.jsr380CodeFragmentClass";
 
 	private final Properties properties;
 
@@ -45,7 +50,7 @@ public class PropertiesVaadooConfiguration implements VaadooConfiguration {
 	}
 
 	public boolean customAnnotationsEnabled() {
-		return Boolean.parseBoolean(properties.getProperty("vaadoo.customAnnotationsEnabled", String.valueOf(true)));
+		return Boolean.parseBoolean(properties.getProperty(VAADOO_CUSTOM_ANNOTATIONS_ENABLED, String.valueOf(true)));
 	}
 
 	public String getProperty(String key) {
@@ -54,6 +59,20 @@ public class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	public boolean matches(TypeDescription target) {
 		return true;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass() {
+		String fragmentClass = properties.getProperty(VAADOO_JSR380_CODE_FRAGMENT_CLASS);
+		if (fragmentClass == null) {
+			return VaadooConfiguration.super.jsr380CodeFragmentClass();
+		}
+		try {
+			return (Class<? extends Jsr380CodeFragment>) Class.forName(fragmentClass);
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

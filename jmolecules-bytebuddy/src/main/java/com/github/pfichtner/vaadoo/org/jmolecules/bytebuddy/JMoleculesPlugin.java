@@ -33,7 +33,6 @@ import java.util.Properties;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultJMoleculesVaadooConfiguration;
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultVaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
@@ -101,8 +100,7 @@ public class JMoleculesPlugin implements LoggingPlugin, WithPreprocessor {
 
 	VaadooConfiguration configuration(ClassWorld world) {
 		if (configuration == null) {
-			return DefaultJMoleculesVaadooConfiguration.tryCreate(world)
-					.orElseGet(() -> new DefaultVaadooConfiguration());
+			return DefaultJMoleculesVaadooConfiguration.tryCreate(world).orElseGet(() -> VaadooConfiguration.DEFAULT);
 		}
 		return configuration;
 	}

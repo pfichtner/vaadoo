@@ -15,14 +15,30 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
+import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment;
+
 import net.bytebuddy.description.type.TypeDescription;
 
 public interface VaadooConfiguration {
 
-	public boolean include(TypeDescription description);
+	VaadooConfiguration DEFAULT = new VaadooConfiguration() {
+	};
 
-	public boolean customAnnotationsEnabled();
+	public default boolean include(TypeDescription description) {
+		return true;
+	}
 
-	public boolean matches(TypeDescription target);
+	public default boolean customAnnotationsEnabled() {
+		return true;
+	}
+
+	public default boolean matches(TypeDescription target) {
+		return true;
+	}
+
+	public default Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass() {
+		return JdkOnlyCodeFragment.class;
+	}
 
 }

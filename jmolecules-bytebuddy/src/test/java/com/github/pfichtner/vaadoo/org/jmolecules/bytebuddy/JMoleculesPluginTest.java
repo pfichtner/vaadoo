@@ -23,8 +23,8 @@ import java.net.URISyntaxException;
 import org.junit.jupiter.api.Test;
 
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultJMoleculesVaadooConfiguration;
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.DefaultVaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration;
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
 import net.bytebuddy.dynamic.ClassFileLocator;
 
@@ -74,8 +74,7 @@ class JMoleculesConfigurationTests {
 	void returnsDefaultWithoutJmoleculesInClasspath() {
 		File file = getFolder("config/none");
 		try (JMoleculesPlugin jMoleculesPlugin = new JMoleculesPlugin(file)) {
-			assertThat(jMoleculesPlugin.configuration(emptyClassWorld))
-					.isExactlyInstanceOf(DefaultVaadooConfiguration.class);
+			assertThat(jMoleculesPlugin.configuration(emptyClassWorld)).isSameAs(VaadooConfiguration.DEFAULT);
 		}
 	}
 
