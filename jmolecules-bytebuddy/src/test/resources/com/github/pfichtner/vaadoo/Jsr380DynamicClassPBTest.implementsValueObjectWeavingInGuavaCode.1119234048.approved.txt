@@ -1,0 +1,97 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.Max, interface jakarta.validation.constraints.PositiveOrZero])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.LocalDateTime, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Null])
+- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[interface jakarta.validation.constraints.Positive, interface jakarta.validation.constraints.PositiveOrZero])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull])
+- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=interface java.util.Map, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotNull])
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=interface java.util.List, annotations=[interface jakarta.validation.constraints.Null])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.util.LinkedHashSet, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1119234048
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1119234048
+implements ValueObject {
+    public Generated_1119234048(short s, @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) Integer n, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) LocalDateTime localDateTime, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) short s2, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) OffsetDateTime offsetDateTime, short s3, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Map map, Object[] objectArray, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) List list, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) LinkedHashSet linkedHashSet) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1119234048
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1119234048;
+import com.google.common.base.Preconditions;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1119234048
+implements ValueObject {
+    public Generated_1119234048(short s, @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) Integer n, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) LocalDateTime localDateTime, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) short s2, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) OffsetDateTime offsetDateTime, short s3, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Map map, Object[] objectArray, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) List list, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) LinkedHashSet linkedHashSet) {
+        Generated_1119234048.validate(s, n, localDateTime, s2, offsetDateTime, s3, map, objectArray, list, linkedHashSet);
+        this(s, n, localDateTime, s2, offsetDateTime, s3, map, objectArray, list, linkedHashSet, null);
+    }
+
+    private /* synthetic */ Generated_1119234048(short s, Integer n, LocalDateTime localDateTime, short s2, OffsetDateTime offsetDateTime, short s3, Map map, Object[] objectArray, List list, LinkedHashSet linkedHashSet, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(short s, Integer n, LocalDateTime localDateTime, short s2, OffsetDateTime offsetDateTime, short s3, Map map, Object[] objectArray, List list, LinkedHashSet linkedHashSet) {
+        Preconditions.checkArgument(n == null || (long)n.intValue() <= 0L, "integer must be less than or equal to 0");
+        Preconditions.checkArgument(n == null || n >= 0, "integer must be greater than or equal to 0");
+        Preconditions.checkNotNull(localDateTime, "localDateTime must not be null");
+        Preconditions.checkArgument(localDateTime == null, "localDateTime must be null");
+        Preconditions.checkArgument(s2 > 0, "short1 must be greater than 0");
+        Preconditions.checkArgument(s2 >= 0, "short1 must be greater than or equal to 0");
+        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a future date");
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present");
+        Preconditions.checkNotNull(offsetDateTime, "offsetDateTime must not be null");
+        Preconditions.checkArgument(map == null, "map must be null");
+        Preconditions.checkNotNull(map, "map must not be null");
+        Preconditions.checkArgument(list == null, "list must be null");
+        int n2 = ((Collection)Preconditions.checkNotNull(linkedHashSet, "size of linkedHashSet must be between 0 and 2147483647")).size();
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of linkedHashSet must be between 0 and 2147483647");
+        Preconditions.checkNotNull(linkedHashSet, "linkedHashSet must not be null");
+    }
+}
+
+
+----------------------------------------------------------------

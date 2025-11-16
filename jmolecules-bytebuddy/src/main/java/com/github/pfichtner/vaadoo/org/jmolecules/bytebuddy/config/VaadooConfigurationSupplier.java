@@ -80,7 +80,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class VaadooConfigurationSupplier {
 
-	private static final String VAADOO_CONFIG = "vaadoo.config";
+	public static final String VAADOO_CONFIG = "vaadoo.config";
 
 	private final VaadooConfiguration configurationFromConfigFile;
 

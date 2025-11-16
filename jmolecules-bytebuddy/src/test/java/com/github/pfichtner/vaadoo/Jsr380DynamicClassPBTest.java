@@ -19,7 +19,9 @@ import static com.github.pfichtner.vaadoo.ApprovalUtil.approveTransformed;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfigurationSupplier.VAADOO_CONFIG;
 import static java.lang.Math.min;
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
@@ -35,10 +37,15 @@ import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.namer.NamerFactory.withParameters;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,6 +55,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -70,6 +78,7 @@ import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
 
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.jqwik.api.Arbitraries;
@@ -297,13 +306,50 @@ class Jsr380DynamicClassPBTest {
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
+		approve(params, new Transformer());
+	}
+
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
+	void implementsValueObjectWeavingInGuavaCode(@ForAll("constructorParameters") List<ParameterDefinition> params)
+			throws Exception {
+		File projectRoot = useFragmentClass(GuavaCodeFragment.class);
+		try {
+			approve(params, new Transformer().projectRoot(projectRoot));
+		} finally {
+			deleteRecursively(projectRoot);
+			assert !projectRoot.exists();
+		}
+	}
+
+	private void approve(List<ParameterDefinition> params, Transformer transformer) throws Exception {
 		settings().allowMultipleVerifyCallsForThisClass();
 		settings().allowMultipleVerifyCallsForThisMethod();
 		var checksum = ParameterDefinition.stableChecksum(params);
 		try (NamedEnvironment env = withParameters(checksum)) {
 			var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
 					.withConstructor(new ConstructorDefinition(params)));
-			approveTransformed(params, testClass);
+			approveTransformed(params, testClass, transformer);
+		}
+	}
+
+	private void deleteRecursively(File projectRoot) throws IOException {
+		try (Stream<Path> paths = Files.walk(projectRoot.toPath())) {
+			paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+		}
+	}
+
+	private File useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) throws IOException {
+		File projectRoot = Files.createTempDirectory("project-root").toFile();
+		new File(projectRoot, "target/classes").mkdirs();
+		writeTo(new File(projectRoot, "pom.xml"), format("", GuavaCodeFragment.class.getName()));
+		writeTo(new File(projectRoot, VAADOO_CONFIG),
+				format("vaadoo.jsr380CodeFragmentClass=%s", fragmentClass.getName()));
+		return projectRoot;
+	}
+
+	private void writeTo(File file, String text) throws IOException {
+		try (FileWriter writer = new FileWriter(file)) {
+			writer.write(text);
 		}
 	}
 

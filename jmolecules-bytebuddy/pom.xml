@@ -28,6 +28,12 @@
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>33.5.0-jre</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>net.bytebuddy</groupId>

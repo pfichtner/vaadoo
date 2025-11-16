@@ -59,7 +59,12 @@ class ApprovalUtil {
 
 	public static void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass)
 			throws Exception {
-		Unloaded<?> transformedClass = new Transformer().transform(generatedClass);
+		approveTransformed(params, generatedClass, new Transformer());
+	}
+
+	public static void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass,
+			Transformer transformer) throws Exception, IOException {
+		Unloaded<?> transformedClass = transformer.transform(generatedClass);
 		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
 	}
 
