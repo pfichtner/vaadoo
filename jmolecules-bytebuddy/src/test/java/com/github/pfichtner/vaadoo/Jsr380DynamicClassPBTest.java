@@ -22,8 +22,10 @@ import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.Vaadoo
 import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
+import static java.nio.file.Files.walk;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 import static java.util.Map.entry;
 import static java.util.Map.Entry.comparingByKey;
 import static java.util.function.Function.identity;
@@ -54,7 +56,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -72,9 +73,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertionsProvider.ThrowingRunnable;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.api.function.ThrowingConsumer;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
@@ -315,20 +313,19 @@ class Jsr380DynamicClassPBTest {
 	void implementsValueObjectWeavingInGuavaCode(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
 		var projectRoot = useFragmentClass(GuavaCodeFragment.class);
-		withProjectRoot(projectRoot,
-				() -> new Approver(new Transformer().projectRoot(projectRoot)).approveTransformed(params));
+		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
 	}
 
-	private static void withProjectRoot(File projectRoot, ThrowingRunnable executable) throws Exception {
+	private static void withProjectRoot(File projectRoot, ThrowingRunnable runnable) throws Exception {
 		try {
-			executable.run();
+			runnable.run();
 		} finally {
-			try (Stream<Path> paths = Files.walk(projectRoot.toPath())) {
-				paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+			try (var paths = walk(projectRoot.toPath())) {
+				paths.sorted(reverseOrder()).map(Path::toFile).forEach(File::delete);
 			}
 			assert !projectRoot.exists();
 		}
-
 	}
 
 	private static File useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) throws IOException {

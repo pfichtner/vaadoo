@@ -21,14 +21,14 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.Approvals.verify;
-import static org.approvaltests.namer.NamerFactory.withParameters;
 
 import java.io.IOException;
 import java.util.List;
 
+import org.approvaltests.ApprovalSettings;
+import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Scrubber;
-import org.approvaltests.namer.NamedEnvironment;
 import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
 import org.approvaltests.scrubbers.RegExScrubber;
 
@@ -67,23 +67,27 @@ class Approver {
 	}
 
 	public void approveTransformed(List<ParameterDefinition> params) throws Exception {
-		settings().allowMultipleVerifyCallsForThisClass();
-		settings().allowMultipleVerifyCallsForThisMethod();
+		ApprovalSettings settings = settings();
+		settings.allowMultipleVerifyCallsForThisClass();
+		settings.allowMultipleVerifyCallsForThisMethod();
 		var checksum = ParameterDefinition.stableChecksum(params);
-		try (NamedEnvironment env = withParameters(checksum)) {
-			var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
-					.withConstructor(new ConstructorDefinition(params)));
-			approveTransformed(params, testClass);
-		}
+		var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
+				.withConstructor(new ConstructorDefinition(params)));
+		approveTransformed(params, testClass, Approvals.NAMES.withParameters(checksum));
 	}
 
 	public void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass) throws Exception {
-		Unloaded<?> transformedClass = transformer.transform(generatedClass);
-		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), options());
+		approveTransformed(params, generatedClass, new Options());
 	}
 
-	public static Options options() {
-		return new Options().withScrubber(scrubber()).withReporter(new AutoApproveWhenEmptyReporter());
+	public void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass, Options options)
+			throws Exception {
+		Unloaded<?> transformedClass = transformer.transform(generatedClass);
+		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), configure(options));
+	}
+
+	private static Options configure(Options options) {
+		return options.withScrubber(scrubber()).withReporter(new AutoApproveWhenEmptyReporter());
 	}
 
 	public static Scrubber scrubber() {
