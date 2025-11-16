@@ -24,10 +24,10 @@ When implementing an application using Spring it's very handy to use the JSR 380
 If you decide, that none of these possibilites is an option you **cannot** just declare things like this...
 
 ```java
-public class MyDomainObject {
+class MyDomainObject {
     private final String name;
     private final int age;
-    public MyDomainObject(@NotEmpty String name, @Min(0) int age) {
+    MyDomainObject(@NotEmpty String name, @Min(0) int age) {
         this.name = name;
         this.age = age;
     }
@@ -38,10 +38,10 @@ public class MyDomainObject {
 That's why you would start implementing all those contraint checks using hand-written code into you domain objects to have them self-validating: 
 
 ```java
-public class MyDomainObject {
+class MyDomainObject {
     private final String name;
     private final int age;
-    public MyDomainObject(String name, int age) {
+    MyDomainObject(String name, int age) {
         if (name == null { throw new NullPointerException("name must not be null"); }
         if (name.isEmpty() { throw new InvalidArgumentException("name must not be empty"); }
         if (age < 0 { throw new InvalidArgumentException("age must be greater than or equal to 0"); }
@@ -57,14 +57,14 @@ And this is where vaadoo comes into play. Vaadoo is a compiler plugin that gener
 
 PS: This is getting real fun with lombok ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/vaadoo-tests/lombok.config)) and records! 
 ```java
-@lombok.Value public class MyDomainObject {
+@lombok.Value class MyDomainObject {
     @NotEmpty String name;
     @Min(0) int age;
 }
 ```
 
 ```java
-public record MyDomainObject(@NotEmpty String name, @Min(0) int age) {}
+record MyDomainObject(@NotEmpty String name, @Min(0) int age) {}
 ```
 
 ## Why are only constructors supported? Please add support for methods as well! 
