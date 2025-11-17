@@ -114,8 +114,8 @@ class VaadooImplementor {
 		log.info("Implementing static validate method #{}.", staticValidateAppender.validateMethodName);
 		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
 				.defineMethod(staticValidateAppender.validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
-				.withParameters(staticValidateAppender.parameters.types()).intercept( //
-						new Implementation.Simple(staticValidateAppender)));
+				.withParameters(staticValidateAppender.parameters.types())
+				.intercept(new Implementation.Simple(staticValidateAppender)));
 	}
 
 	private static Builder<?> wrap(Builder<?> builder, int flags) {
