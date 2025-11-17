@@ -23,6 +23,8 @@ import static java.lang.String.format;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
+import static java.util.stream.Stream.concat;
+import static java.util.stream.Stream.empty;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_FRAMES;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_MAXS;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
@@ -32,7 +34,6 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -140,7 +141,7 @@ class VaadooImplementor {
 
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
-		private static interface InjectionTask {
+		private interface InjectionTask {
 			void apply(ValidationCodeInjector injector, MethodVisitor mv);
 		}
 
@@ -173,33 +174,38 @@ class VaadooImplementor {
 		private final String validateMethodName;
 		private final Parameters parameters;
 		private final Class<? extends Jsr380CodeFragment> fragmentClass;
+		private final boolean customAnnotationsEnabled;
 		private final List<Method> codeFragmentMethods;
-		private final List<InjectionTask> injectionTasks = new ArrayList<>();
-		private String methodDescriptor;
+		private final String methodDescriptor;
+		private final List<InjectionTask> injectionTasks;
 
 		public StaticValidateAppender(String validateMethodName, Parameters parameters,
 				Class<? extends Jsr380CodeFragment> fragmentClass, boolean customAnnotationsEnabled) {
 			this.validateMethodName = validateMethodName;
 			this.parameters = parameters;
 			this.fragmentClass = fragmentClass;
+			this.customAnnotationsEnabled = customAnnotationsEnabled;
 			this.codeFragmentMethods = Arrays.asList(fragmentClass.getMethods());
 			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
 					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
+			this.injectionTasks = parameters.stream().flatMap(this::tasksFor).collect(toList());
+		}
 
-			for (Parameter parameter : parameters) {
-				for (TypeDescription annotation : parameter.annotations()) {
-					for (ConfigEntry config : Jsr380Annos.configs) {
-						if (annotation.equals(config.type())) {
-							injectionTasks.add(Jsr380AnnoInjectionTask.of(parameter,
-									codeFragmentMethod(config, parameter.type())));
-						}
-					}
+		private Stream<InjectionTask> tasksFor(Parameter parameter) {
+			return Stream.of(parameter.annotations()).flatMap(a -> concat(jsr380(parameter, a), custom(parameter, a)));
+		}
 
-					if (customAnnotationsEnabled && !isStandardJr380Anno(annotation)) {
-						injectionTasks.add(CustomInjectionTask.of(parameter, annotation));
-					}
-				}
-			}
+		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation) {
+			return Jsr380Annos.configs.stream() //
+					.filter(c -> annotation.equals(c.type())) //
+					.map(c -> codeFragmentMethod(c, parameter.type())) //
+					.map(f -> Jsr380AnnoInjectionTask.of(parameter, f));
+		}
+
+		private Stream<InjectionTask> custom(Parameter parameter, TypeDescription annotation) {
+			return customAnnotationsEnabled && isStandardJr380Anno(annotation) //
+					? empty()
+					: Stream.of(CustomInjectionTask.of(parameter, annotation));
 		}
 
 		public boolean hasInjections() {
@@ -212,7 +218,6 @@ class VaadooImplementor {
 			for (InjectionTask task : injectionTasks) {
 				task.apply(injector, mv);
 			}
-
 			mv.visitInsn(Opcodes.RETURN);
 			return Size.ZERO;
 		}

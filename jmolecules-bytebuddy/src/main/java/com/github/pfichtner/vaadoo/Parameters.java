@@ -26,6 +26,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 
@@ -156,8 +157,7 @@ public class Parameters implements Iterable<Parameter> {
 		@Override
 		public TypeDescription[] annotations() {
 			return annotationList() //
-					.asTypeList()
-					.toArray(TypeDescription[]::new);
+					.asTypeList().toArray(TypeDescription[]::new);
 		}
 
 		@Override
@@ -203,6 +203,10 @@ public class Parameters implements Iterable<Parameter> {
 
 	public int count() {
 		return values.size();
+	}
+
+	public Stream<Parameter> stream() {
+		return values.stream();
 	}
 
 	@Override
