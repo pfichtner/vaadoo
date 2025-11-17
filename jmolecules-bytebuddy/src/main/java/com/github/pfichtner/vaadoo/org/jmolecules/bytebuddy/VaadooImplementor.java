@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
+import static net.bytebuddy.implementation.MethodCall.invoke;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_FRAMES;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_MAXS;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
@@ -55,7 +56,6 @@ import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import net.bytebuddy.jar.asm.MethodVisitor;
@@ -124,12 +124,9 @@ class VaadooImplementor {
 
 	private Builder<?> injectCallToValidateIntoConstructor(Builder<?> builder,
 			MethodDescription.InDefinedShape constructor, String validateMethodName, Parameters parameters) {
+		var validateMethod = named(validateMethodName).and(takesArguments(parameters.types()));
 		return builder.constructor(is(constructor)) //
-				.intercept( //
-						MethodCall.invoke(named(validateMethodName).and(takesArguments(parameters.types()))) //
-								.withAllArguments().andThen( //
-										SuperMethodCall.INSTANCE //
-								));
+				.intercept(invoke(validateMethod).withAllArguments().andThen(SuperMethodCall.INSTANCE));
 	}
 
 	private static class StaticValidateAppender implements ByteCodeAppender {
