@@ -79,7 +79,6 @@ class VaadooImplementor {
 		TypeDescription typeDescription = type.getTypeDescription();
 		for (InDefinedShape definedShape : typeDescription.getDeclaredMethods()) {
 			if (definedShape.isConstructor()) {
-				// Extract constructor parameter types
 				Parameters parameters = Parameters.of(definedShape.getParameters());
 
 				// Generate a unique method name per constructor
@@ -90,11 +89,8 @@ class VaadooImplementor {
 				StaticValidateAppender staticValidateAppender = new StaticValidateAppender(validateMethodName,
 						parameters, jsr380CodeFragmentClass, customAnnotationsEnabled);
 
-				// Add static validate method
-				type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
-
-				// Inject call into this constructor
 				if (staticValidateAppender.hasInjections()) {
+					type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
 					type = type.mapBuilder(
 							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
 				}
@@ -115,14 +111,11 @@ class VaadooImplementor {
 
 	private Builder<?> addStaticValidateMethod(Builder<?> builder, StaticValidateAppender staticValidateAppender,
 			Log log) {
-		if (staticValidateAppender.hasInjections()) {
-			log.info("Implementing static validate method #{}.", staticValidateAppender.validateMethodName);
-			return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
-					.defineMethod(staticValidateAppender.validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
-					.withParameters(staticValidateAppender.parameters.types()).intercept( //
-							new Implementation.Simple(staticValidateAppender)));
-		}
-		return builder;
+		log.info("Implementing static validate method #{}.", staticValidateAppender.validateMethodName);
+		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
+				.defineMethod(staticValidateAppender.validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
+				.withParameters(staticValidateAppender.parameters.types()).intercept( //
+						new Implementation.Simple(staticValidateAppender)));
 	}
 
 	private static Builder<?> wrap(Builder<?> builder, int flags) {
