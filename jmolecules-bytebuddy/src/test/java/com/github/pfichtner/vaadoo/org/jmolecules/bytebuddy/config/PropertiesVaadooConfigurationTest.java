@@ -34,21 +34,24 @@ class PropertiesVaadooConfigurationTest {
 
 	@Test
 	void ifFragmentTypeIsSetThenItIsReturned() {
-		properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, KnownFragmentClass.GUAVA.name());
+		useFragmentType(KnownFragmentClass.GUAVA.name());
 		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(GuavaCodeFragment.class);
 	}
 
 	@Test
 	void ifFragmentTypeIsInvalidValueThenDefaultFragmentClassIsReturned() {
-		properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, "XXXXX-INVALID-XXXX");
+		useFragmentType("XXXXX-INVALID-XXXX");
 		assertThat(sut.jsr380CodeFragmentClass()).isEqualTo(defaultFragmentClass);
 	}
 
 	@ParameterizedTest
 	@MethodSource("knownFragmentClassNames")
-	void ifFragmentClassIsSetItIsUsedAndFragmenTypeGetsIgnored(String knownFragmentClassName) {
+	void ifFragmentClassIsSetItIsUsedAndFragmenTypeDoesNotMatter(String knownFragmentClassName) {
 		var dummyFragmentClass = dummyFragmentClass();
-		var jsr380CodeFragmentClass = loadFragmentType(knownFragmentClassName, dummyFragmentClass);
+		if (knownFragmentClassName != null) {
+			useFragmentType(knownFragmentClassName);
+		}
+		var jsr380CodeFragmentClass = setAndAccessFragmentType(dummyFragmentClass);
 		assertThat(jsr380CodeFragmentClass).isEqualTo(dummyFragmentClass.getClass());
 	}
 
@@ -59,10 +62,11 @@ class PropertiesVaadooConfigurationTest {
 				Stream.of(" ", "XXXXX-INVALID-XXXX", null));
 	}
 
-	private Class<? extends Jsr380CodeFragment> loadFragmentType(String knownFragmentClass, Object dummyFragmentClass) {
-		if (knownFragmentClass != null) {
-			properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, knownFragmentClass);
-		}
+	private void useFragmentType(String fragmentType) {
+		properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, fragmentType);
+	}
+
+	private Class<? extends Jsr380CodeFragment> setAndAccessFragmentType(Object dummyFragmentClass) {
 		properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_CLASS, dummyFragmentClass.getClass().getName());
 		return sut.jsr380CodeFragmentClass();
 	}
