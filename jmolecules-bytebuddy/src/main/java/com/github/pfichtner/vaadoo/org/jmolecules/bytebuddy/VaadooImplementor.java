@@ -32,6 +32,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +47,7 @@ import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
+import lombok.Value;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
@@ -84,13 +86,17 @@ class VaadooImplementor {
 				// already is a validate())
 				String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
 
+				StaticValidateAppender staticValidateAppender = new StaticValidateAppender(validateMethodName,
+						parameters, jsr380CodeFragmentClass, customAnnotationsEnabled);
+
 				// Add static validate method
-				// TODO only add if one check was added!
-				type = type.mapBuilder(t -> addStaticValidateMethod(t, validateMethodName, parameters, log));
+				type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
 
 				// Inject call into this constructor
-				type = type.mapBuilder(
-						t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
+				if (staticValidateAppender.hasInjections()) {
+					type = type.mapBuilder(
+							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
+				}
 			}
 		}
 		return type;
@@ -106,14 +112,16 @@ class VaadooImplementor {
 				.get(); // safe because stream is infinite, will always find a free name
 	}
 
-	private Builder<?> addStaticValidateMethod(Builder<?> builder, String validateMethodName, Parameters parameters,
+	private Builder<?> addStaticValidateMethod(Builder<?> builder, StaticValidateAppender staticValidateAppender,
 			Log log) {
-		log.info("Implementing static validate method #{}.", validateMethodName);
-		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
-				.defineMethod(validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
-				.withParameters(parameters.types()).intercept( //
-						new Implementation.Simple(new StaticValidateAppender(parameters, validateMethodName,
-								jsr380CodeFragmentClass, customAnnotationsEnabled))));
+		if (staticValidateAppender.hasInjections()) {
+			log.info("Implementing static validate method #{}.", staticValidateAppender.validateMethodName);
+			return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
+					.defineMethod(staticValidateAppender.validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
+					.withParameters(staticValidateAppender.parameters.types()).intercept( //
+							new Implementation.Simple(staticValidateAppender)));
+		}
+		return builder;
 	}
 
 	private static Builder<?> wrap(Builder<?> builder, int flags) {
@@ -132,46 +140,77 @@ class VaadooImplementor {
 
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
-		private final Parameters parameters;
-		private final String validateMethodName;
-		private final Class<? extends Jsr380CodeFragment> fragmentClass;
-		private final List<Method> codeFragmentMethods;
-		private final boolean customAnnotationsEnabled;
-
-		public StaticValidateAppender(Parameters parameters, String validateMethodName,
-				Class<? extends Jsr380CodeFragment> fragmentClass, boolean customAnnotationsEnabled) {
-			this.parameters = parameters;
-			this.validateMethodName = validateMethodName;
-			this.fragmentClass = fragmentClass;
-			this.customAnnotationsEnabled = customAnnotationsEnabled;
-			this.codeFragmentMethods = Arrays.asList(fragmentClass.getMethods());
+		private static interface InjectionTask {
+			void apply(ValidationCodeInjector injector, MethodVisitor mv);
 		}
 
-		@Override
-		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
-					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
+		@Value(staticConstructor = "of")
+		private static class Jsr380AnnoInjectionTask implements InjectionTask {
+			Parameter parameter;
+			Method fragmentMethod;
 
-			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
+			@Override
+			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
+				try {
+					injector.inject(mv, parameter, fragmentMethod);
+				} catch (Exception e) {
+					throw new RuntimeException(format("Error injecting %s for %s", fragmentMethod, parameter), e);
+				}
+			}
+		}
+
+		@Value(staticConstructor = "of")
+		private static class CustomInjectionTask implements InjectionTask {
+			Parameter parameter;
+			TypeDescription annotation;
+
+			@Override
+			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
+				addCustomAnnotations(mv, parameter, annotation);
+			}
+		}
+
+		private final String validateMethodName;
+		private final Parameters parameters;
+		private final Class<? extends Jsr380CodeFragment> fragmentClass;
+		private final List<Method> codeFragmentMethods;
+		private final List<InjectionTask> injectionTasks = new ArrayList<>();
+		private String methodDescriptor;
+
+		public StaticValidateAppender(String validateMethodName, Parameters parameters,
+				Class<? extends Jsr380CodeFragment> fragmentClass, boolean customAnnotationsEnabled) {
+			this.validateMethodName = validateMethodName;
+			this.parameters = parameters;
+			this.fragmentClass = fragmentClass;
+			this.codeFragmentMethods = Arrays.asList(fragmentClass.getMethods());
+			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
+					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
 
 			for (Parameter parameter : parameters) {
 				for (TypeDescription annotation : parameter.annotations()) {
 					for (ConfigEntry config : Jsr380Annos.configs) {
 						if (annotation.equals(config.type())) {
-							Method codeFragmentMethod = codeFragmentMethod(config, parameter.type());
-							try {
-								injector.inject(mv, parameter, codeFragmentMethod);
-							} catch (Exception e) {
-								throw new RuntimeException(
-										format("Error injecting %s for %s", codeFragmentMethod, parameter), e);
-							}
+							injectionTasks.add(Jsr380AnnoInjectionTask.of(parameter,
+									codeFragmentMethod(config, parameter.type())));
 						}
 					}
 
 					if (customAnnotationsEnabled && !isStandardJr380Anno(annotation)) {
-						addCustomAnnotations(parameter, annotation, mv);
+						injectionTasks.add(CustomInjectionTask.of(parameter, annotation));
 					}
 				}
+			}
+		}
+
+		public boolean hasInjections() {
+			return !injectionTasks.isEmpty();
+		}
+
+		@Override
+		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
+			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
+			for (InjectionTask task : injectionTasks) {
+				task.apply(injector, mv);
 			}
 
 			mv.visitInsn(Opcodes.RETURN);

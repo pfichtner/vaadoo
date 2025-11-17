@@ -22,21 +22,10 @@ Analysing type com.example.Generated
  */
 package com.example;
 
-import com.example.Generated;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated
 implements ValueObject {
-    public Generated() {
-        Generated.validate();
-        this(null);
-    }
-
-    private /* synthetic */ Generated(auxiliary.[AUX1_1 AUX1_1] {
-    }
-
-    private static void validate() {
-    }
 }
 
 

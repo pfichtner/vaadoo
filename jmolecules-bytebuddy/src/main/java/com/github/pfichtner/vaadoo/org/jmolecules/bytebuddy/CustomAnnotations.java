@@ -56,7 +56,7 @@ import net.bytebuddy.jar.asm.MethodVisitor;
 @NoArgsConstructor(access = PRIVATE)
 public final class CustomAnnotations {
 
-	public static void addCustomAnnotations(Parameter parameter, TypeDescription annotation, MethodVisitor mv) {
+	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation) {
 		var contraint = annotation.getDeclaredAnnotations().ofType(Constraint.class);
 		if (contraint == null) {
 			return;

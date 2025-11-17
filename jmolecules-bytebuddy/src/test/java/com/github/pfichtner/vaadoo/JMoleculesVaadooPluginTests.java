@@ -28,7 +28,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -52,7 +51,6 @@ class JMoleculesVaadooPluginTests {
 
 	@ParameterizedTest
 	@ValueSource(classes = { EmptyClass.class, ClassWithAttribute.class, ClassWithNotNullAttribute.class })
-	@Disabled
 	void doesNotAddValidateMethod(Class<?> clazz) throws Exception {
 		assertThat(methodNames(transformer.transform(clazz))).doesNotContain(validateMethodName);
 	}
@@ -60,7 +58,6 @@ class JMoleculesVaadooPluginTests {
 	@ParameterizedTest
 	@ValueSource(classes = { ValueObjectWithAttribute.class, TwoConstructorsValueObject.class,
 			ValueObjectWithRegexAttribute.class, CustomExample.class, CustomExampleWithCustomMessage.class })
-	@Disabled
 	void doesAddValidateMethod(Class<?> clazz) throws Exception {
 		assertThat(methodNames(transformer.transform(clazz))).contains(validateMethodName);
 	}
