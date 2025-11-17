@@ -45,6 +45,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -95,17 +96,22 @@ class Jsr380DynamicClassPBTest {
 	static final Transformer transformer = new Transformer();
 
 	static final Map<Class<?>, List<Class<?>>> SUPERTYPE_TO_SUBTYPES = Map.ofEntries(
-			entry(Object.class,
-					List.of(String.class, StringBuilder.class, StringBuffer.class, Number.class, Collection.class,
-							Map.class, Comparable.class)), //
+			entry(Object.class, List.of(String.class, //
+					Number.class, StringBuilder.class, StringBuffer.class, Collection.class, Map.class,
+					Comparable.class)), //
 			entry(CharSequence.class, List.of(String.class, StringBuilder.class, StringBuffer.class)), //
 			entry(Collection.class, List.of(List.class, Set.class)), //
 			entry(List.class, List.of(ArrayList.class, LinkedList.class)), //
 			entry(Set.class, List.of(HashSet.class, LinkedHashSet.class)), //
 			entry(Map.class, List.of(HashMap.class, TreeMap.class, LinkedHashMap.class)), //
-			entry(Object[].class, List.of(String[].class, Integer[].class, Long[].class, Object[].class)), //
-			entry(Number.class, List.of(Integer.class, Long.class, Double.class, Float.class, BigDecimal.class)), //
-			entry(Comparable.class, List.of(String.class, Integer.class, LocalDate.class, LocalDateTime.class)), //
+			entry(Object[].class, List.of(String[].class, Object[].class, //
+					Byte[].class, Short[].class, Integer[].class, Long[].class, Double[].class, Float[].class //
+			)), //
+			entry(Number.class,
+					List.of(Byte.class, Short.class, Integer.class, Long.class, Double.class, Float.class,
+							BigInteger.class, BigDecimal.class)), //
+			entry(Comparable.class,
+					List.of(String.class, Number.class, Date.class, LocalDate.class, LocalDateTime.class)), //
 			entry(Date.class,
 					List.of(java.sql.Date.class, java.sql.Timestamp.class, Calendar.class, LocalDate.class,
 							LocalDateTime.class, Instant.class, OffsetDateTime.class, ZonedDateTime.class)),

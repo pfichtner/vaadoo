@@ -16,6 +16,7 @@
 package com.github.pfichtner.vaadoo;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -23,12 +24,16 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.github.pfichtner.vaadoo.testclasses.AnnotationDoesNotSupportType;
 import com.github.pfichtner.vaadoo.testclasses.ClassWithAttribute;
@@ -42,7 +47,23 @@ import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMes
 
 class JMoleculesVaadooPluginTests {
 
-	static Transformer transformer = new Transformer();
+	static String validateMethodName = "validate";
+	static Transformer transformer = new Transformer().dumpClassFilesToTemp(true);
+
+	@ParameterizedTest
+	@ValueSource(classes = { EmptyClass.class, ClassWithAttribute.class, ClassWithNotNullAttribute.class })
+	@Disabled
+	void doesNotAddValidateMethod(Class<?> clazz) throws Exception {
+		assertThat(methodNames(transformer.transform(clazz))).doesNotContain(validateMethodName);
+	}
+
+	@ParameterizedTest
+	@ValueSource(classes = { ValueObjectWithAttribute.class, TwoConstructorsValueObject.class,
+			ValueObjectWithRegexAttribute.class, CustomExample.class, CustomExampleWithCustomMessage.class })
+	@Disabled
+	void doesAddValidateMethod(Class<?> clazz) throws Exception {
+		assertThat(methodNames(transformer.transform(clazz))).contains(validateMethodName);
+	}
 
 	@Test
 	void emptyClassIsUnchanged() throws Exception {
@@ -62,9 +83,7 @@ class JMoleculesVaadooPluginTests {
 	void classWithNotNullAttribute() throws Exception {
 		var transformed = transformer.transform(ClassWithNotNullAttribute.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
-		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
-						.hasMessage(notNull("someString")));
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance((String) null));
 	}
 
 	@Test
@@ -139,6 +158,10 @@ class JMoleculesVaadooPluginTests {
 						List.of(invalidIban, true), //
 						"a custom message") //
 		);
+	}
+
+	private List<String> methodNames(Class<?> transformed) {
+		return Arrays.stream(transformed.getDeclaredMethods()).map(Method::getName).collect(toList());
 	}
 
 	static String notNull(String paramName) {

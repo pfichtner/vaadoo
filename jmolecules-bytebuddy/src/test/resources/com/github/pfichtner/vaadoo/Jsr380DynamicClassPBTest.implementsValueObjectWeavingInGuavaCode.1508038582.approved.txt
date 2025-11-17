@@ -1,0 +1,45 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1508038582
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1508038582
+implements ValueObject {
+    public Generated_1508038582(Float[] floatArray) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1508038582
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1508038582;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1508038582
+implements ValueObject {
+    public Generated_1508038582(Float[] floatArray) {
+        Generated_1508038582.validate(floatArray);
+        this(floatArray, null);
+    }
+
+    private /* synthetic */ Generated_1508038582(Float[] floatArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Float[] floatArray) {
+    }
+}
+
+
+----------------------------------------------------------------

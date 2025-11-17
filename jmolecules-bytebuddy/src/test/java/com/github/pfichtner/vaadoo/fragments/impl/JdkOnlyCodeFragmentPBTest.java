@@ -1,6 +1,5 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
-import static java.lang.reflect.Proxy.newProxyInstance;
 import static java.math.RoundingMode.UNNECESSARY;
 import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
@@ -23,6 +22,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.pfichtner.vaadoo.AnnotationFactory;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
 import jakarta.validation.constraints.AssertFalse;
@@ -72,7 +72,7 @@ class JdkOnlyCodeFragmentPBTest {
 		}
 
 		private static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz, Map<String, Object> data) {
-			return new Fixture(sut, anno(clazz, data));
+			return new Fixture(sut, AnnotationFactory.make(clazz, data));
 		}
 
 		public void noEx(Object v, Class<?>... types) {
@@ -215,17 +215,6 @@ class JdkOnlyCodeFragmentPBTest {
 
 	String[] emptyStringArray = new String[0];
 	Object[] emptyObjectArray = new Object[0];
-
-	private static <A extends Annotation> A anno(Class<A> annotationType, Map<String, Object> values) {
-		return annotationType.cast(
-				newProxyInstance(annotationType.getClassLoader(), new Class<?>[] { annotationType }, (p, m, a) -> {
-					if (m.getName().equals("message")) {
-						return "theMessage";
-					}
-					Object object = values.get(m.getName());
-					return (object == null) ? m.getDefaultValue() : object;
-				}));
-	}
 
 	// NotNull: generated non-null strings should never fail
 	@Property

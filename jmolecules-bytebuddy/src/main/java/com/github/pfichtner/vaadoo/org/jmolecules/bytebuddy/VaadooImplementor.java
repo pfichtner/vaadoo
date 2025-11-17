@@ -85,6 +85,7 @@ class VaadooImplementor {
 				String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
 
 				// Add static validate method
+				// TODO only add if one check was added!
 				type = type.mapBuilder(t -> addStaticValidateMethod(t, validateMethodName, parameters, log));
 
 				// Inject call into this constructor

@@ -5,7 +5,6 @@ import org.jmolecules.ddd.annotation.ValueObject;
 import jakarta.validation.constraints.NotNull;
 
 @SuppressWarnings("unused")
-@ValueObject
 public class ClassWithNotNullAttribute {
 
 	private final String someString;
@@ -13,4 +12,5 @@ public class ClassWithNotNullAttribute {
 	public ClassWithNotNullAttribute(@NotNull String someString) {
 		this.someString = someString;
 	}
+
 }
