@@ -11,6 +11,7 @@ Validating automatically domain objects: It's magic
 This project is a reimplementation of an [initial proof of concept (PoC)](https://github.com/pfichtner/vaadoo-poc). It is not feature complete yet and still missing at least:
 - Caching of the generated regexp (so its significant slower when using @Pattern(...))
 - Support for container element validation like ```List<@NotBlank String> list```
+
 Further development is ongoing.
 
 
