@@ -10,14 +10,17 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Value;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
+import net.jqwik.api.Example;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
@@ -222,7 +226,7 @@ class JdkOnlyCodeFragmentPBTest {
 		notNull.noEx(s, String.class);
 	}
 
-	@Property
+	@Example
 	void notNull_should_throw_on_null() {
 		notNull.npe(true, null, Object.class);
 	}
@@ -234,8 +238,8 @@ class JdkOnlyCodeFragmentPBTest {
 	}
 
 	@Property
-	void notBlank_fails_for_blank() {
-		notBlank.iae(true, "   ", String.class);
+	void notBlank_fails_for_blank(@ForAll("blankStrings") String s) {
+		notBlank.iae(true, s, String.class);
 	}
 
 	// Pattern: generated strings matching the pattern should pass
@@ -263,8 +267,9 @@ class JdkOnlyCodeFragmentPBTest {
 	}
 
 	@Property
-	void notEmpty_array_fails_for_empty() {
-		notEmpty.iae(true, emptyObjectArray, Object[].class);
+	void notEmpty_array_fails_for_empty(@ForAll("arrayTypes") Class<?> arrayType) {
+		Object emptyArray = Array.newInstance(arrayType.getComponentType(), 0);
+		notEmpty.iae(true, emptyArray, arrayType);
 	}
 
 	// Size: generate valid sizes and invalid sizes explicitly
@@ -541,6 +546,11 @@ class JdkOnlyCodeFragmentPBTest {
 	}
 
 	@Provide
+	Arbitrary<String> blankStrings() {
+		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f').ofMinLength(0).ofMaxLength(20);
+	}
+
+	@Provide
 	Arbitrary<String> nonBlankStrings() {
 		return Arbitraries.strings().ofMinLength(0).ofMaxLength(20).filter(not(s -> s.trim().isEmpty()));
 	}
@@ -568,6 +578,15 @@ class JdkOnlyCodeFragmentPBTest {
 	@Provide
 	Arbitrary<Map<String, Integer>> nonEmptyMaps() {
 		return nonEmptyLists().map(l -> Map.of(l.get(0), 1));
+	}
+
+	@Provide
+	Arbitrary<Class<?>> arrayTypes() {
+		// TODO support random class
+		return Arbitraries.of(Object.class, String.class, Number.class, Boolean.class, Byte.class, Short.class,
+				Integer.class, Long.class, Double.class, Float.class, BigInteger.class, BigDecimal.class,
+				Collection.class, List.class, Set.class, Map.class)
+				.map(component -> Array.newInstance(component, 0).getClass());
 	}
 
 	@Provide
