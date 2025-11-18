@@ -105,13 +105,15 @@ class Jsr380DynamicClassPBTest {
 			entry(Set.class, List.of(HashSet.class, LinkedHashSet.class)), //
 			entry(Map.class, List.of(HashMap.class, TreeMap.class, LinkedHashMap.class)), //
 			entry(Object[].class, List.of(String[].class, Object[].class, //
-					Byte[].class, Short[].class, Integer[].class, Long[].class, Double[].class, Float[].class //
+					Boolean[].class, Byte[].class, Short[].class, Integer[].class, Long[].class, Double[].class,
+					Float[].class //
 			)), //
 			entry(Number.class,
 					List.of(Byte.class, Short.class, Integer.class, Long.class, Double.class, Float.class,
 							BigInteger.class, BigDecimal.class)), //
 			entry(Comparable.class,
-					List.of(String.class, Number.class, Date.class, LocalDate.class, LocalDateTime.class)), //
+					List.of(String.class, Boolean.class, Number.class, Date.class, LocalDate.class,
+							LocalDateTime.class)), //
 			entry(Date.class,
 					List.of(java.sql.Date.class, java.sql.Timestamp.class, Calendar.class, LocalDate.class,
 							LocalDateTime.class, Instant.class, OffsetDateTime.class, ZonedDateTime.class)),
