@@ -79,19 +79,19 @@ class JdkOnlyCodeFragmentPBTest {
 			return new Fixture(sut, AnnotationFactory.make(clazz, data));
 		}
 
-		public void noEx(Object v, Class<?>... types) {
+		public void noException(Object v, Class<?>... types) {
 			for (Class<?> type : types) {
 				assertThatNoException().isThrownBy(() -> accept(v, type));
 			}
 		}
 
-		public void npe(boolean b, Object v, Class<?>... types) {
+		public void nullPointerExceptionIf(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
 				assertException(b, NullPointerException.class, v, type);
 			}
 		}
 
-		public void iae(boolean b, Object v, Class<?>... types) {
+		public void illegalArgumentExceptionIf(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
 				assertException(b, IllegalArgumentException.class, v, type);
 			}
@@ -192,12 +192,12 @@ class JdkOnlyCodeFragmentPBTest {
 	Fixture notBlank = Fixture.of(sut, NotBlank.class);
 	Fixture pattern = Fixture.of(sut, Pattern.class, Map.of("regexp", "\\d{2}"));
 
-	Fixture size = Fixture.of(sut, Size.class, Map.of("min", 2, "max", 4));
-	Fixture digits = Fixture.of(sut, Digits.class, Map.of("integer", 2, "fraction", 0));
-	Fixture min = Fixture.of(sut, Min.class, Map.of("value", 0L));
-	Fixture max = Fixture.of(sut, Max.class, Map.of("value", 100L));
-	Fixture decimalMin = Fixture.of(sut, DecimalMin.class, Map.of("value", "2"));
-	Fixture decimalMax = Fixture.of(sut, DecimalMax.class, Map.of("value", "5"));
+	Fixture size2To4 = Fixture.of(sut, Size.class, Map.of("min", 2, "max", 4));
+	Fixture digitsInt2Fraction0 = Fixture.of(sut, Digits.class, Map.of("integer", 2, "fraction", 0));
+	Fixture min0 = Fixture.of(sut, Min.class, Map.of("value", 0L));
+	Fixture max100 = Fixture.of(sut, Max.class, Map.of("value", 100L));
+	Fixture decimalMin2 = Fixture.of(sut, DecimalMin.class, Map.of("value", "2"));
+	Fixture decimalMax5 = Fixture.of(sut, DecimalMax.class, Map.of("value", "5"));
 
 	Fixture assertTrue = Fixture.of(sut, AssertTrue.class);
 	Fixture assertFalse = Fixture.of(sut, AssertFalse.class);
@@ -222,211 +222,211 @@ class JdkOnlyCodeFragmentPBTest {
 
 	// NotNull: generated non-null strings should never fail
 	@Property
-	void notNull_should_accept_any_non_null_string(@ForAll("nonNullStrings") String s) {
-		notNull.noEx(s, String.class);
+	void notNull_should_accept_any_non_null_string(@ForAll("nonNullStrings") String value) {
+		notNull.noException(value, String.class);
 	}
 
 	@Example
 	void notNull_should_throw_on_null() {
-		notNull.npe(true, null, Object.class);
+		notNull.nullPointerExceptionIf(true, null, Object.class);
 	}
 
 	// NotBlank: non-blank strings should pass
 	@Property
-	void notBlank_passes_for_non_blank(@ForAll("nonBlankStrings") String s) {
-		notBlank.noEx(s, String.class);
+	void notBlank_passes_for_non_blank(@ForAll("nonBlankStrings") String value) {
+		notBlank.noException(value, String.class);
 	}
 
 	@Property
-	void notBlank_fails_for_blank(@ForAll("blankStrings") String s) {
-		notBlank.iae(true, s, String.class);
+	void notBlank_fails_for_blank(@ForAll("blankStrings") String value) {
+		notBlank.illegalArgumentExceptionIf(true, value, String.class);
 	}
 
 	// Pattern: generated strings matching the pattern should pass
 	@Property
-	void pattern_matches_generated_values(@ForAll("twoDigits") String s) {
-		pattern.noEx(s, String.class);
+	void pattern_matches_generated_values(@ForAll("twoDigits") String value) {
+		pattern.noException(value, String.class);
 	}
 
 	// NotEmpty variants: char sequence, collection and map are covered in unit
 	// tests;
 	// here we at least property-test char sequences and arrays
 	@Property
-	void notEmpty_charsequence_passes(@ForAll("nonBlankStrings") String s) {
-		notEmpty.noEx(s, String.class);
+	void notEmpty_charsequence_passes(@ForAll("nonBlankStrings") String value) {
+		notEmpty.noException(value, String.class);
 	}
 
 	@Property
-	void notEmpty_collection_passes(@ForAll("nonEmptyLists") List<String> l) {
-		notEmpty.noEx(l, List.class);
+	void notEmpty_collection_passes(@ForAll("nonEmptyLists") List<String> value) {
+		notEmpty.noException(value, List.class);
 	}
 
 	@Property
-	void notEmpty_map_passes(@ForAll("nonEmptyMaps") Map<String, Integer> m) {
-		notEmpty.noEx(m, Map.class);
+	void notEmpty_map_passes(@ForAll("nonEmptyMaps") Map<String, Integer> value) {
+		notEmpty.noException(value, Map.class);
 	}
 
 	@Property
-	void notEmpty_array_fails_for_empty(@ForAll("emptyArray") Object emptyArray) {
-		notEmpty.iae(true, emptyArray, Object[].class, emptyArray.getClass());
+	void notEmpty_array_fails_for_empty(@ForAll("emptyArray") Object value) {
+		notEmpty.illegalArgumentExceptionIf(true, value, Object[].class, value.getClass());
 	}
 
 	// Size: generate valid sizes and invalid sizes explicitly
 	@Property
-	void size_accepts_values_within_bounds(@ForAll("sizeStrings") String s) {
-		size.noEx(s, String.class);
+	void size_accepts_values_within_bounds(@ForAll("sizeStrings") String value) {
+		size2To4.noException(value, String.class);
 	}
 
 	@Property
-	void size_rejects_too_short(@ForAll("shortStrings") String s) {
-		size.iae(true, s, String.class);
+	void size_rejects_too_short(@ForAll("shortStrings") String value) {
+		size2To4.illegalArgumentExceptionIf(true, value, String.class);
 	}
 
 	@Property
-	void size_collection_accepts_within_bounds(@ForAll("sizeLists") List<String> l) {
-		size.noEx(l, List.class);
+	void size_collection_accepts_within_bounds(@ForAll("sizeLists") List<String> value) {
+		size2To4.noException(value, List.class);
 	}
 
 	@Property
-	void size_collection_rejects_too_short(@ForAll("shortLists") List<String> l) {
-		size.iae(true, l, List.class);
+	void size_collection_rejects_too_short(@ForAll("shortLists") List<String> value) {
+		size2To4.illegalArgumentExceptionIf(true, value, List.class);
 	}
 
 	@Property
-	void size_map_accepts_within_bounds(@ForAll("sizeMaps") Map<String, Integer> m) {
-		size.noEx(m, Map.class);
+	void size_map_accepts_within_bounds(@ForAll("sizeMaps") Map<String, Integer> value) {
+		size2To4.noException(value, Map.class);
 	}
 
 	@Property
-	void size_map_rejects_too_short(@ForAll("shortMaps") Map<String, Integer> m) {
-		size.iae(true, m, Map.class);
+	void size_map_rejects_too_short(@ForAll("shortMaps") Map<String, Integer> value) {
+		size2To4.illegalArgumentExceptionIf(true, value, Map.class);
 	}
 
 	@Property
-	void size_array_accepts_within_bounds(@ForAll("sizeArrays") Object[] arr) {
-		size.noEx(arr, Object[].class);
+	void size_array_accepts_within_bounds(@ForAll("sizeArrays") Object[] value) {
+		size2To4.noException(value, Object[].class);
 	}
 
 	@Property
-	void size_array_rejects_too_short(@ForAll("shortArrays") Object[] arr) {
-		size.iae(true, arr, Object[].class);
+	void size_array_rejects_too_short(@ForAll("shortArrays") Object[] value) {
+		size2To4.illegalArgumentExceptionIf(true, value, Object[].class);
 	}
 
 	// AssertTrue / AssertFalse
 	@Property
-	void assertTrue_accepts_true(@ForAll boolean b) {
-		assertTrue.iae(!b, b, booleanTypes);
-		assertFalse.iae(b, b, booleanTypes);
+	void assertTrue_accepts_true(@ForAll boolean value) {
+		assertTrue.illegalArgumentExceptionIf(!value, value, booleanTypes);
+		assertFalse.illegalArgumentExceptionIf(value, value, booleanTypes);
 	}
 
 	// Min / Max for ints
 	@Property
-	void min_accepts_values_at_or_above(@ForAll byte v) {
-		min.iae(v < 0, v, byteTypes);
+	void min_accepts_values_at_or_above(@ForAll byte value) {
+		min0.illegalArgumentExceptionIf(value < 0, value, byteTypes);
 	}
 
 	@Property
-	void min_accepts_values_at_or_above(@ForAll short v) {
-		min.iae(v < 0, v, shortTypes);
+	void min_accepts_values_at_or_above(@ForAll short value) {
+		min0.illegalArgumentExceptionIf(value < 0, value, shortTypes);
 	}
 
 	@Property
-	void min_accepts_values_at_or_above(@ForAll int v) {
-		min.iae(v < 0, v, intTypes);
+	void min_accepts_values_at_or_above(@ForAll int value) {
+		min0.illegalArgumentExceptionIf(value < 0, value, intTypes);
 	}
 
 	@Property
-	void min_accepts_values_at_or_above(@ForAll long v) {
-		min.iae(v < 0, v, longTypes);
+	void min_accepts_values_at_or_above(@ForAll long value) {
+		min0.illegalArgumentExceptionIf(value < 0, value, longTypes);
 	}
 
 	@Property
-	void max_accepts_values_below_limit(@ForAll byte v) {
-		max.iae(v > 100, v, byteTypes);
+	void max_accepts_values_below_limit(@ForAll byte value) {
+		max100.illegalArgumentExceptionIf(value > 100, value, byteTypes);
 	}
 
 	@Property
-	void max_accepts_values_below_limit(@ForAll short v) {
-		max.iae(v > 100, v, shortTypes);
+	void max_accepts_values_below_limit(@ForAll short value) {
+		max100.illegalArgumentExceptionIf(value > 100, value, shortTypes);
 	}
 
 	@Property
-	void max_accepts_values_below_limit(@ForAll int v) {
-		max.iae(v > 100, v, intTypes);
+	void max_accepts_values_below_limit(@ForAll int value) {
+		max100.illegalArgumentExceptionIf(value > 100, value, intTypes);
 	}
 
 	@Property
-	void max_accepts_values_below_limit(@ForAll long v) {
-		max.iae(v > 100, v, longTypes);
+	void max_accepts_values_below_limit(@ForAll long value) {
+		max100.illegalArgumentExceptionIf(value > 100, value, longTypes);
 	}
 
 	@Property
-	void decimalMin_accepts_numbers_greater_or_equal(@ForAll byte v) {
-		decimalMin.iae(v < 2, v, byteTypes);
-		decimalMin.iae(v < 2, v, String.class);
+	void decimalMin_accepts_numbers_greater_or_equal(@ForAll byte value) {
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, byteTypes);
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, String.class);
 	}
 
 	@Property
-	void decimalMin_accepts_numbers_greater_or_equal(@ForAll short v) {
-		decimalMin.iae(v < 2, v, shortTypes);
-		decimalMin.iae(v < 2, v, String.class);
+	void decimalMin_accepts_numbers_greater_or_equal(@ForAll short value) {
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, shortTypes);
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, String.class);
 	}
 
 	@Property
-	void decimalMin_accepts_numbers_greater_or_equal(@ForAll int v) {
-		decimalMin.iae(v < 2, v, intTypes);
-		decimalMin.iae(v < 2, v, String.class);
+	void decimalMin_accepts_numbers_greater_or_equal(@ForAll int value) {
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, intTypes);
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, String.class);
 	}
 
 	@Property
-	void decimalMin_accepts_numbers_greater_or_equal(@ForAll long v) {
-		decimalMin.iae(v < 2, v, longTypes);
-		decimalMin.iae(v < 2, v, String.class);
+	void decimalMin_accepts_numbers_greater_or_equal(@ForAll long value) {
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, longTypes);
+		decimalMin2.illegalArgumentExceptionIf(value < 2, value, String.class);
 	}
 
 	@Property
-	void decimalMax_rejects_greater_numbers(@ForAll byte v) {
-		decimalMax.iae(v > 5, v, byteTypes);
-		decimalMax.iae(v > 5, String.valueOf(v), String.class);
+	void decimalMax_rejects_greater_numbers(@ForAll byte value) {
+		decimalMax5.illegalArgumentExceptionIf(value > 5, value, byteTypes);
+		decimalMax5.illegalArgumentExceptionIf(value > 5, String.valueOf(value), String.class);
 	}
 
 	@Property
-	void decimalMax_rejects_greater_numbers(@ForAll short v) {
-		decimalMax.iae(v > 5, v, shortTypes);
-		decimalMax.iae(v > 5, String.valueOf(v), String.class);
+	void decimalMax_rejects_greater_numbers(@ForAll short value) {
+		decimalMax5.illegalArgumentExceptionIf(value > 5, value, shortTypes);
+		decimalMax5.illegalArgumentExceptionIf(value > 5, String.valueOf(value), String.class);
 	}
 
 	@Property
-	void decimalMax_rejects_greater_numbers(@ForAll int v) {
-		decimalMax.iae(v > 5, v, intTypes);
-		decimalMax.iae(v > 5, String.valueOf(v), String.class);
+	void decimalMax_rejects_greater_numbers(@ForAll int value) {
+		decimalMax5.illegalArgumentExceptionIf(value > 5, value, intTypes);
+		decimalMax5.illegalArgumentExceptionIf(value > 5, String.valueOf(value), String.class);
 	}
 
 	@Property
-	void decimalMax_rejects_greater_numbers(@ForAll long v) {
-		decimalMax.iae(v > 5, v, longTypes);
-		decimalMax.iae(v > 5, String.valueOf(v), String.class);
+	void decimalMax_rejects_greater_numbers(@ForAll long value) {
+		decimalMax5.illegalArgumentExceptionIf(value > 5, value, longTypes);
+		decimalMax5.illegalArgumentExceptionIf(value > 5, String.valueOf(value), String.class);
 	}
 
 	// Digits and sign related constraints
 	@Property
-	void digits_rejects_too_many_integer_digits(@ForAll byte v) {
-		digits.iae(v < -99 || v > 99, v, byteTypes);
+	void digits_rejects_too_many_integer_digits(@ForAll byte value) {
+		digitsInt2Fraction0.illegalArgumentExceptionIf(value < -99 || value > 99, value, byteTypes);
 	}
 
 	@Property
-	void digits_rejects_too_many_integer_digits(@ForAll short v) {
-		digits.iae(v < -99 || v > 99, v, shortTypes);
+	void digits_rejects_too_many_integer_digits(@ForAll short value) {
+		digitsInt2Fraction0.illegalArgumentExceptionIf(value < -99 || value > 99, value, shortTypes);
 	}
 
 	@Property
-	void digits_rejects_too_many_integer_digits(@ForAll int v) {
-		digits.iae(v < -99 || v > 99, v, intTypes);
+	void digits_rejects_too_many_integer_digits(@ForAll int value) {
+		digitsInt2Fraction0.illegalArgumentExceptionIf(value < -99 || value > 99, value, intTypes);
 	}
 
 	@Property
-	void digits_rejects_too_many_integer_digits(@ForAll long v) {
-		digits.iae(v < -99 || v > 99, v, longTypes);
+	void digits_rejects_too_many_integer_digits(@ForAll long value) {
+		digitsInt2Fraction0.illegalArgumentExceptionIf(value < -99 || value > 99, value, longTypes);
 	}
 
 	@Property
@@ -480,60 +480,60 @@ class JdkOnlyCodeFragmentPBTest {
 	// TODO add BigInteger, BigDecimal
 
 	private void positive_and_negative_behaviour_less_zero(long v, Class<?>... types) {
-		positive.iae(true, v, types);
-		positiveOrZero.iae(true, v, types);
-		negative.noEx(v, types);
-		negativeOrZero.noEx(v, types);
+		positive.illegalArgumentExceptionIf(true, v, types);
+		positiveOrZero.illegalArgumentExceptionIf(true, v, types);
+		negative.noException(v, types);
+		negativeOrZero.noException(v, types);
 	}
 
 	private void positive_and_negative_behaviour_greater_zero(long v, Class<?>... types) {
-		positive.noEx(v, types);
-		positiveOrZero.noEx(v, types);
-		negative.iae(true, v, types);
-		negativeOrZero.iae(true, v, types);
+		positive.noException(v, types);
+		positiveOrZero.noException(v, types);
+		negative.illegalArgumentExceptionIf(true, v, types);
+		negativeOrZero.illegalArgumentExceptionIf(true, v, types);
 	}
 
 	private void positive_and_negative_behaviour_zero(Class<?>... types) {
-		positive.iae(true, (long) 0, types);
-		positiveOrZero.noEx((long) 0, types);
-		negative.iae(true, (long) 0, types);
-		negativeOrZero.noEx((long) 0, types);
+		positive.illegalArgumentExceptionIf(true, (long) 0, types);
+		positiveOrZero.noException((long) 0, types);
+		negative.illegalArgumentExceptionIf(true, (long) 0, types);
+		negativeOrZero.noException((long) 0, types);
 	}
 
 	// Temporal: Past / Future for LocalDate
 	@Property
 	void past_accepts_dates_before_today(@ForAll("pastDates") LocalDate d) {
-		past.noEx(d, LocalDate.class);
+		past.noException(d, LocalDate.class);
 	}
 
 	@Test
 	void future_rejects_past_date() {
-		future.iae(true, LocalDate.now().minusDays(1), LocalDate.class);
+		future.illegalArgumentExceptionIf(true, LocalDate.now().minusDays(1), LocalDate.class);
 	}
 
 	@Property
 	void future_dates_are_future_and_rejected_by_past(@ForAll("futureDates") LocalDate d) {
 		// future dates should be rejected by @Past and accepted by @Future
-		past.iae(true, d, LocalDate.class);
-		future.noEx(d, LocalDate.class);
+		past.illegalArgumentExceptionIf(true, d, LocalDate.class);
+		future.noException(d, LocalDate.class);
 	}
 
 	@Property
 	void futureOrPresent_accepts_present_and_future(@ForAll("futureOrPresentDates") LocalDate d) {
 		// FutureOrPresent should accept today and future dates
-		futureOrPresent.noEx(d, LocalDate.class);
+		futureOrPresent.noException(d, LocalDate.class);
 
 		// PastOrPresent should reject strictly future dates, but accept today
-		pastOrPresent.iae(d.isAfter(LocalDate.now()), d, LocalDate.class);
+		pastOrPresent.illegalArgumentExceptionIf(d.isAfter(LocalDate.now()), d, LocalDate.class);
 	}
 
 	@Property
 	void pastOrPresent_accepts_present_and_past(@ForAll("pastOrPresentDates") LocalDate d) {
 		// PastOrPresent should accept today and past dates
-		pastOrPresent.noEx(d, LocalDate.class);
+		pastOrPresent.noException(d, LocalDate.class);
 
 		// FutureOrPresent should reject strictly past dates, but accept today
-		futureOrPresent.iae(d.isBefore(LocalDate.now()), d, LocalDate.class);
+		futureOrPresent.illegalArgumentExceptionIf(d.isBefore(LocalDate.now()), d, LocalDate.class);
 	}
 
 	/* --- Arbitraries --- */
