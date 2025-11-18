@@ -56,7 +56,7 @@ Ough, what a mess and waste of time! Manual constructor checks are messy, error-
 
 And this is where Vaadoo comes into play. Vaadoo is a compiler plugin that generates all this boilerplate code for you. Checks are woven directly into the bytecode, so you get rid of any runtime JSR 380 dependency. Everything needed for validation is compiled directly into your classes—there are no runtime dependencies required, making your domain objects fully self-validating and ready to use immediately.
 
-PS: This is getting real fun with lombok ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/vaadoo-tests/lombok.config)) and records! 
+PS: This is getting real fun with lombok ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/jmolecules-bytebuddy-tests/jmolecules-bytebuddy-tests-vaadoo/lombok.config)) and records! 
 ```java
 @lombok.Value class MyDomainObject {
     @NotEmpty String name;

@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example;
+package example.lombok;
 
-import lombok.Value;
-
-import org.jmolecules.ddd.types.ValueObject;
+import java.util.List;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-// TODO To make this work we have to use https://github.com/pfichtner/vaadoo/blob/main/vaadoo-tests/lombok.config 
-@Value
-public class SampleLombokValueObject implements ValueObject {
-	@NotNull
-	String value;
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class SampleValueObjectWithSideEffect extends SuperClassThatThrowsRTE {
+
+	// nor the super constructor nor the List#add should get called if "toAdd" is
+	// null
+	public SampleValueObjectWithSideEffect(List<String> list, @NotNull String toAdd) {
+		list.add(toAdd);
+	}
+
 }
