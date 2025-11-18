@@ -267,9 +267,8 @@ class JdkOnlyCodeFragmentPBTest {
 	}
 
 	@Property
-	void notEmpty_array_fails_for_empty(@ForAll("arrayTypes") Class<?> arrayType) {
-		Object emptyArray = Array.newInstance(arrayType.getComponentType(), 0);
-		notEmpty.iae(true, emptyArray, arrayType);
+	void notEmpty_array_fails_for_empty(@ForAll("emptyArray") Object emptyArray) {
+		notEmpty.iae(true, emptyArray, Object[].class, emptyArray.getClass());
 	}
 
 	// Size: generate valid sizes and invalid sizes explicitly
@@ -581,12 +580,10 @@ class JdkOnlyCodeFragmentPBTest {
 	}
 
 	@Provide
-	Arbitrary<Class<?>> arrayTypes() {
-		// TODO support random class
+	Arbitrary<Object> emptyArray() {
 		return Arbitraries.of(Object.class, String.class, Number.class, Boolean.class, Byte.class, Short.class,
 				Integer.class, Long.class, Double.class, Float.class, BigInteger.class, BigDecimal.class,
-				Collection.class, List.class, Set.class, Map.class)
-				.map(component -> Array.newInstance(component, 0).getClass());
+				Collection.class, List.class, Set.class, Map.class).map(component -> Array.newInstance(component, 0));
 	}
 
 	@Provide
