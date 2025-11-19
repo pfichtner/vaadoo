@@ -7,14 +7,6 @@
 # Vaadoo
 Validating automatically domain objects: It's magic
 
-## ⚠️ Important
-This project is a reimplementation of an [initial proof of concept (PoC)](https://github.com/pfichtner/vaadoo-poc). It is not feature complete yet and still missing at least:
-- Caching of the generated regexp (so its significant slower when using @Pattern(...))
-- Support for container element validation like ```List<@NotBlank String> list```
-
-Further development is ongoing.
-
-
 ## Why? 
 When implementing an application using Spring it's very handy to use the JSR 380 annotations. But where to place them? 
 - If the code does not have exlicitly DTOs but mapping it's domain objects directly, the annotations have to been placed on the domain objects but then your domain won't be able to validate the classes until it has some dependency to any JSR 380 implementation and Spring initiating the validation. 

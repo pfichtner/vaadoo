@@ -51,16 +51,21 @@ import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfigu
 
 import lombok.Value;
 import net.bytebuddy.asm.AsmVisitorWrapper;
+import net.bytebuddy.description.field.FieldDescription;
+import net.bytebuddy.description.field.FieldList;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
+import net.bytebuddy.description.method.MethodList;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType.Builder;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
+import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.jar.asm.Type;
+import net.bytebuddy.pool.TypePool;
 
 class VaadooImplementor {
 
@@ -93,10 +98,35 @@ class VaadooImplementor {
 					type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
 					type = type.mapBuilder(
 							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
+					type = type.mapBuilder(t -> optimizeRegex(t,validateMethodName));
 				}
 			}
 		}
 		return type;
+	}
+
+	private static Builder<?> optimizeRegex(Builder<?> builder, String validateMethodName) {
+		return builder.visit(new AsmVisitorWrapper() {
+
+			@Override
+			public int mergeWriter(int flags) {
+				return flags;
+			}
+
+			@Override
+			public int mergeReader(int flags) {
+				return flags;
+			}
+
+			@Override
+			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor classVisitor,
+					Implementation.Context implementationContext, TypePool typePool,
+					FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods, int writerFlags,
+					int readerFlags) {
+				return new PatternRewriteClassVisitor(classVisitor,validateMethodName);
+			}
+
+		});
 	}
 
 	private static String nonExistingMethodName(TypeDescription typeDescription, String base) {
