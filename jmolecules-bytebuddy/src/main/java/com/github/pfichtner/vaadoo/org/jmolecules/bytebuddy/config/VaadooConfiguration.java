@@ -61,4 +61,8 @@ public interface VaadooConfiguration {
 		return (jsrFragmentType == null ? DEFAULT_KNOWN_FRAGMENT_CLASS : jsrFragmentType).getFragmentClass();
 	}
 
+	public default boolean regexOptimizationEnabled() {
+		return true;
+	};
+
 }

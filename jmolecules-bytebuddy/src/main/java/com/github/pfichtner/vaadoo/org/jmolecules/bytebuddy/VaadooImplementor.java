@@ -74,10 +74,12 @@ class VaadooImplementor {
 	private final Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass;
 
 	private final boolean customAnnotationsEnabled;
+	private final boolean regexOptimizationEnabled;
 
 	public VaadooImplementor(VaadooConfiguration configuration) {
 		this.jsr380CodeFragmentClass = configuration.jsr380CodeFragmentClass();
 		this.customAnnotationsEnabled = configuration.customAnnotationsEnabled();
+		this.regexOptimizationEnabled = configuration.regexOptimizationEnabled();
 	}
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
@@ -98,7 +100,9 @@ class VaadooImplementor {
 					type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
 					type = type.mapBuilder(
 							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
-					type = type.mapBuilder(t -> optimizeRegex(t,validateMethodName));
+					if (regexOptimizationEnabled) {
+						type = type.mapBuilder(t -> optimizeRegex(t, validateMethodName));
+					}
 				}
 			}
 		}
@@ -123,7 +127,7 @@ class VaadooImplementor {
 					Implementation.Context implementationContext, TypePool typePool,
 					FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods, int writerFlags,
 					int readerFlags) {
-				return new PatternRewriteClassVisitor(classVisitor,validateMethodName);
+				return new PatternRewriteClassVisitor(classVisitor, validateMethodName);
 			}
 
 		});
