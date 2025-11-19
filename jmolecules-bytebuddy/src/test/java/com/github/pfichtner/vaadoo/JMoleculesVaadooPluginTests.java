@@ -47,7 +47,7 @@ import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMes
 class JMoleculesVaadooPluginTests {
 
 	static String validateMethodName = "validate";
-	static Transformer transformer = new Transformer().dumpClassFilesToTemp(true);
+	static Transformer transformer = new Transformer();
 
 	@ParameterizedTest
 	@ValueSource(classes = { EmptyClass.class, ClassWithAttribute.class, ClassWithNotNullAttribute.class })
