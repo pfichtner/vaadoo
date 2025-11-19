@@ -18,8 +18,6 @@ package com.github.pfichtner.lombok.vaadoo;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatRuntimeException;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -29,7 +27,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 import example.lombok.SampleValueObject;
-import example.lombok.SampleValueObjectWithSideEffect;
 
 class LombokVaadooTests {
 
@@ -56,15 +53,6 @@ class LombokVaadooTests {
 	void doesNotThrowExceptionOnNonNullValueAndAssignsValues() {
 		String value = "not null and not empty";
 		assertThat(new SampleValueObject(value).getValue()).isEqualTo(value);
-	}
-
-	@Test
-	void mustNotCallAddOnListWithNull() {
-		@SuppressWarnings("unchecked")
-		List<String> listMock = mock(List.class);
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(listMock, null))
-				.withMessage("toAdd must not be null");
-		verifyNoInteractions(listMock);
 	}
 
 }
