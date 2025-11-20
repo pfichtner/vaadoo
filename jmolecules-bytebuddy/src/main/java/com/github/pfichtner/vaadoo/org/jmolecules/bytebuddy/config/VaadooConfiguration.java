@@ -48,6 +48,10 @@ public interface VaadooConfiguration {
 		return true;
 	}
 
+	public default boolean regexOptimizationEnabled() {
+		return true;
+	};
+
 	public default boolean matches(TypeDescription target) {
 		return true;
 	}
@@ -60,9 +64,5 @@ public interface VaadooConfiguration {
 		KnownFragmentClass jsrFragmentType = jsrFragmentType();
 		return (jsrFragmentType == null ? DEFAULT_KNOWN_FRAGMENT_CLASS : jsrFragmentType).getFragmentClass();
 	}
-
-	public default boolean regexOptimizationEnabled() {
-		return true;
-	};
 
 }
