@@ -138,7 +138,7 @@ build on top of https://github.com/raphw/byte-buddy/tree/master/byte-buddy-maven
 ## Advantages
 - No reflection, what and how to check will be decided during compile- not during runtime. 
 - Faster (at least 3-4x and up to 10x faster than validation via reflection, depending on the validations included)
-- Zero runtime dependency: When using the JdkOnlyCodeFragment, everything needed for validation is compiled directly into each class. No additional jars, libraries, or runtime setup is required.
+- Zero runtime dependency: When using the JdkOnlyCodeFragment, everything needed for validation is compiled directly into each class. No additional jars, libraries, or runtime setup is required. The bytecode added needs at least a Java 8 Runtime (JRE). 
 - Fully self-contained: Once compiled, the domain objects are completely self-validating.
 - Can be used in environments where reflection is hard or impossible (e.g. native images)
 - Safe for environments with limited resources or restricted classloading.
