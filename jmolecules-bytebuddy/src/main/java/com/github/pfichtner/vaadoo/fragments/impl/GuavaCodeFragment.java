@@ -74,10 +74,7 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Pattern anno, CharSequence charSequence) {
 		if (charSequence != null) {
-			int flagValue = 0;
-			for (Flag flag : anno.flags()) {
-				flagValue |= flag.getValue();
-			}
+			int flagValue = Template.bitwiseOr(anno);
 			checkArgument(compile(anno.regexp(), flagValue).matcher(charSequence).matches(), anno.message());
 		}
 	}
@@ -113,10 +110,7 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 			checkArgument(validEmailDomainAddress, anno.message());
 
 			// additional check
-			int flagValue = 0;
-			for (Flag flag : anno.flags()) {
-				flagValue |= flag.getValue();
-			}
+			int flagValue = Template.bitwiseOr(anno);
 			checkArgument(compile(anno.regexp(), flagValue).matcher(charSequence).matches(), anno.message());
 		}
 	}

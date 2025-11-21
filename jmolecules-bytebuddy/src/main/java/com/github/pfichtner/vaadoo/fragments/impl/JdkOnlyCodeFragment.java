@@ -47,7 +47,6 @@ import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Pattern.Flag;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -81,10 +80,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Pattern anno, CharSequence charSequence) {
 		if (charSequence != null) {
-			int flagValue = 0;
-			for (Flag flag : anno.flags()) {
-				flagValue |= flag.getValue();
-			}
+			int flagValue = Template.bitwiseOr(anno);
 			if (!compile(anno.regexp(), flagValue).matcher(charSequence).matches()) {
 				throw new IllegalArgumentException(anno.message());
 			}
@@ -128,10 +124,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 			}
 
 			// additional check
-			int flagValue = 0;
-			for (Flag flag : anno.flags()) {
-				flagValue |= flag.getValue();
-			}
+			int flagValue = Template.bitwiseOr(anno);
 			if (!compile(anno.regexp(), flagValue).matcher(charSequence).matches()) {
 				throw new IllegalArgumentException(anno.message());
 			}

@@ -32,6 +32,7 @@ import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
+import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.SIPUSH;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
 import static net.bytebuddy.jar.asm.Type.INT_TYPE;
@@ -44,11 +45,15 @@ import static net.bytebuddy.jar.asm.Type.getReturnType;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.Template;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
@@ -67,6 +72,8 @@ public class ValidationCodeInjector {
 	// argument)
 	private static final int REMOVED_PARAMETERS = 1;
 	private static final boolean TARGET_METHOD_IS_STATIC = true;
+	private static final Method bitwiseOr1 = method(Template.class, "bitwiseOr", Pattern.class);
+	private static final Method bitwiseOr2 = method(Template.class, "bitwiseOr", Email.class);
 
 	@ToString
 	static final class ValidationCallCodeInjectorClassVisitor extends ClassVisitor {
@@ -76,6 +83,7 @@ public class ValidationCodeInjector {
 		private final String searchDescriptor;
 		private final MethodVisitor targetMethodVisitor;
 		private final Parameter targetParam;
+		private final Map<Parameter, Integer> precomputedMasks;
 
 		private final SlotInfo srcSlot;
 		private final SlotInfo tgtSlot;
@@ -104,13 +112,14 @@ public class ValidationCodeInjector {
 		}
 
 		private ValidationCallCodeInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
-				String signatureOfTargetMethod, Parameter parameter) {
+				String signatureOfTargetMethod, Parameter parameter, Map<Parameter, Integer> precomputedMasks) {
 			super(ASM9);
 			this.sourceMethodOwner = Type.getType(sourceMethod.getDeclaringClass()).getInternalName();
 			this.sourceMethodName = sourceMethod.getName();
 			this.searchDescriptor = getMethodDescriptor(sourceMethod);
 			this.targetMethodVisitor = targetMethodVisitor;
 			this.targetParam = parameter;
+			this.precomputedMasks = precomputedMasks;
 			this.srcSlot = new SlotInfo(isStatic(sourceMethod.getModifiers()), argTypes(sourceMethod));
 			this.tgtSlot = new SlotInfo(TARGET_METHOD_IS_STATIC, getArgumentTypes(signatureOfTargetMethod));
 			this.offset = srcSlot.offsetTo(tgtSlot);
@@ -126,7 +135,7 @@ public class ValidationCodeInjector {
 
 			if (name.equals(sourceMethodName) && descriptor.equals(searchDescriptor)) {
 				// TODO migrate to LocalVariablesSorter
-				return new MethodVisitor(ASM9, targetMethodVisitor) {
+				return new MethodVisitor(api, targetMethodVisitor) {
 
 					private final boolean isStatic = isStatic(access);
 
@@ -203,6 +212,11 @@ public class ValidationCodeInjector {
 
 					public void visitMethodInsn(int opcode, String owner, String name, String descriptor,
 							boolean isInterface) {
+						if (opcode == INVOKESTATIC && (isMethod(owner, name, descriptor, bitwiseOr1)
+								|| isMethod(owner, name, descriptor, bitwiseOr2))) {
+							super.visitLdcInsn(precomputedMasks.get(targetParam));
+							return;
+						}
 						if (owner.equals(sourceMethodOwner)) {
 							throw new IllegalStateException(format(
 									"code that gets inserted must not access methods in the class inserted, found access to %s#%s in %s",
@@ -225,6 +239,12 @@ public class ValidationCodeInjector {
 						} else {
 							super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 						}
+					}
+
+					private boolean isMethod(String owner, String name, String descriptor, Method method) {
+						return owner.equals(Type.getInternalName(method.getDeclaringClass())) //
+								&& name.equals(method.getName()) //
+								&& descriptor.equals(Type.getMethodDescriptor(method));
 					}
 
 					private void writeArray(Type arrayElementType, List<EnumerationDescription> annotationValues) {
@@ -270,7 +290,7 @@ public class ValidationCodeInjector {
 						throw new IllegalStateException(format("'%s' does not define attribute '%s'", owner, name));
 					}
 
-                    @Override
+					@Override
 					public void visitInsn(int opcode) {
 						if (!isReturnOpcode(opcode)) {
 							super.visitInsn(opcode);
@@ -296,7 +316,7 @@ public class ValidationCodeInjector {
 						super.visitInvokeDynamicInsn(name, descriptor, handle, args);
 					}
 
-                };
+				};
 			}
 			return super.visitMethod(access, name, descriptor, signature, exceptions);
 		}
@@ -306,15 +326,26 @@ public class ValidationCodeInjector {
 
 	public static final String NAME = "@@@NAME@@@";
 	private final String signatureOfTargetMethod;
+	private final Map<Parameter, Integer> precomputedMasks;
 
-	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod) {
+	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod,
+			Map<Parameter, Integer> precomputedMasks) {
+		this.precomputedMasks = precomputedMasks;
 		this.classReader = classReader(clazz);
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
 	}
 
+	private static Method method(Class<Template> clazz, String name, Class<?>... params) {
+		try {
+			return clazz.getDeclaredMethod(name, params);
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
 		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
-				signatureOfTargetMethod, parameter);
+				signatureOfTargetMethod, parameter, precomputedMasks);
 		classReader.accept(classVisitor, 0);
 	}
 

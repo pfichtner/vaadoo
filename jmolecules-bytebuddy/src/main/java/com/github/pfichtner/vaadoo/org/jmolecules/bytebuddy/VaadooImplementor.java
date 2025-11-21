@@ -20,8 +20,11 @@ import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 import static java.lang.String.format;
+import static java.util.Collections.emptyMap;
+import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
@@ -37,6 +40,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -46,11 +50,15 @@ import com.github.pfichtner.vaadoo.Parameters;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.Template;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern.Flag;
 import lombok.Value;
 import net.bytebuddy.asm.AsmVisitorWrapper;
+import net.bytebuddy.description.enumeration.EnumerationDescription;
 import net.bytebuddy.description.field.FieldDescription;
 import net.bytebuddy.description.field.FieldList;
 import net.bytebuddy.description.method.MethodDescription;
@@ -97,9 +105,11 @@ class VaadooImplementor {
 						parameters, jsr380CodeFragmentClass, customAnnotationsEnabled);
 
 				if (staticValidateAppender.hasInjections()) {
+					staticValidateAppender.setPrecomputedMasks(computePatternFlagsDuringBuild(parameters));
 					type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
 					type = type.mapBuilder(
 							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
+
 					if (regexOptimizationEnabled) {
 						type = type.mapBuilder(t -> optimizeRegex(t, validateMethodName));
 					}
@@ -107,6 +117,16 @@ class VaadooImplementor {
 			}
 		}
 		return type;
+	}
+
+	private static Map<Parameter, Integer> computePatternFlagsDuringBuild(Parameters parameters) {
+		return parameters.stream().collect(toMap(identity(), p -> {
+			Object annotationValue = p.annotationValue(Type.getType(Pattern.class), "flags");
+			return annotationValue == null //
+					? 0
+					: Template.bitwiseOr(Stream.of((EnumerationDescription[]) annotationValue)
+							.map(EnumerationDescription::getValue).map(Flag::valueOf).toArray(Flag[]::new));
+		}));
 	}
 
 	private static Builder<?> optimizeRegex(Builder<?> builder, String validateMethodName) {
@@ -202,6 +222,7 @@ class VaadooImplementor {
 		private final List<Method> codeFragmentMethods;
 		private final String methodDescriptor;
 		private final List<InjectionTask> injectionTasks;
+		private Map<Parameter, Integer> precomputedMasks = emptyMap();
 
 		public StaticValidateAppender(String validateMethodName, Parameters parameters,
 				Class<? extends Jsr380CodeFragment> fragmentClass, boolean customAnnotationsEnabled) {
@@ -213,6 +234,10 @@ class VaadooImplementor {
 			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
 					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
 			this.injectionTasks = parameters.stream().flatMap(this::tasksFor).collect(toList());
+		}
+
+		public void setPrecomputedMasks(Map<Parameter, Integer> precomputedMasks) {
+			this.precomputedMasks = precomputedMasks;
 		}
 
 		private Stream<InjectionTask> tasksFor(Parameter parameter) {
@@ -238,7 +263,8 @@ class VaadooImplementor {
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor);
+			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor,
+					precomputedMasks);
 			for (InjectionTask task : injectionTasks) {
 				task.apply(injector, mv);
 			}
