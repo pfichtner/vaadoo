@@ -36,7 +36,7 @@ class MyDomainObject {
 }
 ```
 
-Vaadoo solves this by generating validation code at compile time. Checks are woven directly into the bytecode, eliminating any runtime JSR 380 dependency. Your domain objects become fully self-validating.
+Vaadoo solves this by generating validation code at compile time. The checks Vaadoo adds match exactly the ones you would have written manually, but without the boilerplate or risk of mistakes. The checks are woven directly into the bytecode, and all JSR 380 runtime dependencies gets eliminated. Your domain objects become fully self-validating and safe. 
 
 **Plain java class**
 ```java
