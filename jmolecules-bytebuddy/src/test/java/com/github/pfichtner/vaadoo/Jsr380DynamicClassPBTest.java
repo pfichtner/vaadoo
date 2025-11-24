@@ -66,6 +66,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -314,13 +315,29 @@ class Jsr380DynamicClassPBTest {
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
+		var projectRoot = configure(keepJsr380Annotations());
+		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
+	}
+
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
+	void implementsValueObjectWithRemovedAnnos(@ForAll("constructorParameters") List<ParameterDefinition> params)
+			throws Exception {
 		new Approver(new Transformer()).approveTransformed(params);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObjectWeavingInGuavaCode(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
-		var projectRoot = useFragmentClass(GuavaCodeFragment.class);
+		var projectRoot = configure(useFragmentClass(GuavaCodeFragment.class), keepJsr380Annotations());
+		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
+	}
+
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
+	void implementsValueObjectWeavingInGuavaCodeWithRemovedAnnos(
+			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
+		var projectRoot = configure(useFragmentClass(GuavaCodeFragment.class));
 		var approver = new Approver(new Transformer().projectRoot(projectRoot));
 		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
 	}
@@ -336,20 +353,31 @@ class Jsr380DynamicClassPBTest {
 		}
 	}
 
-	private static File useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) throws IOException {
+	private static Entry<String, Object> useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) {
+		return Map.entry("vaadoo.jsr380CodeFragmentClass", fragmentClass.getName());
+	}
+
+	private static Entry<String, Object> keepJsr380Annotations() {
+		return Map.entry("vaadoo.removeJsr380Annotations", false);
+	}
+
+	@SafeVarargs
+	private static File configure(Entry<String, Object>... entries) throws IOException {
 		File projectRoot = Files.createTempDirectory("project-root").toFile();
 		new File(projectRoot, "target/classes").mkdirs();
-		writeTo(new File(projectRoot, "pom.xml"), format("", GuavaCodeFragment.class.getName()));
-		writeTo(new File(projectRoot, VAADOO_CONFIG),
-				Map.of("vaadoo.jsr380CodeFragmentClass", fragmentClass.getName()));
+		writeTo(new File(projectRoot, "pom.xml"), "");
+		writeTo(new File(projectRoot, VAADOO_CONFIG), Map.ofEntries(entries));
 		return projectRoot;
 	}
 
-	private static void writeTo(File file, Map<String, String> data) throws IOException {
-		String content = data.entrySet().stream() //
-				.map(t -> format("%s=%s", t.getKey(), t.getValue())) //
+	private static void writeTo(File file, Map<String, Object> data) throws IOException {
+		writeTo(file, content(data));
+	}
+
+	private static String content(Map<String, Object> data) {
+		return data.entrySet().stream() //
+				.map(e -> format("%s=%s", e.getKey(), e.getValue())) //
 				.collect(joining(lineSeparator()));
-		writeTo(file, content);
 	}
 
 	private static void writeTo(File file, String text) throws IOException {

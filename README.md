@@ -89,11 +89,21 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 
 ### You can configure:
 - **Which bytecode implementation should be weaved in**
-  - e.g. *plain-java*
+  - e.g. *plain-java* (default)
   - or an implementation using Google Guava's `Preconditions`
   - or any other compatible class
 
-- **Which classes (types) should be enhanced** by the plugin
+- **Which classes (types) should be enhanced** by the plugin (default: all)
+
+- **Custom annotation handling**
+  Determines whether JSR 380 custom validators should be considered and enabled during bytecode weaving. (default: true)
+
+- **Regex optimization**
+  Enables caching of compiled regular expressions, so Pattern.compile is called only once per regex. (default: true)
+
+- **Removing JSR 380 annotations**
+  If set, the original JSR 380 annotations are removed after the code has been weaved in. (default: true)
+
 
 ### Default behavior
 1. If a `vaadoo.config` exists → its configuration is used.

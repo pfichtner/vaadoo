@@ -52,6 +52,10 @@ public interface VaadooConfiguration {
 		return true;
 	};
 
+	public default boolean removeJsr380Annotations() {
+		return true;
+	}
+
 	public default boolean matches(TypeDescription target) {
 		return true;
 	}

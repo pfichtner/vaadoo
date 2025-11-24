@@ -41,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.Jsr380Annos;
@@ -82,11 +83,13 @@ class VaadooImplementor {
 
 	private final boolean customAnnotationsEnabled;
 	private final boolean regexOptimizationEnabled;
+	private final boolean removeJsr380Annotations;
 
 	public VaadooImplementor(VaadooConfiguration configuration) {
 		this.jsr380CodeFragmentClass = configuration.jsr380CodeFragmentClass();
 		this.customAnnotationsEnabled = configuration.customAnnotationsEnabled();
 		this.regexOptimizationEnabled = configuration.regexOptimizationEnabled();
+		this.removeJsr380Annotations = configuration.removeJsr380Annotations();
 	}
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
@@ -109,7 +112,12 @@ class VaadooImplementor {
 							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
 
 					if (regexOptimizationEnabled) {
-						type = type.mapBuilder(t -> optimizeRegex(t, validateMethodName));
+						type = type
+								.mapBuilder(t -> wrap(t, cv -> new PatternRewriteClassVisitor(cv, validateMethodName)));
+					}
+
+					if (removeJsr380Annotations) {
+						type = type.mapBuilder(t -> wrap(t, ConstructorAnnotationRemover::new));
 					}
 				}
 			}
@@ -117,7 +125,7 @@ class VaadooImplementor {
 		return type;
 	}
 
-	private static Builder<?> optimizeRegex(Builder<?> builder, String validateMethodName) {
+	private Builder<?> wrap(Builder<?> builder, Function<ClassVisitor, ClassVisitor> classVisitorProvider) {
 		return builder.visit(new AsmVisitorWrapper() {
 
 			@Override
@@ -131,11 +139,10 @@ class VaadooImplementor {
 			}
 
 			@Override
-			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor classVisitor,
-					Implementation.Context context, TypePool typePool,
-					FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods, int writerFlags,
-					int readerFlags) {
-				return new PatternRewriteClassVisitor(classVisitor, validateMethodName);
+			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor cv, Implementation.Context context,
+					TypePool typePool, FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods,
+					int writerFlags, int readerFlags) {
+				return classVisitorProvider.apply(cv);
 			}
 
 		});

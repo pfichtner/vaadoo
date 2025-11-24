@@ -48,6 +48,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.jar.asm.Type;
 
 public class Jsr380Annos {
 
@@ -111,7 +112,7 @@ public class Jsr380Annos {
 					supportedSuperTypes.stream().map(TypeDescription::getActualName).collect(toList())));
 		}
 
-    }
+	}
 
 	private static class SingleClassConfigEntry extends DefaultConfigEntry {
 
@@ -179,8 +180,13 @@ public class Jsr380Annos {
 				anno.getName(), type.getName(), valids));
 	}
 
-	public static boolean isStandardJr380Anno(TypeDescription classtype) {
-		return configs.stream().map(ConfigEntry::anno).anyMatch(classtype::equals);
+	public static boolean isStandardJr380Anno(TypeDescription type) {
+		return configs.stream().map(ConfigEntry::anno).anyMatch(type::equals);
+	}
+
+	public static boolean isStandardJr380Anno(Type type) {
+		return configs.stream().map(ConfigEntry::anno).map(TypeDescription::getDescriptor)
+				.anyMatch(type.getDescriptor()::equals);
 	}
 
 }

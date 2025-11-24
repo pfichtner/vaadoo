@@ -1,0 +1,68 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.DefaultParameterDefinition(type=class java.util.LinkedHashMap, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotEmpty])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.Past])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1496137890
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import java.time.chrono.MinguoDate;
+import java.util.LinkedHashMap;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1496137890
+implements ValueObject {
+    public Generated_1496137890(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) LinkedHashMap linkedHashMap, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MinguoDate minguoDate) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1496137890
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1496137890;
+import java.time.chrono.MinguoDate;
+import java.util.LinkedHashMap;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1496137890
+implements ValueObject {
+    public Generated_1496137890(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
+        Generated_1496137890.validate(linkedHashMap, minguoDate);
+        this(linkedHashMap, minguoDate, null);
+    }
+
+    private /* synthetic */ Generated_1496137890(LinkedHashMap linkedHashMap, MinguoDate minguoDate, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
+        if (linkedHashMap != null) {
+            throw new IllegalArgumentException("linkedHashMap must be null");
+        }
+        if (linkedHashMap == null) {
+            throw new NullPointerException("linkedHashMap must not be empty");
+        }
+        if (linkedHashMap.size() == 0) {
+            throw new IllegalArgumentException("linkedHashMap must not be empty");
+        }
+        if (minguoDate != null) {
+            throw new IllegalArgumentException("minguoDate must be null");
+        }
+        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
+            throw new IllegalArgumentException("minguoDate must be a past date");
+        }
+    }
+}
+
+
+----------------------------------------------------------------

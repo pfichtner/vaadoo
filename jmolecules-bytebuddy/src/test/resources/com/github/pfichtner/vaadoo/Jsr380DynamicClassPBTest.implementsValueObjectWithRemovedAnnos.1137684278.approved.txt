@@ -1,0 +1,71 @@
+----------------------------------------------------------------
+params annotations
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.LocalTime, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[interface jakarta.validation.constraints.PastOrPresent])
+- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.Year, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.PastOrPresent])
+- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.Past])
+----------------------------------------------------------------
+Analysing type com.example.Generated_1137684278
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import java.time.LocalTime;
+import java.time.Year;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.MinguoDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1137684278
+implements ValueObject {
+    public Generated_1137684278(LocalTime localTime, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) MinguoDate minguoDate, Object[] objectArray, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) Year year, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) JapaneseDate japaneseDate) {
+    }
+}
+
+
+----------------------------------------------------------------
+Analysing type com.example.Generated_1137684278
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1137684278;
+import java.time.LocalTime;
+import java.time.Year;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.MinguoDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1137684278
+implements ValueObject {
+    public Generated_1137684278(LocalTime localTime, MinguoDate minguoDate, Object[] objectArray, Year year, JapaneseDate japaneseDate) {
+        Generated_1137684278.validate(localTime, minguoDate, objectArray, year, japaneseDate);
+        this(localTime, minguoDate, objectArray, year, japaneseDate, null);
+    }
+
+    private /* synthetic */ Generated_1137684278(LocalTime localTime, MinguoDate minguoDate, Object[] objectArray, Year year, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(LocalTime localTime, MinguoDate minguoDate, Object[] objectArray, Year year, JapaneseDate japaneseDate) {
+        if (minguoDate != null && minguoDate.isAfter(MinguoDate.now())) {
+            throw new IllegalArgumentException("minguoDate must be a date in the past or in the present");
+        }
+        if (year != null && !year.isBefore(Year.now())) {
+            throw new IllegalArgumentException("year must be a past date");
+        }
+        if (year != null && year.isAfter(Year.now())) {
+            throw new IllegalArgumentException("year must be a date in the past or in the present");
+        }
+        if (japaneseDate != null && !japaneseDate.isBefore(JapaneseDate.now())) {
+            throw new IllegalArgumentException("japaneseDate must be a past date");
+        }
+    }
+}
+
+
+----------------------------------------------------------------

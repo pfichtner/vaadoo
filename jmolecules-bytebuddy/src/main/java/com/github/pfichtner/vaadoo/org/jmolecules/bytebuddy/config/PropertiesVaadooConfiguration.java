@@ -29,6 +29,7 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	static final String VAADOO_CUSTOM_ANNOTATIONS_ENABLED = "vaadoo.customAnnotationsEnabled";
 	static final String VAADOO_REGEX_OPTIMIZATION = "vaadoo.regexOptimization";
+	static final String VAADOO_REMOVE_ANNOTATIONS = "vaadoo.removeJsr380Annotations";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_TYPE = "vaadoo.jsr380CodeFragmentType";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_CLASS = "vaadoo.jsr380CodeFragmentClass";
 
@@ -59,6 +60,11 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 	@Override
 	public boolean regexOptimizationEnabled() {
 		return Boolean.parseBoolean(properties.getProperty(VAADOO_REGEX_OPTIMIZATION, String.valueOf(true)));
+	}
+
+	@Override
+	public boolean removeJsr380Annotations() {
+		return Boolean.parseBoolean(properties.getProperty(VAADOO_REMOVE_ANNOTATIONS, String.valueOf(true)));
 	}
 
 	public String getProperty(String key) {
