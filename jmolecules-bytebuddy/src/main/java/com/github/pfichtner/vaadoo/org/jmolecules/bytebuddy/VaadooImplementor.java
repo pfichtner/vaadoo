@@ -20,7 +20,6 @@ import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 import static java.lang.String.format;
-import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
@@ -105,7 +104,6 @@ class VaadooImplementor {
 						parameters, jsr380CodeFragmentClass, customAnnotationsEnabled);
 
 				if (staticValidateAppender.hasInjections()) {
-					staticValidateAppender.setPrecomputedMasks(computePatternFlagsDuringBuild(parameters));
 					type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
 					type = type.mapBuilder(
 							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
@@ -117,16 +115,6 @@ class VaadooImplementor {
 			}
 		}
 		return type;
-	}
-
-	private static Map<Parameter, Integer> computePatternFlagsDuringBuild(Parameters parameters) {
-		return parameters.stream().collect(toMap(identity(), p -> {
-			Object annotationValue = p.annotationValue(Type.getType(Pattern.class), "flags");
-			return annotationValue == null //
-					? 0
-					: Template.bitwiseOr(Stream.of((EnumerationDescription[]) annotationValue)
-							.map(EnumerationDescription::getValue).map(Flag::valueOf).toArray(Flag[]::new));
-		}));
 	}
 
 	private static Builder<?> optimizeRegex(Builder<?> builder, String validateMethodName) {
@@ -217,17 +205,18 @@ class VaadooImplementor {
 
 		private final String validateMethodName;
 		private final Parameters parameters;
+		private final Map<Parameter, Integer> preComputedPatternFlags;
 		private final Class<? extends Jsr380CodeFragment> fragmentClass;
 		private final boolean customAnnotationsEnabled;
 		private final List<Method> codeFragmentMethods;
 		private final String methodDescriptor;
 		private final List<InjectionTask> injectionTasks;
-		private Map<Parameter, Integer> precomputedMasks = emptyMap();
 
 		public StaticValidateAppender(String validateMethodName, Parameters parameters,
 				Class<? extends Jsr380CodeFragment> fragmentClass, boolean customAnnotationsEnabled) {
 			this.validateMethodName = validateMethodName;
 			this.parameters = parameters;
+			this.preComputedPatternFlags = computePatternFlagsDuringBuild(parameters);
 			this.fragmentClass = fragmentClass;
 			this.customAnnotationsEnabled = customAnnotationsEnabled;
 			this.codeFragmentMethods = Arrays.asList(fragmentClass.getMethods());
@@ -236,8 +225,16 @@ class VaadooImplementor {
 			this.injectionTasks = parameters.stream().flatMap(this::tasksFor).collect(toList());
 		}
 
-		public void setPrecomputedMasks(Map<Parameter, Integer> precomputedMasks) {
-			this.precomputedMasks = precomputedMasks;
+		private static Map<Parameter, Integer> computePatternFlagsDuringBuild(Parameters parameters) {
+			return parameters.stream().collect(toMap(identity(), p -> {
+				Object annotationValue = p.annotationValue(Type.getType(Pattern.class), "flags");
+				return annotationValue == null //
+						? 0
+						: Template.bitwiseOr(Stream.of((EnumerationDescription[]) annotationValue)
+								.map(EnumerationDescription::getValue) //
+								.map(Flag::valueOf) //
+								.toArray(Flag[]::new));
+			}));
 		}
 
 		private Stream<InjectionTask> tasksFor(Parameter parameter) {
@@ -264,7 +261,7 @@ class VaadooImplementor {
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
 			ValidationCodeInjector injector = new ValidationCodeInjector(fragmentClass, methodDescriptor,
-					precomputedMasks);
+					preComputedPatternFlags);
 			for (InjectionTask task : injectionTasks) {
 				task.apply(injector, mv);
 			}

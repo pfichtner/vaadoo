@@ -1,5 +1,6 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
+import static com.github.pfichtner.vaadoo.fragments.impl.Template.bitwiseOr;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.abs;
@@ -49,7 +50,6 @@ import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Pattern.Flag;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
@@ -74,8 +74,8 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Pattern anno, CharSequence charSequence) {
 		if (charSequence != null) {
-			int flagValue = Template.bitwiseOr(anno);
-			checkArgument(compile(anno.regexp(), flagValue).matcher(charSequence).matches(), anno.message());
+			checkArgument(compile(anno.regexp(), bitwiseOr(anno.flags())).matcher(charSequence).matches(),
+					anno.message());
 		}
 	}
 
@@ -110,8 +110,8 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 			checkArgument(validEmailDomainAddress, anno.message());
 
 			// additional check
-			int flagValue = Template.bitwiseOr(anno);
-			checkArgument(compile(anno.regexp(), flagValue).matcher(charSequence).matches(), anno.message());
+			checkArgument(compile(anno.regexp(), bitwiseOr(anno.flags())).matcher(charSequence).matches(),
+					anno.message());
 		}
 	}
 

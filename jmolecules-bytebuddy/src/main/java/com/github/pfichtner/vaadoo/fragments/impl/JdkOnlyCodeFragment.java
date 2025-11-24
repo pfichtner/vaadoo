@@ -1,5 +1,6 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
+import static com.github.pfichtner.vaadoo.fragments.impl.Template.bitwiseOr;
 import static java.lang.Math.abs;
 import static java.lang.Math.log10;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
@@ -80,8 +81,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Pattern anno, CharSequence charSequence) {
 		if (charSequence != null) {
-			int flagValue = Template.bitwiseOr(anno);
-			if (!compile(anno.regexp(), flagValue).matcher(charSequence).matches()) {
+			if (!compile(anno.regexp(), bitwiseOr(anno.flags())).matcher(charSequence).matches()) {
 				throw new IllegalArgumentException(anno.message());
 			}
 		}
@@ -124,8 +124,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 			}
 
 			// additional check
-			int flagValue = Template.bitwiseOr(anno);
-			if (!compile(anno.regexp(), flagValue).matcher(charSequence).matches()) {
+			if (!compile(anno.regexp(), bitwiseOr(anno.flags())).matcher(charSequence).matches()) {
 				throw new IllegalArgumentException(anno.message());
 			}
 		}

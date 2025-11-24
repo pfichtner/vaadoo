@@ -32,6 +32,7 @@ import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
+import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.SIPUSH;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
@@ -50,10 +51,7 @@ import java.util.function.Function;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
-import com.github.pfichtner.vaadoo.fragments.impl.Template;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
@@ -72,8 +70,6 @@ public class ValidationCodeInjector {
 	// argument)
 	private static final int REMOVED_PARAMETERS = 1;
 	private static final boolean TARGET_METHOD_IS_STATIC = true;
-	private static final Method bitwiseOr1 = method(Template.class, "bitwiseOr", Pattern.class);
-	private static final Method bitwiseOr2 = method(Template.class, "bitwiseOr", Email.class);
 
 	@ToString
 	static final class ValidationCallCodeInjectorClassVisitor extends ClassVisitor {
@@ -152,6 +148,8 @@ public class ValidationCodeInjector {
 					final Function<String, Object> resolver = rbResolver.andThen(paramNameResolver)
 							.andThen(annotationValueResolver);
 
+					private boolean patternFlagAccess;
+
 					@Override
 					public void visitLineNumber(int line, Label start) {
 						// ignore
@@ -212,9 +210,21 @@ public class ValidationCodeInjector {
 
 					public void visitMethodInsn(int opcode, String owner, String name, String descriptor,
 							boolean isInterface) {
-						if (opcode == INVOKESTATIC && (isMethod(owner, name, descriptor, bitwiseOr1)
-								|| isMethod(owner, name, descriptor, bitwiseOr2))) {
+						if (opcode == INVOKEINTERFACE && owner.equals("jakarta/validation/constraints/Pattern")
+								&& name.equals("flags")
+								&& descriptor.equals("()[Ljakarta/validation/constraints/Pattern$Flag;")
+								&& isInterface) {
+							patternFlagAccess = true;
+							return;
+						}
+						if (patternFlagAccess && opcode == INVOKESTATIC
+								&& owner.equals("com/github/pfichtner/vaadoo/fragments/impl/Template")
+								&& name.equals("bitwiseOr")
+								&& descriptor.equals("([Ljakarta/validation/constraints/Pattern$Flag;)I")
+								&& !isInterface) {
 							super.visitLdcInsn(precomputedMasks.get(targetParam));
+							patternFlagAccess = false;
+							isFirstParamLoad = false;
 							return;
 						}
 						if (owner.equals(sourceMethodOwner)) {
@@ -239,12 +249,6 @@ public class ValidationCodeInjector {
 						} else {
 							super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 						}
-					}
-
-					private boolean isMethod(String owner, String name, String descriptor, Method method) {
-						return owner.equals(Type.getInternalName(method.getDeclaringClass())) //
-								&& name.equals(method.getName()) //
-								&& descriptor.equals(Type.getMethodDescriptor(method));
 					}
 
 					private void writeArray(Type arrayElementType, List<EnumerationDescription> annotationValues) {
@@ -333,14 +337,6 @@ public class ValidationCodeInjector {
 		this.precomputedMasks = precomputedMasks;
 		this.classReader = classReader(clazz);
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
-	}
-
-	private static Method method(Class<Template> clazz, String name, Class<?>... params) {
-		try {
-			return clazz.getDeclaredMethod(name, params);
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {

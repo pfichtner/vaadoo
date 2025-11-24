@@ -19,8 +19,6 @@ import static lombok.AccessLevel.PRIVATE;
 
 import java.util.stream.Stream;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Pattern.Flag;
 import lombok.NoArgsConstructor;
 
@@ -31,14 +29,6 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = PRIVATE)
 public final class Template {
-
-	public static int bitwiseOr(Pattern anno) {
-		return bitwiseOr(anno.flags());
-	}
-
-	public static int bitwiseOr(Email anno) {
-		return bitwiseOr(anno.flags());
-	}
 
 	public static int bitwiseOr(Flag[] flags) {
 		return Stream.of(flags).mapToInt(Flag::getValue).reduce(0, (l, r) -> l | r);
