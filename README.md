@@ -7,19 +7,43 @@
 # Vaadoo
 Validating automatically domain objects: It's magic
 
-## Why? 
-When implementing an application using Spring it's very handy to use the JSR 380 annotations. But where to place them? 
-- If the code does not have exlicitly DTOs but mapping it's domain objects directly, the annotations have to been placed on the domain objects but then your domain won't be able to validate the classes until it has some dependency to any JSR 380 implementation and Spring initiating the validation. 
-- If your code differs between DTOs and domain objects, you have to options: 
-  - Place the JSR 380 annotations on the DTO but then your internal valid state would rely on checks being done in a non-domain layer, so the domain is not able to valid its state itself. 
-  - Again make your domain dependant on a JSR 380 implemenation. But then: Who would then ensure that validation is performed? 
+## Why Vaadoo?
 
-If you decide, that none of these possibilites is an option you **cannot** just declare things like this...
+When building applications with Spring, JSR 380 (Bean Validation) annotations are handy. But where should you put them?
+
+- **In the domain objects?**:
+  - Adding annotations directly to domain objects makes them dependent on a JSR 380 implementation for validation.
+  - Who ensures validation is executed?
+
+- **In the DTOs separated from domain objects?**:
+  - Adding annotations to DTOs pushes validation outside the domain, which can compromise domain integrity ("make illegal states unrepresentable" violated).
+
+
+Manual validation in constructors quickly becomes messy, is error-prone and hard to maintain:
 
 ```java
 class MyDomainObject {
     private final String name;
     private final int age;
+
+    MyDomainObject(String name, int age) {
+        if (name == null) throw new NullPointerException("name must not be null");
+        if (name.isEmpty()) throw new IllegalArgumentException("name must not be empty");
+        if (age < 0) throw new IllegalArgumentException("age must be greater than or equal to 0");
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+Vaadoo solves this by generating validation code at compile time. Checks are woven directly into the bytecode, eliminating any runtime JSR 380 dependency. Your domain objects become fully self-validating.
+
+**Plain java class**
+```java
+class MyDomainObject {
+    private final String name;
+    private final int age;
+
     MyDomainObject(@NotEmpty String name, @Min(0) int age) {
         this.name = name;
         this.age = age;
@@ -27,37 +51,18 @@ class MyDomainObject {
 }
 ```
 
-...because the constructor does not validate itself, something external must perform validation after (or before) constructing the object.
-That's why you would start implementing all those contraint checks using hand-written code into you domain objects to have them self-validating: 
 
+**Java record**
 ```java
-class MyDomainObject {
-    private final String name;
-    private final int age;
-    MyDomainObject(String name, int age) {
-        if (name == null { throw new NullPointerException("name must not be null"); }
-        if (name.isEmpty() { throw new InvalidArgumentException("name must not be empty"); }
-        if (age < 0 { throw new InvalidArgumentException("age must be greater than or equal to 0"); }
-        this.name = name;
-        this.age = age;
-    }
-}
+record MyDomainObject(@NotEmpty String name, @Min(0) int age) {}
 ```
 
-Ough, what a mess and waste of time! Manual constructor checks are messy, error-prone, and hard to maintain—they repeat the same boilerplate, can be forgotten or mistyped, and mix validation with business logic.
-
-And this is where Vaadoo comes into play. Vaadoo is a compiler plugin that generates all this boilerplate code for you. Checks are woven directly into the bytecode, so you get rid of any runtime JSR 380 dependency. Everything needed for validation is compiled directly into your classes—there are no runtime dependencies required, making your domain objects fully self-validating and ready to use immediately.
-
-PS: This is getting real fun with lombok ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/jmolecules-bytebuddy-tests/jmolecules-bytebuddy-tests-vaadoo/lombok.config)) and records! 
+**With lombok** ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/jmolecules-bytebuddy-tests/jmolecules-bytebuddy-tests-vaadoo/lombok.config))
 ```java
 @lombok.Value class MyDomainObject {
     @NotEmpty String name;
     @Min(0) int age;
 }
-```
-
-```java
-record MyDomainObject(@NotEmpty String name, @Min(0) int age) {}
 ```
 
 ## Why are only constructors supported? Please add support for methods as well! 
