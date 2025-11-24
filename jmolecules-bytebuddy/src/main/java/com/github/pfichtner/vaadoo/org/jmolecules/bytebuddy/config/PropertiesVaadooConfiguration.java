@@ -54,17 +54,21 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 	}
 
 	public boolean customAnnotationsEnabled() {
-		return Boolean.parseBoolean(properties.getProperty(VAADOO_CUSTOM_ANNOTATIONS_ENABLED, String.valueOf(true)));
+		return isEnabled(VAADOO_CUSTOM_ANNOTATIONS_ENABLED, true);
 	}
 
 	@Override
 	public boolean regexOptimizationEnabled() {
-		return Boolean.parseBoolean(properties.getProperty(VAADOO_REGEX_OPTIMIZATION, String.valueOf(true)));
+		return isEnabled(VAADOO_REGEX_OPTIMIZATION, true);
 	}
 
 	@Override
 	public boolean removeJsr380Annotations() {
-		return Boolean.parseBoolean(properties.getProperty(VAADOO_REMOVE_ANNOTATIONS, String.valueOf(true)));
+		return isEnabled(VAADOO_REMOVE_ANNOTATIONS, true);
+	}
+
+	private boolean isEnabled(String key, boolean defaultValue) {
+		return Boolean.parseBoolean(properties.getProperty(key, String.valueOf(defaultValue)));
 	}
 
 	public String getProperty(String key) {
