@@ -132,7 +132,7 @@ class VaadooImplementor {
 
 			@Override
 			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor classVisitor,
-					Implementation.Context implementationContext, TypePool typePool,
+					Implementation.Context context, TypePool typePool,
 					FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods, int writerFlags,
 					int readerFlags) {
 				return new PatternRewriteClassVisitor(classVisitor, validateMethodName);
