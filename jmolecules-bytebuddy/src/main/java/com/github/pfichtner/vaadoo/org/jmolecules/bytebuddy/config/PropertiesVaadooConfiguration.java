@@ -27,11 +27,11 @@ import net.bytebuddy.description.type.TypeDescription;
 @Slf4j
 class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
-	static final String VAADOO_CUSTOM_ANNOTATIONS_ENABLED = "vaadoo.customAnnotationsEnabled";
-	static final String VAADOO_REGEX_OPTIMIZATION = "vaadoo.regexOptimization";
-	static final String VAADOO_REMOVE_ANNOTATIONS = "vaadoo.removeJsr380Annotations";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_TYPE = "vaadoo.jsr380CodeFragmentType";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_CLASS = "vaadoo.jsr380CodeFragmentClass";
+	static final String VAADOO_CUSTOM_ANNOTATIONS = "vaadoo.customAnnotations";
+	static final String VAADOO_REGEX_OPTIMIZATION = "vaadoo.regexOptimization";
+	static final String VAADOO_REMOVE_JSR380_ANNOTATIONS = "vaadoo.removeJsr380Annotations";
 
 	private final Properties properties;
 
@@ -54,7 +54,7 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 	}
 
 	public boolean customAnnotationsEnabled() {
-		return isEnabled(VAADOO_CUSTOM_ANNOTATIONS_ENABLED, true);
+		return isEnabled(VAADOO_CUSTOM_ANNOTATIONS, true);
 	}
 
 	@Override
@@ -64,7 +64,7 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	@Override
 	public boolean removeJsr380Annotations() {
-		return isEnabled(VAADOO_REMOVE_ANNOTATIONS, true);
+		return isEnabled(VAADOO_REMOVE_JSR380_ANNOTATIONS, true);
 	}
 
 	private boolean isEnabled(String key, boolean defaultValue) {

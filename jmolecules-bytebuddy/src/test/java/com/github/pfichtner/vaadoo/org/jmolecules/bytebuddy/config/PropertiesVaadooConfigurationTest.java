@@ -1,10 +1,10 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
-import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_CUSTOM_ANNOTATIONS_ENABLED;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_CUSTOM_ANNOTATIONS;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_CLASS;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_TYPE;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REGEX_OPTIMIZATION;
-import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REMOVE_ANNOTATIONS;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REMOVE_JSR380_ANNOTATIONS;
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,14 +68,14 @@ class PropertiesVaadooConfigurationTest {
 	@Test
 	void customAnnotations() {
 		assertThat(sut.customAnnotationsEnabled()).isEqualTo(true);
-		properties.setProperty(VAADOO_CUSTOM_ANNOTATIONS_ENABLED, String.valueOf(false));
+		properties.setProperty(VAADOO_CUSTOM_ANNOTATIONS, String.valueOf(false));
 		assertThat(sut.customAnnotationsEnabled()).isEqualTo(false);
 	}
 
 	@Test
 	void annotationsRemoval() {
 		assertThat(sut.removeJsr380Annotations()).isEqualTo(true);
-		properties.setProperty(VAADOO_REMOVE_ANNOTATIONS, String.valueOf(false));
+		properties.setProperty(VAADOO_REMOVE_JSR380_ANNOTATIONS, String.valueOf(false));
 		assertThat(sut.removeJsr380Annotations()).isEqualTo(false);
 	}
 
