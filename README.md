@@ -143,7 +143,7 @@ build on top of https://github.com/raphw/byte-buddy/tree/master/byte-buddy-maven
   ```
   When adding constructors via the IDE the IDE takes care of it: Foo(@Min(1) @Max(9999) int bar) { this.bar = bar; }
 
-  Note: lombok copies the annotation of fields to existing constructors as well, so here is less danger
+  Note: lombok copies the annotation of fields to existing constructors ([those who are configured as ```lombok.copyableAnnotations``` within lombok.config](https://github.com/pfichtner/vaadoo/blob/main/jmolecules-bytebuddy-tests/jmolecules-bytebuddy-tests-vaadoo/lombok.config)) as well, so here is less danger
   ```java
   @lombok.Value class Foo {
   	@Min(1) @Max(9999) int bar;
