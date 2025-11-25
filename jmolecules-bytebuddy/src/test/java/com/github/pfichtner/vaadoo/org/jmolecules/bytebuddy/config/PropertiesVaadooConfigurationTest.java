@@ -1,7 +1,10 @@
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_CUSTOM_ANNOTATIONS_ENABLED;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_CLASS;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_TYPE;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REGEX_OPTIMIZATION;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REMOVE_ANNOTATIONS;
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,6 +56,39 @@ class PropertiesVaadooConfigurationTest {
 		}
 		var jsr380CodeFragmentClass = setAndAccessFragmentType(dummyFragmentClass);
 		assertThat(jsr380CodeFragmentClass).isEqualTo(dummyFragmentClass.getClass());
+	}
+
+	@Test
+	void regexOptimizationIsEnabledByDefault() {
+		assertThat(sut.regexOptimizationEnabled()).isEqualTo(true);
+	}
+
+	@Test
+	void regexOptimizationCanBeTurnedOff() {
+		properties.setProperty(VAADOO_REGEX_OPTIMIZATION, String.valueOf(false));
+		assertThat(sut.regexOptimizationEnabled()).isEqualTo(false);
+	}
+
+	@Test
+	void customAnnotationsAreEnabledByDefault() {
+		assertThat(sut.customAnnotationsEnabled()).isEqualTo(true);
+	}
+
+	@Test
+	void customAnnotationsAreCanBeTurnedOff() {
+		properties.setProperty(VAADOO_CUSTOM_ANNOTATIONS_ENABLED, String.valueOf(false));
+		assertThat(sut.customAnnotationsEnabled()).isEqualTo(false);
+	}
+
+	@Test
+	void annotationsAreRemovedByDefault() {
+		assertThat(sut.removeJsr380Annotations()).isEqualTo(true);
+	}
+
+	@Test
+	void annotationsRemovalaCanBeTurnedOff() {
+		properties.setProperty(VAADOO_REMOVE_ANNOTATIONS, String.valueOf(false));
+		assertThat(sut.removeJsr380Annotations()).isEqualTo(false);
 	}
 
 	static Stream<String> knownFragmentClassNames() {
