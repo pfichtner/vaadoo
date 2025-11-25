@@ -16,7 +16,8 @@ When building applications with Spring, JSR 380 (Bean Validation) annotations ar
   - Who ensures validation is executed?
 
 - **In the DTOs separated from domain objects?**:
-  - Adding annotations to DTOs pushes validation outside the domain, which can compromise domain integrity ("make illegal states unrepresentable" violated).
+  - Adding annotations to DTOs pushes validation outside the domain. 
+  - Using DTO-level annotations is acceptable, but if they are the only enforcement of business rules, it violates the DDD principle of “make illegal states unrepresentable,” since domain invariants must be enforced inside the domain model itself to preserve domain integrity.
 
 
 Manual validation in constructors quickly becomes messy, is error-prone and hard to maintain:
