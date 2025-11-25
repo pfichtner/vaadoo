@@ -59,34 +59,22 @@ class PropertiesVaadooConfigurationTest {
 	}
 
 	@Test
-	void regexOptimizationIsEnabledByDefault() {
+	void regexOptimization() {
 		assertThat(sut.regexOptimizationEnabled()).isEqualTo(true);
-	}
-
-	@Test
-	void regexOptimizationCanBeTurnedOff() {
 		properties.setProperty(VAADOO_REGEX_OPTIMIZATION, String.valueOf(false));
 		assertThat(sut.regexOptimizationEnabled()).isEqualTo(false);
 	}
 
 	@Test
-	void customAnnotationsAreEnabledByDefault() {
+	void customAnnotations() {
 		assertThat(sut.customAnnotationsEnabled()).isEqualTo(true);
-	}
-
-	@Test
-	void customAnnotationsAreCanBeTurnedOff() {
 		properties.setProperty(VAADOO_CUSTOM_ANNOTATIONS_ENABLED, String.valueOf(false));
 		assertThat(sut.customAnnotationsEnabled()).isEqualTo(false);
 	}
 
 	@Test
-	void annotationsAreRemovedByDefault() {
+	void annotationsRemoval() {
 		assertThat(sut.removeJsr380Annotations()).isEqualTo(true);
-	}
-
-	@Test
-	void annotationsRemovalaCanBeTurnedOff() {
 		properties.setProperty(VAADOO_REMOVE_ANNOTATIONS, String.valueOf(false));
 		assertThat(sut.removeJsr380Annotations()).isEqualTo(false);
 	}
