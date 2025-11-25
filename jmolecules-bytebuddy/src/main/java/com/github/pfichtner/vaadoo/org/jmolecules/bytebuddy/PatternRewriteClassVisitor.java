@@ -40,6 +40,7 @@ import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Opcodes.PUTSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.RETURN;
 
+import lombok.Getter;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
 import net.bytebuddy.jar.asm.MethodVisitor;
@@ -49,6 +50,7 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 
 	private final String validateMethodName;
 	private String owner;
+	@Getter
 	private boolean replaced;
 
 	public PatternRewriteClassVisitor(ClassVisitor cv, String validateMethodName) {
@@ -60,10 +62,6 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 		this.owner = name;
 		super.visit(version, access, name, signature, superName, interfaces);
-	}
-
-	public boolean isReplaced() {
-		return replaced;
 	}
 
 	@Override
