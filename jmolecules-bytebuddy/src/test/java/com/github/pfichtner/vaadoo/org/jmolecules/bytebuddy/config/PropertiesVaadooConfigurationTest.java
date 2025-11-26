@@ -7,11 +7,14 @@ import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.Proper
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REMOVE_JSR380_ANNOTATIONS;
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.EnumSet;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -58,25 +61,26 @@ class PropertiesVaadooConfigurationTest {
 		assertThat(jsr380CodeFragmentClass).isEqualTo(dummyFragmentClass.getClass());
 	}
 
-	@Test
-	void regexOptimization() {
-		assertThat(sut.regexOptimizationEnabled()).isEqualTo(true);
-		properties.setProperty(VAADOO_REGEX_OPTIMIZATION, String.valueOf(false));
-		assertThat(sut.regexOptimizationEnabled()).isEqualTo(false);
+	@ParameterizedTest
+	@MethodSource("toggleParams")
+	void canToggleParam(Function<PropertiesVaadooConfiguration, Boolean> toggler, String propertyName,
+			boolean defValue) {
+		assertSoftly(s -> {
+			s.assertThat(toggler.apply(sut)).isEqualTo(defValue);
+			properties.setProperty(propertyName, String.valueOf(!defValue));
+			s.assertThat(toggler.apply(sut)).isEqualTo(!defValue);
+		});
 	}
 
-	@Test
-	void customAnnotations() {
-		assertThat(sut.customAnnotationsEnabled()).isEqualTo(true);
-		properties.setProperty(VAADOO_CUSTOM_ANNOTATIONS, String.valueOf(false));
-		assertThat(sut.customAnnotationsEnabled()).isEqualTo(false);
-	}
-
-	@Test
-	void annotationsRemoval() {
-		assertThat(sut.removeJsr380Annotations()).isEqualTo(true);
-		properties.setProperty(VAADOO_REMOVE_JSR380_ANNOTATIONS, String.valueOf(false));
-		assertThat(sut.removeJsr380Annotations()).isEqualTo(false);
+	static Stream<Object> toggleParams() {
+		Function<PropertiesVaadooConfiguration, Boolean> regexOptimizationEnabled = PropertiesVaadooConfiguration::regexOptimizationEnabled;
+		Function<PropertiesVaadooConfiguration, Boolean> customAnnotationsEnabled = PropertiesVaadooConfiguration::customAnnotationsEnabled;
+		Function<PropertiesVaadooConfiguration, Boolean> removeJsr380Annotations = PropertiesVaadooConfiguration::removeJsr380Annotations;
+		return Stream.of( //
+				arguments(regexOptimizationEnabled, VAADOO_REGEX_OPTIMIZATION, true), //
+				arguments(customAnnotationsEnabled, VAADOO_CUSTOM_ANNOTATIONS, true), //
+				arguments(removeJsr380Annotations, VAADOO_REMOVE_JSR380_ANNOTATIONS, true) //
+		);
 	}
 
 	static Stream<String> knownFragmentClassNames() {
