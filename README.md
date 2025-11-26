@@ -52,7 +52,6 @@ class MyDomainObject {
 }
 ```
 
-
 **Java record**
 ```java
 record MyDomainObject(@NotEmpty String name, @Min(0) int age) {}
@@ -168,9 +167,11 @@ Performance was measured with **10,000,000 constructor calls**:
 | Configuration                 | Execution Time | Overhead |
 |-------------------------------|----------------|----------|
 | No validation (just for ref)  | 800 ms         | –27%     |
-| Regex field (static final)    | **1100 ms**    | -        |
+| Regex field (static final)    | **1100 ms**    | - (*1)   |
 | Cached Regex (Vaadoo default) | 1300 ms        | +18%     |
 | Non-Cached Regex              | 2500 ms        | +127%    |
+
+*1 Please note that using static final fields **all** regex fields get's compiled (even those which are not needed/accessed) while with the cached regex only those get compiled (once) that gets accessed. So having multiple regex but only accesing some of them might even get slower using fields than using cached regexs. 
 
 These results demonstrate how runtime validation—even optimized—introduces significant overhead compared to compile-time code generation. By embedding checks directly into your classes, Vaadoo provides **fully self-validating domain objects** that are both faster and free from runtime dependencies.
 
