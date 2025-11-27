@@ -15,9 +15,9 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
+import static com.github.pfichtner.vaadoo.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
-import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
@@ -44,9 +44,11 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import com.github.pfichtner.vaadoo.ConstructorAnnotationRemover;
 import com.github.pfichtner.vaadoo.Jsr380Annos;
 import com.github.pfichtner.vaadoo.Jsr380Annos.ConfigEntry;
 import com.github.pfichtner.vaadoo.Parameters;
+import com.github.pfichtner.vaadoo.PatternRewriteClassVisitor;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;

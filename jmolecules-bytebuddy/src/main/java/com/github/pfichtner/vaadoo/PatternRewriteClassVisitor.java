@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
+package com.github.pfichtner.vaadoo;
 
 import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_FINAL;

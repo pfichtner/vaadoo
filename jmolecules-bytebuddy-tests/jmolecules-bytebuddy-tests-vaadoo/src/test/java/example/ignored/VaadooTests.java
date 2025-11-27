@@ -15,25 +15,24 @@
  */
 package example.ignored;
 
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * As {@link SampleValueObject} is not part of the <code>example.vaddoo</code>
+ * package it gets ignored by the vaadoo.config, so nothing gets weave in.
+ */
 class VaadooTests {
 
 	@Test
 	void defaultsForSampleValueObject() {
-		List<List<Class<?>>> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
-				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).map(Arrays::asList)
-				.collect(toList());
-		assertThat(methodParams).isEmpty();
+		assertThat(Stream.of(SampleValueObject.class.getDeclaredMethods()).filter(m -> m.getName().equals("validate"))
+				.map(Method::getParameterTypes).map(Arrays::asList)).isEmpty();
 	}
 
 	@Test

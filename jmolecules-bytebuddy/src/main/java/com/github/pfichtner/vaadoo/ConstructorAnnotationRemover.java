@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
+package com.github.pfichtner.vaadoo;
 
 import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;

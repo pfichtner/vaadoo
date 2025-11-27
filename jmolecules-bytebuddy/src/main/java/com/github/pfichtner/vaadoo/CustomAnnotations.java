@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
+package com.github.pfichtner.vaadoo;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -35,10 +35,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import java.util.function.Function;
 
-import com.github.pfichtner.vaadoo.NamedPlaceholders;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
-import com.github.pfichtner.vaadoo.Resources;
-import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
