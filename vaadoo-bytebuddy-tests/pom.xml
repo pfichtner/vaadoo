@@ -2,23 +2,23 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>github.io.pfichtner.integrations</groupId>
-		<artifactId>jmolecules-integrations</artifactId>
+		<groupId>io.github.pfichtner</groupId>
+		<artifactId>vaadoo</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>jmolecules-bytebuddy-tests</artifactId>
+	<artifactId>vaadoo-bytebuddy-tests</artifactId>
 	<packaging>pom</packaging>
-	<name>jMolecules - ByteBuddy - Tests</name>
+	<name>Vaadoo - ByteBuddy - Tests</name>
 
 	<properties>
 		<maven.deploy.skip>true</maven.deploy.skip>
 	</properties>
 
 	<modules>
-		<module>jmolecules-bytebuddy-tests-core</module>
-		<module>jmolecules-bytebuddy-tests-vaadoo</module>
-		<module>jmolecules-bytebuddy-tests-parent</module>
+		<module>vaadoo-bytebuddy-tests-core</module>
+		<module>vaadoo-bytebuddy-tests-vaadoo</module>
+		<module>vaadoo-bytebuddy-tests-parent</module>
 	</modules>
 
 	<dependencies>

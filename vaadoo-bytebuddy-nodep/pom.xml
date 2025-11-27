@@ -2,24 +2,24 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>github.io.pfichtner.integrations</groupId>
-		<artifactId>jmolecules-integrations</artifactId>
+		<groupId>io.github.pfichtner</groupId>
+		<artifactId>vaadoo</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<name>jMolecules - ByteBuddy (no dependencies)</name>
+	<name>Vaadoo - ByteBuddy (no dependencies)</name>
 
-	<artifactId>jmolecules-bytebuddy-nodep</artifactId>
+	<artifactId>vaadoo-bytebuddy-nodep</artifactId>
 
 	<properties>
-		<module.name>github.io.pfichtner.integrations.bytebuddy.nodep</module.name>
+		<module.name>io.github.pfichtner.integrations.bytebuddy.nodep</module.name>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jmolecules-bytebuddy</artifactId>
+			<artifactId>vaadoo-bytebuddy</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
@@ -61,13 +61,13 @@
 				<configuration>
 					<artifactSet>
 						<includes>
-							<include>github.io.pfichtner.integrations:jmolecules-bytebuddy</include>
+							<include>io.github.pfichtner.integrations:vaadoo-bytebuddy</include>
 						</includes>
 					</artifactSet>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<createSourcesJar>true</createSourcesJar>
 					<shadedArtifactAttached>false</shadedArtifactAttached>
-					<shadedArtifactId>jmolecules-bytebuddy-nodep</shadedArtifactId>
+					<shadedArtifactId>vaadoo-bytebuddy-nodep</shadedArtifactId>
 				</configuration>
 				<executions>
 					<execution>

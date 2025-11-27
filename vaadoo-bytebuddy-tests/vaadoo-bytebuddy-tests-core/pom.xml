@@ -2,14 +2,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>github.io.pfichtner.integrations</groupId>
-		<artifactId>jmolecules-bytebuddy-tests</artifactId>
+		<groupId>io.github.pfichtner</groupId>
+		<artifactId>vaadoo-bytebuddy-tests</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>jmolecules-bytebuddy-tests-core</artifactId>
-	<name>jMolecules - ByteBuddy - Tests - Core</name>
+	<artifactId>vaadoo-bytebuddy-tests-core</artifactId>
+	<name>Vaadoo - ByteBuddy - Tests - Core</name>
 
 	<dependencies>
 

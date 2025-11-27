@@ -1,18 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>github.io.pfichtner.integrations</groupId>
-	<artifactId>jmolecules-integrations</artifactId>
+	<groupId>io.github.pfichtner</groupId>
+	<artifactId>vaadoo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>jMolecules - Technology integrations</name>
-	<description>Modules to integrate jMolecules abstractions with implementation technologies</description>
+	<name>Vaadoo</name>
+	<description>Compile-time domain object validation for Java.</description>
+
 	<url>https://github.com/pfichtner/vaadoo</url>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>jmolecules-bytebuddy</module>
-		<module>jmolecules-bytebuddy-nodep</module>
+		<module>vaadoo-bytebuddy</module>
+		<module>vaadoo-bytebuddy-nodep</module>
 	</modules>
 
 	<properties>
@@ -21,7 +22,7 @@
 		<jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
 		<java.version>11</java.version>
 		<kotlin.version>2.2.10</kotlin.version>
-		<module.name>github.io.pfichtner.integrations</module.name>
+		<module.name>io.github.pfichtner.vaadoo</module.name>
 	</properties>
 
 	<licenses>
@@ -45,7 +46,7 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<modules>
-				<module>jmolecules-bytebuddy-tests</module>
+				<module>vaadoo-bytebuddy-tests</module>
 			</modules>
 		</profile>
 		<profile>
@@ -102,7 +103,7 @@
 						<groupId>org.sonatype.central</groupId>
 						<artifactId>central-publishing-maven-plugin</artifactId>
 						<configuration>
-							<deploymentName>jMolecules Integrations ${project.version}</deploymentName>
+							<deploymentName>Vaadoo ${project.version}</deploymentName>
 							<publishingServerId>central-ossrh</publishingServerId>
 							<autoPublish>true</autoPublish>
 						</configuration>
@@ -268,11 +269,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude />
-					</excludes>
-				</configuration>
 			</plugin>
 
 			<plugin>
@@ -337,9 +333,9 @@
 	</build>
 
 	<scm>
-		<url>https://github.com/pfichtner/vaadoo/</url>
-		<connection>scm:git:https://github.com/pfichtner/vaadoo/</connection>
+		<connection>scm:git:https://github.com/pfichtner/vaadoo.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/pfichtner/vaadoo.git</developerConnection>
+		<url>https://github.com/pfichtner/vaadoo/</url>
 		<tag>HEAD</tag>
 	</scm>
 

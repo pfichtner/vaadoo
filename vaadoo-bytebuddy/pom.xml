@@ -4,19 +4,19 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>github.io.pfichtner.integrations</groupId>
-		<artifactId>jmolecules-integrations</artifactId>
+		<groupId>io.github.pfichtner</groupId>
+		<artifactId>vaadoo</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<name>jMolecules - ByteBuddy plugin</name>
+	<name>Vaadoo - ByteBuddy plugin</name>
 	<description>A ByteBuddy plugin to translate jMolecules abstractions into
 		implementation technology abstractions</description>
-	<artifactId>jmolecules-bytebuddy</artifactId>
+	<artifactId>vaadoo-bytebuddy</artifactId>
 
 	<properties>
-		<module.name>github.io.pfichtner.integrations.bytebuddy</module.name>
+		<module.name>io.github.pfichtner.integrations.bytebuddy</module.name>
 	</properties>
 
 	<dependencies>

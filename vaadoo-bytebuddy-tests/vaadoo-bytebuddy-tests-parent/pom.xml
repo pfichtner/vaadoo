@@ -2,14 +2,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>github.io.pfichtner.integrations</groupId>
-		<artifactId>jmolecules-bytebuddy-tests</artifactId>
+		<groupId>io.github.pfichtner</groupId>
+		<artifactId>vaadoo-bytebuddy-tests</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>jmolecules-bytebuddy-tests-parent</artifactId>
-	<name>jMolecules - ByteBuddy - Tests - Parent</name>
+	<artifactId>vaadoo-bytebuddy-tests-parent</artifactId>
+	<name>Vaadoo - ByteBuddy - Tests - Parent</name>
 	<packaging>pom</packaging>
 
 	<dependencies>
@@ -25,7 +25,7 @@
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jmolecules-bytebuddy-nodep</artifactId>
+			<artifactId>vaadoo-bytebuddy-nodep</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
@@ -53,7 +53,7 @@
 						</goals>
 						<configuration>
 							<sources>
-								<source>${basedir}/target/jmolecules-sources</source>
+								<source>${basedir}/target/vaadoo-sources</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -71,10 +71,10 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${basedir}/target/jmolecules-sources</outputDirectory>
+							<outputDirectory>${basedir}/target/vaadoo-sources</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/../jmolecules-bytebuddy-tests-core/src/main/java</directory>
+									<directory>${basedir}/../vaadoo-bytebuddy-tests-core/src/main/java</directory>
 									<includes>
 										<include>**/*.java</include>
 									</includes>

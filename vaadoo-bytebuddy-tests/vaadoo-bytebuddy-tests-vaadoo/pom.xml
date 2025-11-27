@@ -2,14 +2,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>github.io.pfichtner.integrations</groupId>
-		<artifactId>jmolecules-bytebuddy-tests-parent</artifactId>
+		<groupId>io.github.pfichtner</groupId>
+		<artifactId>vaadoo-bytebuddy-tests-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../jmolecules-bytebuddy-tests-parent/pom.xml</relativePath>
+		<relativePath>../vaadoo-bytebuddy-tests-parent/pom.xml</relativePath>
 	</parent>
 
-	<artifactId>jmolecules-bytebuddy-tests-vaadoo</artifactId>
-	<name>jMolecules - ByteBuddy - Tests - vaadoo</name>
+	<artifactId>vaadoo-bytebuddy-tests-vaadoo</artifactId>
+	<name>Vaadoo - ByteBuddy - Tests - Vaadoo</name>
 
 	<dependencies>
 
@@ -24,7 +24,7 @@
 		     plugin without bringing full runtime dependencies. -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jmolecules-bytebuddy-nodep</artifactId>
+			<artifactId>vaadoo-bytebuddy-nodep</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -32,7 +32,7 @@
 		     test classpath so classPathDiscovery can load the plugin. -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jmolecules-bytebuddy</artifactId>
+			<artifactId>vaadoo-bytebuddy</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -59,7 +59,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- Use managed byte-buddy plugin from ../jmolecules-bytebuddy-tests/pom.xml -->
+			<!-- Use managed byte-buddy plugin from ../vaadoo-bytebuddy-tests/pom.xml -->
 			<plugin>
 				<groupId>net.bytebuddy</groupId>
 				<artifactId>byte-buddy-maven-plugin</artifactId>
