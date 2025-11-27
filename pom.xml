@@ -17,7 +17,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<bytebuddy.version>1.18.1</bytebuddy.version>
+		<bytebuddy.version>1.18.2</bytebuddy.version>
 		<jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
 		<java.version>11</java.version>
 		<kotlin.version>2.2.10</kotlin.version>
