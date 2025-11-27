@@ -164,12 +164,12 @@ build on top of https://github.com/raphw/byte-buddy/tree/master/byte-buddy-maven
 
 Performance was measured with **100,000,000 constructor calls**:
 
-| Configuration                     | Execution Time | Overhead |
-|-----------------------------------|----------------|----------|
-| Regex field (static final)        | **5,700 ms**   | - (*1)   |
-| Cached Regex (**Vaadoo default**) | 7,900 ms       | +39%     |
-| Non-Cached Regex                  | 19,000 ms      | +233%    |
-| Hibernate (Reflection)            | 16,800 ms      | +195%    |
+| Configuration                          | Execution Time | Overhead |
+|----------------------------------------|----------------|----------|
+| Regex field (static final)             | **5,700 ms**   | - (*1)   |
+| Vaadoo with cached regex (**default**) | 7,900 ms       | +39%     |
+| Vaadoo with regex (compiled per call)  | 19,000 ms      | +233%    |
+| Hibernate (Reflection)                 | 16,800 ms      | +195%    |
 
 *1 Please note that using static final fields **all** regex fields gets compiled (even those which are not needed/accessed) while with the cached regex only those get compiled (once) that gets accessed. So having multiple regex but only accesing some of them might even get slower using fields than using cached regexs. 
 
