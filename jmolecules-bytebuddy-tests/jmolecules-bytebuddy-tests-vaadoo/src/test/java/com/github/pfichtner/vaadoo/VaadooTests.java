@@ -28,8 +28,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import example.SampleValueObject;
-import example.SampleValueObjectWithSideEffect;
+import example.vaadoo.SampleValueObject;
+import example.vaadoo.SampleValueObjectWithSideEffect;
 
 class VaadooTests {
 

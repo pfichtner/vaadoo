@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example;
+package example.vaadoo;
 
-import org.jmolecules.ddd.types.ValueObject;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
-public class SuperClassThatThrowsRTE implements ValueObject {
-
-	public SuperClassThatThrowsRTE() {
-		throw new IllegalStateException("we don't want to get this constructor being called");
-	}
-
+// records are automatically handled as value objects, no need to implement ValueObject nor to annotate
+public record SampleValueRecord(@NotNull @NotEmpty String value) {
 }

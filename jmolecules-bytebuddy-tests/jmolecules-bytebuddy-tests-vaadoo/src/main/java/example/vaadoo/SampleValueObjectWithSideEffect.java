@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example;
+package example.vaadoo;
 
-import jakarta.validation.constraints.NotEmpty;
+import java.util.List;
+
 import jakarta.validation.constraints.NotNull;
 
-// records are automatically handled as value objects, no need to implement ValueObject nor to annotate
-public record SampleValueRecord(@NotNull @NotEmpty String value) {
+public class SampleValueObjectWithSideEffect extends SuperClassThatThrowsRTE {
+
+	// nor the super constructor nor the List#add should get called if "toAdd" is null
+	public SampleValueObjectWithSideEffect(List<String> list, @NotNull String toAdd) {
+		list.add(toAdd);
+	}
+
 }

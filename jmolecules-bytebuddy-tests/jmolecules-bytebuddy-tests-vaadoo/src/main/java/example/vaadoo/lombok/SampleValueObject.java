@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example;
+package example.vaadoo.lombok;
 
 import org.jmolecules.ddd.types.ValueObject;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.Value;
 
+@Value
+// this class needs a corresponding lombok.config (configured to copy the field annotations to the constructor)
 public class SampleValueObject implements ValueObject {
 
-	private final String value;
-
-	public SampleValueObject(@NotNull @NotEmpty String value) {
-		this.value = value;
-	}
-
-	public String getValue() {
-		return value;
-	}
+	@NotNull
+	@NotEmpty
+	String value;
 
 }

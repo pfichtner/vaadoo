@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import example.lombok.SampleValueObject;
+import example.vaadoo.lombok.SampleValueObject;
 
 class LombokVaadooTests {
 

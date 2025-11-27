@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package example;
+package example.vaadoo;
 
-import java.util.List;
+import org.jmolecules.ddd.types.ValueObject;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-public class SampleValueObjectWithSideEffect extends SuperClassThatThrowsRTE {
+public class SampleValueObject implements ValueObject {
 
-	// nor the super constructor nor the List#add should get called if "toAdd" is null
-	public SampleValueObjectWithSideEffect(List<String> list, @NotNull String toAdd) {
-		list.add(toAdd);
+	private final String value;
+
+	public SampleValueObject(@NotNull @NotEmpty String value) {
+		this.value = value;
+	}
+
+	public String getValue() {
+		return value;
 	}
 
 }

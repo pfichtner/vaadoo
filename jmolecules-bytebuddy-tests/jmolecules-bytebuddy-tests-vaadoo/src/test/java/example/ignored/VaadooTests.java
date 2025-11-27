@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.pfichtner.vaadoo;
+package example.ignored;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,33 +26,24 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import example.vaadoo.SampleValueRecord;
-
-class VaadooRecordTests {
+class VaadooTests {
 
 	@Test
 	void defaultsForSampleValueObject() {
-		List<List<Class<?>>> methodParams = Stream.of(SampleValueRecord.class.getDeclaredMethods())
+		List<List<Class<?>>> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
 				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).map(Arrays::asList)
 				.collect(toList());
-		assertThat(methodParams).containsExactly(List.of(String.class));
+		assertThat(methodParams).isEmpty();
 	}
 
 	@Test
-	void throwsExceptionOnNullValue() {
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueRecord(null))
-				.withMessage("value must not be null");
+	void doesNotThrowExceptionOnNullValue() {
+		new SampleValueObject(null);
 	}
 
 	@Test
-	void throwsExceptionOnEmptyValue() {
-		assertThatRuntimeException().isThrownBy(() -> new SampleValueRecord("")).withMessage("value must not be empty");
-	}
-
-	@Test
-	void doesNotThrowExceptionOnNonNullValueAndAssignsValues() {
-		String value = "not null and not empty";
-		assertThat(new SampleValueRecord(value).value()).isEqualTo(value);
+	void doesNotThrowExceptionOnEmptyValue() {
+		new SampleValueObject("");
 	}
 
 }
