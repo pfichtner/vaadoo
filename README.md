@@ -57,7 +57,7 @@ class MyDomainObject {
 record MyDomainObject(@NotEmpty String name, @Min(0) int age) {}
 ```
 
-**With lombok** ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/jmolecules-bytebuddy-tests/jmolecules-bytebuddy-tests-vaadoo/lombok.config))
+**With lombok** ([with adjustments of lombok.config](https://github.com/pfichtner/vaadoo/blob/main/vaadoo-bytebuddy-tests/vaadoo-bytebuddy-tests-vaadoo/lombok.config))
 ```java
 @lombok.Value class MyDomainObject {
     @NotEmpty String name;
@@ -142,7 +142,7 @@ build on top of https://github.com/raphw/byte-buddy/tree/master/byte-buddy-maven
   ```
   When adding constructors via the IDE the IDE takes care of it: Foo(@Min(1) @Max(9999) int bar) { this.bar = bar; }
 
-  Note: lombok copies the annotation of fields to existing constructors ([those who are configured as ```lombok.copyableAnnotations``` within lombok.config](https://github.com/pfichtner/vaadoo/blob/main/jmolecules-bytebuddy-tests/jmolecules-bytebuddy-tests-vaadoo/lombok.config)) as well, so here is less danger
+  Note: lombok copies the annotation of fields to existing constructors ([those who are configured as ```lombok.copyableAnnotations``` within lombok.config](https://github.com/pfichtner/vaadoo/blob/main/vaadoo-bytebuddy-tests/vaadoo-bytebuddy-tests-vaadoo/lombok.config)) as well, so here is less danger
   ```java
   @lombok.Value class Foo {
   	@Min(1) @Max(9999) int bar;
