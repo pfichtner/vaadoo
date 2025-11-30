@@ -7,6 +7,30 @@
 # Vaadoo
 Validating automatically domain objects: It's magic
 
+## Getting Started
+
+Vaadoo is available on **Maven Central**. The current release is an **alpha version (0.0.1-alpha-1)**:
+
+```xml
+<dependency>
+    <groupId>io.github.pfichtner</groupId>
+    <artifactId>vaadoo-bytebuddy</artifactId>
+    <version>0.0.1-alpha-1</version>
+</dependency>
+```
+
+Or add it to your Gradle project:
+```groovy
+implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.1-alpha-1'
+```
+
+## Integration
+build on top of https://github.com/raphw/byte-buddy/tree/master/byte-buddy-maven-plugin so integration is documented here: https://github.com/raphw/byte-buddy/blob/master/byte-buddy-maven-plugin/README.md
+- integrates in javac (maven/gradle/...)
+- integrates in eclipse
+- integrates in intellij but seems to need some tweaks https://youtrack.jetbrains.com/issue/IDEA-199681/Detect-and-apply-byte-buddy-plugin
+
+
 ## Why Vaadoo?
 
 When building applications with Spring, JSR 380 (Bean Validation) annotations are handy. But where should you put them?
@@ -115,11 +139,6 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 2. If no config is found and **jmolecules** is on the classpath → jmolecules value objects and records are enhanced.
 3. If neither applies → **all classes** are enhanced (default fallback).
 
-## Integration
-build on top of https://github.com/raphw/byte-buddy/tree/master/byte-buddy-maven-plugin so integration is documented here: https://github.com/raphw/byte-buddy/blob/master/byte-buddy-maven-plugin/README.md
-- integrates in javac (maven/gradle/...)
-- integrates in eclipse
-- integrates in intellij but seems to need some tweaks https://youtrack.jetbrains.com/issue/IDEA-199681/Detect-and-apply-byte-buddy-plugin
 
 ## Drawbacks
 - no runtime internationalization (i18n) since messages are copied during compile-time into the bytecode
