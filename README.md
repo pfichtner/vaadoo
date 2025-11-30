@@ -101,7 +101,7 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 - **Which classes (types) should be enhanced** by the plugin (default: all)
 
 - **Custom annotation handling**
-  Determines whether JSR 380 custom validators should be considered and enabled during bytecode weaving. (default: true)
+  Determines whether JSR 380 custom validators should be considered and enabled during bytecode weaving. (default: [see Default behavior](#default-behavior))
 
 - **Regex optimization**
   Enables caching of compiled regular expressions, so Pattern.compile is called only once per regex. (default: true)
