@@ -8,7 +8,6 @@ import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.Proper
 import static java.util.stream.Stream.concat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -19,6 +18,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
@@ -73,14 +73,15 @@ class PropertiesVaadooConfigurationTest {
 	}
 
 	static Stream<Object> toggleParams() {
-		Function<PropertiesVaadooConfiguration, Boolean> regexOptimizationEnabled = PropertiesVaadooConfiguration::regexOptimizationEnabled;
-		Function<PropertiesVaadooConfiguration, Boolean> customAnnotationsEnabled = PropertiesVaadooConfiguration::customAnnotationsEnabled;
-		Function<PropertiesVaadooConfiguration, Boolean> removeJsr380Annotations = PropertiesVaadooConfiguration::removeJsr380Annotations;
 		return Stream.of( //
-				arguments(regexOptimizationEnabled, VAADOO_REGEX_OPTIMIZATION, true), //
-				arguments(customAnnotationsEnabled, VAADOO_CUSTOM_ANNOTATIONS, true), //
-				arguments(removeJsr380Annotations, VAADOO_REMOVE_JSR380_ANNOTATIONS, true) //
-		);
+				args(PropertiesVaadooConfiguration::regexOptimizationEnabled, VAADOO_REGEX_OPTIMIZATION, true), //
+				args(PropertiesVaadooConfiguration::customAnnotationsEnabled, VAADOO_CUSTOM_ANNOTATIONS, true), //
+				args(PropertiesVaadooConfiguration::removeJsr380Annotations, VAADOO_REMOVE_JSR380_ANNOTATIONS, true));
+	}
+
+	static Arguments args(Function<PropertiesVaadooConfiguration, Boolean> function, String toggler,
+			boolean defaultValue) {
+		return Arguments.arguments(function, toggler, defaultValue);
 	}
 
 	static Stream<String> knownFragmentClassNames() {
