@@ -11,6 +11,8 @@ Validating automatically domain objects: It's magic
 
 Vaadoo is available on **Maven Central**. The current release is an **alpha version (0.0.1-alpha-1)**:
 
+### Maven Build Plugin Configuration
+
 ```xml
 <dependency>
     <groupId>io.github.pfichtner</groupId>
@@ -19,9 +21,46 @@ Vaadoo is available on **Maven Central**. The current release is an **alpha vers
 </dependency>
 ```
 
-Or add it to your Gradle project:
+To enable build-time class transformation using Byte Buddy, add the following to your `build/plugins` section:
+
+```xml
+<plugin>
+    <groupId>net.bytebuddy</groupId>
+    <artifactId>byte-buddy-maven-plugin</artifactId>
+    <version>1.17.8</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>transform-extended</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <incremental>true</incremental>
+        <classPathDiscovery>true</classPathDiscovery>
+    </configuration>
+</plugin>
+
+
+### Gradle Build Plugin Configuration
+
 ```groovy
 implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.1-alpha-1'
+
+plugins {
+    id 'java'
+    id 'net.bytebuddy.byte-buddy-gradle-plugin' version '1.17.8'
+}
+
+byteBuddy {
+    transformation {
+        plugin = net.bytebuddy.build.Plugin.ForElementMatchers.SubType.of(Object) // adjust as needed
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-parameters']
+}
 ```
 
 ## Integration
