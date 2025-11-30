@@ -40,7 +40,7 @@ To enable build-time class transformation using Byte Buddy, add the following to
         <classPathDiscovery>true</classPathDiscovery>
     </configuration>
 </plugin>
-
+```
 
 ### Gradle Build Plugin Configuration
 
