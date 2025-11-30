@@ -78,7 +78,7 @@ public final class Resources {
 	}
 
 	private static Map<String, String> loadMessages() {
-		ResourceBundle bundle = ResourceBundle.getBundle("org/jmolecules/bytebuddy/vaadoo",
+		ResourceBundle bundle = ResourceBundle.getBundle(Resources.class.getPackageName().replace('.', '/') + "/vaadoo",
 				new MergingResourceBundleControl());
 		return bundle.keySet().stream().collect(toMap(key -> key, bundle::getString));
 	}
