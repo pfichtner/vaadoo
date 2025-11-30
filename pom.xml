@@ -104,7 +104,7 @@
 						<artifactId>central-publishing-maven-plugin</artifactId>
 						<configuration>
 							<deploymentName>Vaadoo ${project.version}</deploymentName>
-							<publishingServerId>central-ossrh</publishingServerId>
+							<publishingServerId>central</publishingServerId>
 							<autoPublish>true</autoPublish>
 						</configuration>
 					</plugin>
