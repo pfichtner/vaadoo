@@ -15,6 +15,10 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
@@ -66,8 +70,46 @@ class VaadooPlugin implements LoggingPlugin {
 
 	@Override
 	public Builder<?> apply(Builder<?> builder, TypeDescription type, ClassFileLocator classFileLocator) {
-		Log log = PluginLogger.INSTANCE.getLog(type, "vaadoo");
+		ClassWorld classWorld = ClassWorld.of(classFileLocator);
+		Log log = null;
+		if (classWorld.isAvailable("org.jmolecules.bytebuddy.PluginLogger")) {
+			log = forwardToJmolecules(type, "vaadoo");
+		}
+		if (log == null) {
+			log = PluginLogger.INSTANCE.getLog(type, "vaadoo");
+		}
 		return JMoleculesTypeBuilder.of(log, builder).map(__ -> true, this::handleEntity).conclude();
+	}
+
+	private Log forwardToJmolecules(TypeDescription type, String name) {
+		try {
+			ClassLoader jmCL = TypeDescription.class.getClassLoader();
+			Class<?> loggerClass = Class.forName("org.jmolecules.bytebuddy.PluginLogger", false, jmCL);
+			Object enumInstance = loggerClass.getEnumConstants()[0]; // the real INSTANCE
+			Method method = enumInstance.getClass().getMethod("getLog", TypeDescription.class, String.class);
+			method.setAccessible(true);
+			Object logDelegate = method.invoke(enumInstance, type, name);
+			return (Log) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[] { Log.class }, (p, m, a) -> {
+				Method target = logDelegate.getClass().getDeclaredMethod(m.getName(), m.getParameterTypes());
+				try {
+					target.setAccessible(true);
+					return target.invoke(logDelegate, a);
+				} catch (InvocationTargetException ite) {
+					Throwable t = ite.getTargetException();
+					if (t instanceof RuntimeException) {
+						throw (RuntimeException) t;
+					} else if (t instanceof Error) {
+						throw (Error) t;
+					} else {
+						throw new RuntimeException(t);
+					}
+				}
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	private JMoleculesTypeBuilder handleEntity(JMoleculesTypeBuilder type) {

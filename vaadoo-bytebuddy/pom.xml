@@ -33,6 +33,14 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- just for accessing the PluginLogger -->
+		<dependency>
+			<groupId>org.jmolecules.integrations</groupId>
+			<artifactId>jmolecules-bytebuddy</artifactId>
+			<version>0.32.0</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>net.bytebuddy</groupId>
 			<artifactId>byte-buddy-agent</artifactId>
