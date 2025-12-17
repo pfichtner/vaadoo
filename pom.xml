@@ -3,7 +3,7 @@
 
 	<groupId>io.github.pfichtner</groupId>
 	<artifactId>vaadoo</artifactId>
-	<version>0.0.1-alpha-2-SNAPSHOT</version>
+	<version>0.0.1-alpha-2</version>
 
 	<name>Vaadoo</name>
 	<description>Compile-time domain object validation for Java.</description>
@@ -336,7 +336,7 @@
 		<connection>scm:git:https://github.com/pfichtner/vaadoo.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/pfichtner/vaadoo.git</developerConnection>
 		<url>https://github.com/pfichtner/vaadoo/</url>
-		<tag>0.0.1-alpha-1</tag>
+		<tag>0.0.1-alpha-2</tag>
 	</scm>
 
 	<distributionManagement>
