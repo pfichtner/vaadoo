@@ -26,6 +26,7 @@ import com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.jar.asm.Type;
 
 public interface VaadooConfiguration {
 
@@ -71,6 +72,14 @@ public interface VaadooConfiguration {
 	public default Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass() {
 		KnownFragmentClass jsrFragmentType = jsrFragmentType();
 		return (jsrFragmentType == null ? DEFAULT_KNOWN_FRAGMENT_CLASS : jsrFragmentType).getFragmentClass();
+	}
+
+	public default Class<? extends RuntimeException> nullValueExceptionType() {
+		return NullPointerException.class;
+	}
+
+	public default String nullValueExceptionTypeInternalName() {
+		return Type.getInternalName(nullValueExceptionType());
 	}
 
 	// TODO not really used yet: Here we can add abstract classes. If a "check"

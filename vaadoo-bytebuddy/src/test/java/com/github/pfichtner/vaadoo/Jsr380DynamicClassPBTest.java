@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.jqwik.api.ShrinkingMode.OFF;
+import static org.approvaltests.Approvals.settings;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.io.File;
@@ -74,6 +75,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.approvaltests.ApprovalSettings;
 import org.assertj.core.api.SoftAssertionsProvider.ThrowingRunnable;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
@@ -279,6 +281,7 @@ class Jsr380DynamicClassPBTest {
 
 	static final List<Predicate<Throwable>> oks = List.of( //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be null")), //
+			isIAE().and(endsWith(Throwable::getMessage, "must not be null")), //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be empty")), //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be blank")), //
 			isIAE().and(endsWith(Throwable::getMessage, "must be null")), //
@@ -317,6 +320,9 @@ class Jsr380DynamicClassPBTest {
 	void implementsValueObject(@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
 		var projectRoot = configure(keepJsr380Annotations());
 		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		ApprovalSettings settings = settings();
+		settings.allowMultipleVerifyCallsForThisClass();
+		settings.allowMultipleVerifyCallsForThisMethod();
 		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
 	}
 
@@ -331,6 +337,9 @@ class Jsr380DynamicClassPBTest {
 			throws Exception {
 		var projectRoot = configure(useFragmentClass(GuavaCodeFragment.class), keepJsr380Annotations());
 		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		ApprovalSettings settings = settings();
+		settings.allowMultipleVerifyCallsForThisClass();
+		settings.allowMultipleVerifyCallsForThisMethod();
 		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
 	}
 
@@ -339,6 +348,9 @@ class Jsr380DynamicClassPBTest {
 			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
 		var projectRoot = configure(useFragmentClass(GuavaCodeFragment.class));
 		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		ApprovalSettings settings = settings();
+		settings.allowMultipleVerifyCallsForThisClass();
+		settings.allowMultipleVerifyCallsForThisMethod();
 		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
 	}
 

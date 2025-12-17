@@ -40,7 +40,7 @@ implements ValueObject {
 
     private static void validate(Object object) {
         if (object == null) {
-            throw new NullPointerException("aNamedArgument must not be null");
+            throw new IllegalArgumentException("aNamedArgument must not be null");
         }
     }
 }

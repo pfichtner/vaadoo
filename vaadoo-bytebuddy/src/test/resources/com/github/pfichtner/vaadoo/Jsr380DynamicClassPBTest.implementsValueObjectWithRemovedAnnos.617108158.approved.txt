@@ -72,7 +72,7 @@ implements ValueObject {
             throw new IllegalArgumentException("integer must be greater than or equal to 0");
         }
         if (instant == null) {
-            throw new NullPointerException("instant must not be null");
+            throw new IllegalArgumentException("instant must not be null");
         }
         if (instant != null) {
             throw new IllegalArgumentException("instant must be null");
@@ -90,13 +90,13 @@ implements ValueObject {
             throw new IllegalArgumentException("offsetDateTime must be a date in the past or in the present");
         }
         if (offsetDateTime == null) {
-            throw new NullPointerException("offsetDateTime must not be null");
+            throw new IllegalArgumentException("offsetDateTime must not be null");
         }
         if (map != null) {
             throw new IllegalArgumentException("map must be null");
         }
         if (map == null) {
-            throw new NullPointerException("map must not be null");
+            throw new IllegalArgumentException("map must not be null");
         }
         if (list != null) {
             throw new IllegalArgumentException("list must be null");
@@ -105,7 +105,7 @@ implements ValueObject {
             throw new IllegalArgumentException("size of linkedList must be between 0 and 2147483647");
         }
         if (linkedList == null) {
-            throw new NullPointerException("linkedList must not be null");
+            throw new IllegalArgumentException("linkedList must not be null");
         }
     }
 }

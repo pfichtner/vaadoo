@@ -58,7 +58,6 @@ import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import net.bytebuddy.description.enumeration.EnumerationDescription;
-import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
 import net.bytebuddy.jar.asm.Label;
@@ -331,30 +330,31 @@ public class ValidationCodeInjector {
 		}
 	}
 
-	private final ClassReader classReader;
-
 	public static final String NAME = "@@@NAME@@@";
+	private Class<? extends Jsr380CodeFragment> fragmentClass;
 	private final String signatureOfTargetMethod;
 	private final Map<Parameter, Integer> precomputedMasks;
+	private final String nullValueExceptionType;
 
-	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> clazz, String signatureOfTargetMethod,
-			Map<Parameter, Integer> precomputedMasks) {
+	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> fragmentClass, String signatureOfTargetMethod,
+			Map<Parameter, Integer> precomputedMasks, String nullValueExceptionType) {
+		this.fragmentClass = fragmentClass;
 		this.precomputedMasks = precomputedMasks;
-		this.classReader = classReader(clazz);
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
+		this.nullValueExceptionType = nullValueExceptionType;
 	}
 
 	public ValidationCodeInjector useFragmentClass(Class<? extends Jsr380CodeFragment> declaringClass) {
-		return new ValidationCodeInjector(declaringClass, this.signatureOfTargetMethod, this.precomputedMasks);
+		return new ValidationCodeInjector(declaringClass, this.signatureOfTargetMethod, this.precomputedMasks,
+				nullValueExceptionType);
 	}
 
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
 		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
 				signatureOfTargetMethod, parameter, precomputedMasks);
-		// TODO make NPE configurable
 		ClassVisitor remapper = new ClassRemapper(classVisitor,
-				new SimpleRemapper(ASM9, nullValueExceptionInternalName, "java/lang/NullPointerException"));
-		classReader.accept(remapper, 0);
+				new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
+		classReader(fragmentClass).accept(remapper, 0);
 	}
 
 	private static String defaultValue(String className, String name) {

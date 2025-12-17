@@ -57,7 +57,7 @@ implements ValueObject {
             throw new IllegalArgumentException("monthDay must be a past date");
         }
         if (monthDay2 == null) {
-            throw new NullPointerException("monthDay1 must not be null");
+            throw new IllegalArgumentException("monthDay1 must not be null");
         }
         if (monthDay2 != null && monthDay2.isAfter(MonthDay.now())) {
             throw new IllegalArgumentException("monthDay1 must be a date in the past or in the present");

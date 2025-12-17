@@ -63,7 +63,7 @@ implements ValueObject {
             throw new IllegalArgumentException("calendar must be a date in the past or in the present");
         }
         if (calendar == null) {
-            throw new NullPointerException("calendar must not be null");
+            throw new IllegalArgumentException("calendar must not be null");
         }
         if (calendar != null && calendar.getTimeInMillis() <= System.currentTimeMillis()) {
             throw new IllegalArgumentException("calendar must be a future date");

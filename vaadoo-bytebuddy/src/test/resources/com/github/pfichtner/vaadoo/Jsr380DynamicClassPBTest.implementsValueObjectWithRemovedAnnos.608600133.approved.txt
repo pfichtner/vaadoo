@@ -89,10 +89,10 @@ implements ValueObject {
             throw new IllegalArgumentException("size of doubleArray must be between 0 and 2147483647");
         }
         if (doubleArray == null) {
-            throw new NullPointerException("doubleArray must not be null");
+            throw new IllegalArgumentException("doubleArray must not be null");
         }
         if (doubleArray == null) {
-            throw new NullPointerException("doubleArray must not be empty");
+            throw new IllegalArgumentException("doubleArray must not be empty");
         }
         if (doubleArray.length == 0) {
             throw new IllegalArgumentException("doubleArray must not be empty");

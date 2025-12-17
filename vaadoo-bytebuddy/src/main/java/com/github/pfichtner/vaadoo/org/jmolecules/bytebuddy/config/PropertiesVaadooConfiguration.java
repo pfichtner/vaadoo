@@ -29,6 +29,7 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	static final String VAADOO_JSR380_CODE_FRAGMENT_TYPE = "vaadoo.jsr380CodeFragmentType";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_CLASS = "vaadoo.jsr380CodeFragmentClass";
+	static final String VAADOO_NON_NULL_EXCEPTION_TYPE = "vaadoo.nonNullExceptionType";
 	static final String VAADOO_CUSTOM_ANNOTATIONS = "vaadoo.customAnnotations";
 	static final String VAADOO_REGEX_OPTIMIZATION = "vaadoo.regexOptimization";
 	static final String VAADOO_REMOVE_JSR380_ANNOTATIONS = "vaadoo.removeJsr380Annotations";
@@ -102,6 +103,14 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public String nullValueExceptionTypeInternalName() {
+		String nullExceptionType = getProperty(VAADOO_NON_NULL_EXCEPTION_TYPE);
+		return nullExceptionType == null //
+				? VaadooConfiguration.super.nullValueExceptionTypeInternalName() //
+				: nullExceptionType.replace('.', '/');
 	}
 
 }

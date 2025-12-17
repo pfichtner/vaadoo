@@ -3,6 +3,7 @@ package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_CUSTOM_ANNOTATIONS;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_CLASS;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_JSR380_CODE_FRAGMENT_TYPE;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_NON_NULL_EXCEPTION_TYPE;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REGEX_OPTIMIZATION;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.PropertiesVaadooConfiguration.VAADOO_REMOVE_JSR380_ANNOTATIONS;
 import static java.util.stream.Stream.concat;
@@ -61,6 +62,14 @@ class PropertiesVaadooConfigurationTest {
 		assertThat(jsr380CodeFragmentClass).isEqualTo(dummyFragmentClass.getClass());
 	}
 
+	@Test
+	void canSetExceptionTypeForNullValues() {
+		Class<? extends RuntimeException> exceptionType = UnsupportedOperationException.class;
+		useNullExceptionType(exceptionType);
+		assertThat(sut.nullValueExceptionType()).isEqualTo(NullPointerException.class);
+		assertThat(sut.nullValueExceptionTypeInternalName()).isEqualTo(exceptionType.getName().replace('.', '/'));
+	}
+
 	@ParameterizedTest
 	@MethodSource("toggleParams")
 	void canToggleParam(Function<PropertiesVaadooConfiguration, Boolean> toggler, String propertyName,
@@ -93,6 +102,10 @@ class PropertiesVaadooConfigurationTest {
 
 	private void useFragmentType(String fragmentType) {
 		properties.setProperty(VAADOO_JSR380_CODE_FRAGMENT_TYPE, fragmentType);
+	}
+
+	private void useNullExceptionType(Class<? extends RuntimeException> exceptionType) {
+		properties.setProperty(VAADOO_NON_NULL_EXCEPTION_TYPE, exceptionType.getName());
 	}
 
 	private Class<? extends Jsr380CodeFragment> setAndAccessFragmentType(Object dummyFragmentClass) {

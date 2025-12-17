@@ -106,6 +106,16 @@ class DefaultJMoleculesVaadooConfiguration implements VaadooConfiguration {
 				|| superType != null && !superType.represents(Object.class) && matches(superType.asErasure());
 	}
 
+	@Override
+	public KnownFragmentClass jsrFragmentType() {
+		return KnownFragmentClass.JDK_ONLY;
+	}
+
+	@Override
+	public Class<? extends RuntimeException> nullValueExceptionType() {
+		return IllegalArgumentException.class;
+	}
+
 	private boolean implementsValueObject(TypeDescription target) {
 		return !target.getInterfaces().filter(nameMatches(jmoleculesValueObjectInterface)).isEmpty();
 	}

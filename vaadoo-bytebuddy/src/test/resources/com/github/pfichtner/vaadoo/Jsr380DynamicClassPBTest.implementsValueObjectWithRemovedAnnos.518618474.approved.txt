@@ -63,13 +63,13 @@ implements ValueObject {
 
     private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, Object[] objectArray2) {
         if (yearMonth == null) {
-            throw new NullPointerException("yearMonth must not be null");
+            throw new IllegalArgumentException("yearMonth must not be null");
         }
         if (yearMonth != null && !yearMonth.isBefore(YearMonth.now())) {
             throw new IllegalArgumentException("yearMonth must be a past date");
         }
         if (zonedDateTime == null) {
-            throw new NullPointerException("zonedDateTime must not be null");
+            throw new IllegalArgumentException("zonedDateTime must not be null");
         }
         if (zonedDateTime != null && !zonedDateTime.isAfter(ZonedDateTime.now())) {
             throw new IllegalArgumentException("zonedDateTime must be a future date");
@@ -84,7 +84,7 @@ implements ValueObject {
             throw new IllegalArgumentException("offsetDateTime must be a date in the past or in the present");
         }
         if (offsetDateTime == null) {
-            throw new NullPointerException("offsetDateTime must not be null");
+            throw new IllegalArgumentException("offsetDateTime must not be null");
         }
         if (offsetDateTime != null && !offsetDateTime.isBefore(OffsetDateTime.now())) {
             throw new IllegalArgumentException("offsetDateTime must be a past date");
@@ -93,13 +93,13 @@ implements ValueObject {
             throw new IllegalArgumentException("size of linkedList must be between 0 and 2147483647");
         }
         if (linkedList == null) {
-            throw new NullPointerException("linkedList must not be empty");
+            throw new IllegalArgumentException("linkedList must not be empty");
         }
         if (linkedList.size() == 0) {
             throw new IllegalArgumentException("linkedList must not be empty");
         }
         if (linkedList == null) {
-            throw new NullPointerException("linkedList must not be null");
+            throw new IllegalArgumentException("linkedList must not be null");
         }
     }
 }

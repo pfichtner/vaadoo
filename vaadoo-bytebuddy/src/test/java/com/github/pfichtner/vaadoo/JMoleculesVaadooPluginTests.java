@@ -46,6 +46,8 @@ import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMes
 
 class JMoleculesVaadooPluginTests {
 
+	private static final Class<? extends RuntimeException> JMOLESCULES_NULL_EXCEPTION_TYPE = IllegalArgumentException.class;
+
 	static String validateMethodName = "validate";
 	static Transformer transformer = new Transformer();
 
@@ -88,7 +90,7 @@ class JMoleculesVaadooPluginTests {
 		var transformed = transformer.transform(ValueObjectWithAttribute.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(NullPointerException.class)
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(JMOLESCULES_NULL_EXCEPTION_TYPE)
 						.hasMessage(notNull("someString")));
 	}
 
@@ -98,10 +100,11 @@ class JMoleculesVaadooPluginTests {
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		var stringBooleanArgConstructor = transformed.getDeclaredConstructor(String.class, boolean.class);
 		assertSoftly(c -> {
-			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null)).satisfies(
-					e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage(notNull("a")));
-			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance(null, true)).satisfies(
-					e -> c.assertThat(e.getCause()).isInstanceOf(NullPointerException.class).hasMessage(notNull("a")));
+			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null)).satisfies(e -> c
+					.assertThat(e.getCause()).isInstanceOf(JMOLESCULES_NULL_EXCEPTION_TYPE).hasMessage(notNull("a")));
+			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance(null, true))
+					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(JMOLESCULES_NULL_EXCEPTION_TYPE)
+							.hasMessage(notNull("a")));
 		});
 	}
 
