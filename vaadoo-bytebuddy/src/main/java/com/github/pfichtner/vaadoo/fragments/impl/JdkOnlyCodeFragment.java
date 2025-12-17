@@ -64,14 +64,14 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(NotNull anno, Object ref) {
 		if (ref == null) {
-			throw new NullPointerException(anno.message());
+			throw new NullValueException(anno.message());
 		}
 	}
 
 	@Override
 	public void check(NotBlank anno, CharSequence charSequence) {
 		if (charSequence == null) {
-			throw new NullPointerException(anno.message());
+			throw new NullValueException(anno.message());
 		}
 		if (charSequence.toString().trim().length() == 0) {
 			throw new IllegalArgumentException(anno.message());
@@ -133,7 +133,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(NotEmpty anno, CharSequence charSequence) {
 		if (charSequence == null) {
-			throw new NullPointerException(anno.message());
+			throw new NullValueException(anno.message());
 		}
 		if (charSequence.length() == 0) {
 			throw new IllegalArgumentException(anno.message());
@@ -142,7 +142,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 
 	public void check(NotEmpty anno, Collection<?> collection) {
 		if (collection == null) {
-			throw new NullPointerException(anno.message());
+			throw new NullValueException(anno.message());
 		}
 		if (collection.size() == 0) {
 			throw new IllegalArgumentException(anno.message());
@@ -152,7 +152,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(NotEmpty anno, Map<?, ?> map) {
 		if (map == null) {
-			throw new NullPointerException(anno.message());
+			throw new NullValueException(anno.message());
 		}
 		if (map.size() == 0) {
 			throw new IllegalArgumentException(anno.message());
@@ -162,7 +162,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(NotEmpty anno, Object[] objects) {
 		if (objects == null) {
-			throw new NullPointerException(anno.message());
+			throw new NullValueException(anno.message());
 		}
 		if (objects.length == 0) {
 			throw new IllegalArgumentException(anno.message());

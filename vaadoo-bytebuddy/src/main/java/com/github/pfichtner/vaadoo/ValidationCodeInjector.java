@@ -51,6 +51,7 @@ import java.util.function.Function;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.NullValueException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -63,6 +64,8 @@ import net.bytebuddy.jar.asm.Handle;
 import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
+import net.bytebuddy.jar.asm.commons.ClassRemapper;
+import net.bytebuddy.jar.asm.commons.SimpleRemapper;
 
 public class ValidationCodeInjector {
 
@@ -70,6 +73,8 @@ public class ValidationCodeInjector {
 	// argument)
 	private static final int REMOVED_PARAMETERS = 1;
 	private static final boolean TARGET_METHOD_IS_STATIC = true;
+
+	private static final String nullValueExceptionInternalName = Type.getInternalName(NullValueException.class);
 
 	@ToString
 	static final class ValidationCallCodeInjectorClassVisitor extends ClassVisitor {
@@ -346,7 +351,10 @@ public class ValidationCodeInjector {
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
 		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
 				signatureOfTargetMethod, parameter, precomputedMasks);
-		classReader.accept(classVisitor, 0);
+		// TODO make NPE configurable
+		ClassVisitor remapper = new ClassRemapper(classVisitor,
+				new SimpleRemapper(ASM9, nullValueExceptionInternalName, "java/lang/NullPointerException"));
+		classReader.accept(remapper, 0);
 	}
 
 	private static String defaultValue(String className, String name) {

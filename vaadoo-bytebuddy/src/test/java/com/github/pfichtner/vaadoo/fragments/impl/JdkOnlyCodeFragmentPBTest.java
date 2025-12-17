@@ -87,7 +87,7 @@ class JdkOnlyCodeFragmentPBTest {
 
 		public void nullPointerExceptionIf(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertException(b, NullPointerException.class, v, type);
+				assertException(b, NullValueException.class, v, type);
 			}
 		}
 
