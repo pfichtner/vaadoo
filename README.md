@@ -9,7 +9,7 @@ Validating automatically domain objects: It's magic
 
 ## Getting Started
 
-Vaadoo is available on **Maven Central**. The current release is an **alpha version (0.0.1-alpha-1)**:
+Vaadoo is available on **Maven Central**. The current release is an **alpha version (0.0.1-alpha-2)**:
 
 ### Maven Build Plugin Configuration
 
@@ -17,7 +17,7 @@ Vaadoo is available on **Maven Central**. The current release is an **alpha vers
 <dependency>
     <groupId>io.github.pfichtner</groupId>
     <artifactId>vaadoo-bytebuddy</artifactId>
-    <version>0.0.1-alpha-1</version>
+    <version>0.0.1-alpha-2</version>
 </dependency>
 ```
 
@@ -45,7 +45,7 @@ To enable build-time class transformation using Byte Buddy, add the following to
 ### Gradle Build Plugin Configuration
 
 ```groovy
-implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.1-alpha-1'
+implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.1-alpha-2'
 
 plugins {
     id 'java'
