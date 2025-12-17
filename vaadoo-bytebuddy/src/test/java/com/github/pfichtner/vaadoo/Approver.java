@@ -19,13 +19,11 @@ import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
-import static org.approvaltests.Approvals.settings;
 import static org.approvaltests.Approvals.verify;
 
 import java.io.IOException;
 import java.util.List;
 
-import org.approvaltests.ApprovalSettings;
 import org.approvaltests.Approvals;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Scrubber;
@@ -67,9 +65,6 @@ class Approver {
 	}
 
 	public void approveTransformed(List<ParameterDefinition> params) throws Exception {
-		ApprovalSettings settings = settings();
-		settings.allowMultipleVerifyCallsForThisClass();
-		settings.allowMultipleVerifyCallsForThisMethod();
 		var checksum = ParameterDefinition.stableChecksum(params);
 		var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
 				.withConstructor(new ConstructorDefinition(params)));
