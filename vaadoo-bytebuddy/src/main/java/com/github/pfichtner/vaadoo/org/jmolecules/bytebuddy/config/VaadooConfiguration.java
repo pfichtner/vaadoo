@@ -15,6 +15,10 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
+import static java.util.Collections.emptyList;
+
+import java.util.List;
+
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment;
@@ -67,6 +71,12 @@ public interface VaadooConfiguration {
 	public default Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass() {
 		KnownFragmentClass jsrFragmentType = jsrFragmentType();
 		return (jsrFragmentType == null ? DEFAULT_KNOWN_FRAGMENT_CLASS : jsrFragmentType).getFragmentClass();
+	}
+
+	// TODO not really used yet: Here we can add abstract classes. If a "check"
+	// method is defined here it overwrites the method of the fragmentClass
+	public default List<Class<? extends Jsr380CodeFragment>> codeFragmentMixins() {
+		return emptyList();
 	}
 
 }

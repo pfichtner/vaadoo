@@ -339,6 +339,10 @@ public class ValidationCodeInjector {
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
 	}
 
+	public ValidationCodeInjector useFragmentClass(Class<? extends Jsr380CodeFragment> declaringClass) {
+		return new ValidationCodeInjector(declaringClass, this.signatureOfTargetMethod, this.precomputedMasks);
+	}
+
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
 		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
 				signatureOfTargetMethod, parameter, precomputedMasks);

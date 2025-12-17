@@ -20,6 +20,7 @@ import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 import static java.lang.String.format;
+import static java.lang.reflect.Modifier.isAbstract;
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
@@ -48,8 +49,8 @@ import com.github.pfichtner.vaadoo.ConstructorAnnotationRemover;
 import com.github.pfichtner.vaadoo.Jsr380Annos;
 import com.github.pfichtner.vaadoo.Jsr380Annos.ConfigEntry;
 import com.github.pfichtner.vaadoo.Parameters;
-import com.github.pfichtner.vaadoo.PatternRewriteClassVisitor;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
+import com.github.pfichtner.vaadoo.PatternRewriteClassVisitor;
 import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.Template;
@@ -82,6 +83,7 @@ class VaadooImplementor {
 	private static final String VALIDATE_METHOD_BASE_NAME = "validate";
 
 	private final Class<? extends Jsr380CodeFragment> jsr380CodeFragmentClass;
+	private final List<Class<? extends Jsr380CodeFragment>> codeFragmentMixins;
 
 	private final boolean customAnnotationsEnabled;
 	private final boolean regexOptimizationEnabled;
@@ -89,6 +91,7 @@ class VaadooImplementor {
 
 	public VaadooImplementor(VaadooConfiguration configuration) {
 		this.jsr380CodeFragmentClass = configuration.jsr380CodeFragmentClass();
+		this.codeFragmentMixins = configuration.codeFragmentMixins();
 		this.customAnnotationsEnabled = configuration.customAnnotationsEnabled();
 		this.regexOptimizationEnabled = configuration.regexOptimizationEnabled();
 		this.removeJsr380Annotations = configuration.removeJsr380Annotations();
@@ -104,9 +107,8 @@ class VaadooImplementor {
 				// TODO we could overload (add validate(String,String) works also if there
 				// already is a validate())
 				String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
-
 				StaticValidateAppender staticValidateAppender = new StaticValidateAppender(validateMethodName,
-						parameters, jsr380CodeFragmentClass, customAnnotationsEnabled);
+						parameters, jsr380CodeFragmentClass, codeFragmentMixins, customAnnotationsEnabled);
 
 				if (staticValidateAppender.hasInjections()) {
 					type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
@@ -194,7 +196,10 @@ class VaadooImplementor {
 			@Override
 			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
 				try {
-					injector.inject(mv, parameter, fragmentMethod);
+					@SuppressWarnings("unchecked")
+					Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
+							.getDeclaringClass();
+					injector.useFragmentClass(clazz).inject(mv, parameter, fragmentMethod);
 				} catch (Exception e) {
 					throw new RuntimeException(format("Error injecting %s for %s", fragmentMethod, parameter), e);
 				}
@@ -207,7 +212,7 @@ class VaadooImplementor {
 			TypeDescription annotation;
 
 			@Override
-			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
+			public void apply(ValidationCodeInjector __, MethodVisitor mv) {
 				addCustomAnnotations(mv, parameter, annotation);
 			}
 		}
@@ -216,22 +221,33 @@ class VaadooImplementor {
 		private final Parameters parameters;
 		private final Map<Parameter, Integer> preComputedPatternFlags;
 		private final Class<? extends Jsr380CodeFragment> fragmentClass;
+		private final List<Method> fragmentMixinsCodeFragmentMethods;
 		private final boolean customAnnotationsEnabled;
 		private final List<Method> codeFragmentMethods;
 		private final String methodDescriptor;
 		private final List<InjectionTask> injectionTasks;
 
 		public StaticValidateAppender(String validateMethodName, Parameters parameters,
-				Class<? extends Jsr380CodeFragment> fragmentClass, boolean customAnnotationsEnabled) {
+				Class<? extends Jsr380CodeFragment> fragmentClass,
+				List<Class<? extends Jsr380CodeFragment>> fragmentMixins, boolean customAnnotationsEnabled) {
 			this.validateMethodName = validateMethodName;
 			this.parameters = parameters;
 			this.preComputedPatternFlags = computePatternFlagsDuringBuild(parameters);
 			this.fragmentClass = fragmentClass;
+			this.fragmentMixinsCodeFragmentMethods = fragmentMixins.stream().map(m -> fragmentMethods(m))
+					.flatMap(List::stream).collect(toList());
 			this.customAnnotationsEnabled = customAnnotationsEnabled;
-			this.codeFragmentMethods = Arrays.asList(fragmentClass.getMethods());
+			this.codeFragmentMethods = fragmentMethods(fragmentClass);
 			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
 					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
 			this.injectionTasks = parameters.stream().flatMap(this::tasksFor).collect(toList());
+		}
+
+		private static List<Method> fragmentMethods(Class<? extends Jsr380CodeFragment> clazz) {
+			return Stream.of(clazz.getMethods()) //
+					.filter(m -> m.getDeclaringClass() != Object.class) //
+					.filter(m -> !isAbstract(m.getModifiers())) //
+					.collect(toList());
 		}
 
 		private static Map<Parameter, Integer> computePatternFlagsDuringBuild(Parameters parameters) {
@@ -301,7 +317,7 @@ class VaadooImplementor {
 		}
 
 		private Optional<Method> codeFragmentMethod(TypeDescription... parameters) {
-			return codeFragmentMethods.stream() //
+			return concat(fragmentMixinsCodeFragmentMethods.stream(), codeFragmentMethods.stream()) //
 					.filter(StaticValidateAppender::isCodeFragmentMethod) //
 					.filter(m -> equals(parameters, m.getParameterTypes())) //
 					.findFirst();
