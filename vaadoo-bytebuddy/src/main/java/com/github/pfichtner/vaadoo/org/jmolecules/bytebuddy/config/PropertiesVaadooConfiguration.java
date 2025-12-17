@@ -15,7 +15,11 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -29,6 +33,7 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 
 	static final String VAADOO_JSR380_CODE_FRAGMENT_TYPE = "vaadoo.jsr380CodeFragmentType";
 	static final String VAADOO_JSR380_CODE_FRAGMENT_CLASS = "vaadoo.jsr380CodeFragmentClass";
+	static final String VAADOO_CODE_FRAGMENT_MIXINS = "vaadoo.codeFragmentMixins";
 	static final String VAADOO_NON_NULL_EXCEPTION_TYPE = "vaadoo.nonNullExceptionType";
 	static final String VAADOO_CUSTOM_ANNOTATIONS = "vaadoo.customAnnotations";
 	static final String VAADOO_REGEX_OPTIMIZATION = "vaadoo.regexOptimization";
@@ -103,6 +108,14 @@ class PropertiesVaadooConfiguration implements VaadooConfiguration {
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public List<Class<? extends Jsr380CodeFragment>> codeFragmentMixins() {
+		String value = getProperty(VAADOO_CODE_FRAGMENT_MIXINS);
+		return value == null || value.trim().isEmpty() //
+				? emptyList() //
+				: Stream.of(value.split("\\,")).map(String::trim).map(it -> loadClass(it)).collect(toList());
 	}
 
 	@Override
