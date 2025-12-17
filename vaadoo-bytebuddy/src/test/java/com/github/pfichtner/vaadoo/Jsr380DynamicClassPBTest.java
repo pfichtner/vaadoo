@@ -56,6 +56,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -83,6 +84,7 @@ import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragmentIAEMixin;
 
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.jqwik.api.Arbitraries;
@@ -354,6 +356,18 @@ class Jsr380DynamicClassPBTest {
 		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
 	}
 
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
+	void implementsValueObjectWeavingInGuavaCodeWithIAEMixin(
+			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
+		var projectRoot = configure(useFragmentClass(GuavaCodeFragment.class),
+				useMixins(GuavaCodeFragmentIAEMixin.class));
+		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		ApprovalSettings settings = settings();
+		settings.allowMultipleVerifyCallsForThisClass();
+		settings.allowMultipleVerifyCallsForThisMethod();
+		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
+	}
+
 	private static void withProjectRoot(File projectRoot, ThrowingRunnable runnable) throws Exception {
 		try {
 			runnable.run();
@@ -371,6 +385,10 @@ class Jsr380DynamicClassPBTest {
 
 	private static Entry<String, Object> keepJsr380Annotations() {
 		return Map.entry("vaadoo.removeJsr380Annotations", false);
+	}
+
+	private Entry<String, Object> useMixins(Class<?>... clazz) {
+		return Map.entry("vaadoo.codeFragmentMixins", Arrays.stream(clazz).map(Class::getName).collect(joining(",")));
 	}
 
 	@SafeVarargs
