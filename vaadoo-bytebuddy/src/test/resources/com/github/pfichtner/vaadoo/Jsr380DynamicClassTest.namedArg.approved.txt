@@ -1,7 +1,11 @@
-----------------------------------------------------------------
+Story:
+namedArg
+
 params annotations
-- TestClassBuilder.NamedParameterDefinition(delegate=TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull]), name=aNamedArgument)
-----------------------------------------------------------------
+-: TestClassBuilder.NamedParameterDefinition(delegate=TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull]), name=aNamedArgument)
+
+
+Source:
 Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
@@ -18,7 +22,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
@@ -45,5 +50,3 @@ implements ValueObject {
     }
 }
 
-
-----------------------------------------------------------------

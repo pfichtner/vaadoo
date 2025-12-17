@@ -1,12 +1,16 @@
-----------------------------------------------------------------
+Story:
+Class implementing ValueObject: [JDK, keeping JSR380 annotations]
+
 params annotations
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.Past])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.FutureOrPresent])
-- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[interface jakarta.validation.constraints.Digits])
-----------------------------------------------------------------
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.Past])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.FutureOrPresent])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[interface jakarta.validation.constraints.Digits])
+
+
+Source:
 Analysing type com.example.Generated_1257521135
 /*
  * Decompiled with CFR.
@@ -29,7 +33,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated_1257521135
 /*
  * Decompiled with CFR.
@@ -78,5 +83,3 @@ implements ValueObject {
     }
 }
 
-
-----------------------------------------------------------------

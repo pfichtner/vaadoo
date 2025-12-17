@@ -1,14 +1,18 @@
-----------------------------------------------------------------
+Story:
+Class implementing ValueObject: [JDK, keeping JSR380 annotations]
+
 params annotations
-- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Short, annotations=[interface jakarta.validation.constraints.Digits, interface jakarta.validation.constraints.DecimalMin])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.PositiveOrZero, interface jakarta.validation.constraints.Negative, interface jakarta.validation.constraints.NegativeOrZero])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.math.BigDecimal, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Double;, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.NotEmpty])
-- TestClassBuilder.DefaultParameterDefinition(type=byte, annotations=[interface jakarta.validation.constraints.DecimalMax])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.Null])
-----------------------------------------------------------------
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Short, annotations=[interface jakarta.validation.constraints.Digits, interface jakarta.validation.constraints.DecimalMin])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.PastOrPresent])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.PositiveOrZero, interface jakarta.validation.constraints.Negative, interface jakarta.validation.constraints.NegativeOrZero])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.math.BigDecimal, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Double;, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.NotEmpty])
+-: TestClassBuilder.DefaultParameterDefinition(type=byte, annotations=[interface jakarta.validation.constraints.DecimalMax])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.Null])
+
+
+Source:
 Analysing type com.example.Generated_608600133
 /*
  * Decompiled with CFR.
@@ -39,7 +43,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated_608600133
 /*
  * Decompiled with CFR.
@@ -124,5 +129,3 @@ implements ValueObject {
     }
 }
 
-
-----------------------------------------------------------------

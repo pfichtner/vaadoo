@@ -1,16 +1,20 @@
-----------------------------------------------------------------
+Story:
+Class implementing ValueObject: [Guava]
+
 params annotations
-- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.Max, interface jakarta.validation.constraints.PositiveOrZero])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.Instant, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Null])
-- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[interface jakarta.validation.constraints.Positive, interface jakarta.validation.constraints.PositiveOrZero])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull])
-- TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=interface java.util.Map, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotNull])
-- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Long;, annotations=[])
-- TestClassBuilder.DefaultParameterDefinition(type=interface java.util.List, annotations=[interface jakarta.validation.constraints.Null])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.util.LinkedList, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull])
-----------------------------------------------------------------
+-: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[interface jakarta.validation.constraints.Max, interface jakarta.validation.constraints.PositiveOrZero])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.Instant, annotations=[interface jakarta.validation.constraints.NotNull, interface jakarta.validation.constraints.Null])
+-: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[interface jakarta.validation.constraints.Positive, interface jakarta.validation.constraints.PositiveOrZero])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[interface jakarta.validation.constraints.Future, interface jakarta.validation.constraints.PastOrPresent, interface jakarta.validation.constraints.NotNull])
+-: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=interface java.util.Map, annotations=[interface jakarta.validation.constraints.Null, interface jakarta.validation.constraints.NotNull])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Long;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=interface java.util.List, annotations=[interface jakarta.validation.constraints.Null])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.util.LinkedList, annotations=[interface jakarta.validation.constraints.Size, interface jakarta.validation.constraints.NotNull])
+
+
+Source:
 Analysing type com.example.Generated_617108158
 /*
  * Decompiled with CFR.
@@ -39,7 +43,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated_617108158
 /*
  * Decompiled with CFR.
@@ -93,5 +98,3 @@ implements ValueObject {
     }
 }
 
-
-----------------------------------------------------------------

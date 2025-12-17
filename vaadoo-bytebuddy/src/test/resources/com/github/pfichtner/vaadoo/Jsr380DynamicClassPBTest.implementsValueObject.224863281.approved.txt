@@ -1,8 +1,12 @@
-----------------------------------------------------------------
+Story:
+Class implementing ValueObject: [JDK, keeping JSR380 annotations]
+
 params annotations
-- TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.FutureOrPresent])
-- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Long, annotations=[])
-----------------------------------------------------------------
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[interface jakarta.validation.constraints.Past, interface jakarta.validation.constraints.FutureOrPresent])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Long, annotations=[])
+
+
+Source:
 Analysing type com.example.Generated_224863281
 /*
  * Decompiled with CFR.
@@ -21,7 +25,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated_224863281
 /*
  * Decompiled with CFR.
@@ -54,5 +59,3 @@ implements ValueObject {
     }
 }
 
-
-----------------------------------------------------------------

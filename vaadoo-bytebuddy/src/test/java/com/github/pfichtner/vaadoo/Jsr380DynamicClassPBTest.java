@@ -325,13 +325,15 @@ class Jsr380DynamicClassPBTest {
 		ApprovalSettings settings = settings();
 		settings.allowMultipleVerifyCallsForThisClass();
 		settings.allowMultipleVerifyCallsForThisMethod();
-		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
+		withProjectRoot(projectRoot, () -> approver.approveTransformed("Class implementing ValueObject: [JDK, keeping JSR380 annotations]",
+				params));
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObjectWithRemovedAnnos(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
-		new Approver(new Transformer()).approveTransformed(params);
+		new Approver(new Transformer()).approveTransformed("Class implementing ValueObject: [JDK, removing JSR380 annotations]",
+				params);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -342,7 +344,8 @@ class Jsr380DynamicClassPBTest {
 		ApprovalSettings settings = settings();
 		settings.allowMultipleVerifyCallsForThisClass();
 		settings.allowMultipleVerifyCallsForThisMethod();
-		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
+		withProjectRoot(projectRoot,
+				() -> approver.approveTransformed("Class implementing ValueObject: [Guava]", params));
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -353,7 +356,8 @@ class Jsr380DynamicClassPBTest {
 		ApprovalSettings settings = settings();
 		settings.allowMultipleVerifyCallsForThisClass();
 		settings.allowMultipleVerifyCallsForThisMethod();
-		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
+		withProjectRoot(projectRoot, () -> approver.approveTransformed("Class implementing ValueObject: [Guava, removing JSR380 annotations]",
+				params));
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -365,7 +369,8 @@ class Jsr380DynamicClassPBTest {
 		ApprovalSettings settings = settings();
 		settings.allowMultipleVerifyCallsForThisClass();
 		settings.allowMultipleVerifyCallsForThisMethod();
-		withProjectRoot(projectRoot, () -> approver.approveTransformed(params));
+		withProjectRoot(projectRoot, () -> approver.approveTransformed("Class implementing ValueObject: [Guava, IAE instead of NPE]",
+				params));
 	}
 
 	private static void withProjectRoot(File projectRoot, ThrowingRunnable runnable) throws Exception {

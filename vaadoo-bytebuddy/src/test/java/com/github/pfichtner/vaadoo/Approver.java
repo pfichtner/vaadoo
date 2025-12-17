@@ -18,13 +18,13 @@ package com.github.pfichtner.vaadoo;
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
 import static org.approvaltests.Approvals.verify;
 
 import java.io.IOException;
 import java.util.List;
 
 import org.approvaltests.Approvals;
+import org.approvaltests.StoryBoard;
 import org.approvaltests.core.Options;
 import org.approvaltests.core.Scrubber;
 import org.approvaltests.reporters.AutoApproveWhenEmptyReporter;
@@ -41,44 +41,27 @@ class Approver {
 
 	Transformer transformer;
 
-	@Value
-	private static class Storyboard {
-		List<ParameterDefinition> params;
-		String source;
-		String transformed;
-
-		@Override
-		public String toString() {
-			String br = "-".repeat(64);
-			return String.join("\n", //
-					List.of(br, //
-							"params annotations\n"
-									+ params.stream().map(Object::toString).map("- "::concat).collect(joining("\n")), //
-							br, //
-							source, //
-							br, //
-							transformed, //
-							br //
-					) //
-			);
-		}
-	}
-
-	public void approveTransformed(List<ParameterDefinition> params) throws Exception {
+	public void approveTransformed(String story, List<ParameterDefinition> params) throws Exception {
 		var checksum = ParameterDefinition.stableChecksum(params);
 		var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
 				.withConstructor(new ConstructorDefinition(params)));
-		approveTransformed(params, testClass, Approvals.NAMES.withParameters(checksum));
+		approveTransformed(story, params, testClass, Approvals.NAMES.withParameters(checksum));
 	}
 
-	public void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass) throws Exception {
-		approveTransformed(params, generatedClass, new Options());
+	public void approveTransformed(String story, List<ParameterDefinition> params, Unloaded<?> generatedClass) throws Exception {
+		approveTransformed(story, params, generatedClass, new Options());
 	}
 
-	public void approveTransformed(List<ParameterDefinition> params, Unloaded<?> generatedClass, Options options)
+	public void approveTransformed(String story, List<ParameterDefinition> params, Unloaded<?> generatedClass, Options options)
 			throws Exception {
 		Unloaded<?> transformedClass = transformer.transform(generatedClass);
-		verify(new Storyboard(params, decompile(generatedClass), decompile(transformedClass)), configure(options));
+		StoryBoard sb = new StoryBoard();
+		sb = sb.addFrame("Story", story);
+		sb = sb.addDescription("params annotations");
+		sb = params.stream().map(Object::toString).reduce(sb, (s, p) -> s.addDescriptionWithData("-", p), (l, __) -> l);
+		sb = sb.addFrame("Source", decompile(generatedClass));
+		sb = sb.addFrame("Transformed", decompile(transformedClass));
+		verify(sb, configure(options));
 	}
 
 	private static Options configure(Options options) {

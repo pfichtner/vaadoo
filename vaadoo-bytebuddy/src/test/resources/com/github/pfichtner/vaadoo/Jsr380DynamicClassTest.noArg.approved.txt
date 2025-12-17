@@ -1,7 +1,10 @@
-----------------------------------------------------------------
+Story:
+noArg
+
 params annotations
 
-----------------------------------------------------------------
+
+Source:
 Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
@@ -15,7 +18,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
@@ -28,5 +32,3 @@ public class Generated
 implements ValueObject {
 }
 
-
-----------------------------------------------------------------

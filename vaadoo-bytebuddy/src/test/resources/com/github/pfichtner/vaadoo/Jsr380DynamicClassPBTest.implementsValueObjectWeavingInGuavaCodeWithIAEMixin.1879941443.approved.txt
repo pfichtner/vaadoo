@@ -1,7 +1,11 @@
-----------------------------------------------------------------
+Story:
+Class implementing ValueObject: [Guava, IAE instead of NPE]
+
 params annotations
-- TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
-----------------------------------------------------------------
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+
+
+Source:
 Analysing type com.example.Generated_1879941443
 /*
  * Decompiled with CFR.
@@ -17,7 +21,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated_1879941443
 /*
  * Decompiled with CFR.
@@ -32,5 +37,3 @@ implements ValueObject {
     }
 }
 
-
-----------------------------------------------------------------

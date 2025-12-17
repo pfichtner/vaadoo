@@ -1,7 +1,11 @@
-----------------------------------------------------------------
+Story:
+Class already defines #validate method
+
 params annotations
-- TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull])
-----------------------------------------------------------------
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[interface jakarta.validation.constraints.NotNull])
+
+
+Source:
 Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
@@ -21,7 +25,8 @@ implements ValueObject {
 }
 
 
-----------------------------------------------------------------
+
+Transformed:
 Analysing type com.example.Generated
 /*
  * Decompiled with CFR.
@@ -51,5 +56,3 @@ implements ValueObject {
     }
 }
 
-
-----------------------------------------------------------------
