@@ -216,23 +216,19 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 - Can be used in environments where reflection is hard or impossible (e.g. native images)
 - Safe for environments with limited resources or restricted classloading.
 
-## Benchmarks
+## Performance
+- **Handwritten vs Vaadoo-generated validation:**
+  With the **exception of regex validations**, Vaadoo generates validation code that is **essentially identical to handwritten checks**, so execution speed is the same as if you wrote the validation yourself.
 
-**Compile-time validation beats runtime regex checks—faster, safer, and zero dependencies.**
+- **Reflection-based validation (e.g., Hibernate Validator) vs Vaadoo-generated validation:**
+  Vaadoo is **much faster**, because it eliminates reflection entirely — typically **3–10x faster** depending on the validations.
 
-Performance was measured with **100,000,000 constructor calls**:
-
-| Configuration                          | Execution Time | Overhead |
-|----------------------------------------|----------------|----------|
-| Regex field (static final)             | **5,700 ms**   | - (*1)   |
-| Vaadoo with cached regex (**default**) | 7,200 ms       | + 26%    |
-| Vaadoo with regex (compiled per call)  | 19,000 ms      | +233%    |
-| Hibernate (Reflection)                 | 16,800 ms      | +195%    |
-
-*1 Please note that using static final fields **all** regex fields gets compiled (even those which are not needed/accessed) while with the cached regex only those get compiled (once) that gets accessed. So having multiple regex but only accesing some of them might even get slower using fields than using cached regexs. 
-
-These results demonstrate how runtime validation—even optimized—introduces significant overhead compared to compile-time code generation. By embedding checks directly into your classes, Vaadoo provides **fully self-validating domain objects** that are both faster and free from runtime dependencies.
-
+- **Regex handling (special note):**
+  - By default, Vaadoo compiles regex patterns on demand and caches them in a `Map`.
+  - Accessing a regex via the cache is slightly slower than using a `private static final` field directly.
+  - Thanks to this **regex optimization**, Vaadoo is **much faster than compiling the regex on every validation call**.
+  - An added benefit is that **only the regex patterns that are actually used are compiled**, rather than all patterns being compiled during class loading.
+  - For most use cases, this minor overhead is negligible.
 
 ## Other projects/approaches
 - https://github.com/opensanca/service-validator
