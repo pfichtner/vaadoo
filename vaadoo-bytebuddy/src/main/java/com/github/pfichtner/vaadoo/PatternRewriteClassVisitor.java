@@ -15,7 +15,6 @@
  */
 package com.github.pfichtner.vaadoo;
 
-import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_FINAL;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
@@ -24,13 +23,10 @@ import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ARETURN;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
-import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
 import static net.bytebuddy.jar.asm.Opcodes.CHECKCAST;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.H_INVOKESTATIC;
-import static net.bytebuddy.jar.asm.Opcodes.ICONST_0;
-import static net.bytebuddy.jar.asm.Opcodes.ICONST_1;
 import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
@@ -46,6 +42,11 @@ import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
 
 public class PatternRewriteClassVisitor extends ClassVisitor {
+
+	// we could lose a previously cached item but it's not really much faster than a
+	// CHM
+//	private static final String HASH_MAP_IMPLEMENTATION = "java/util/HashMap";
+	private static final String HASH_MAP_IMPLEMENTATION = "java/util/concurrent/ConcurrentHashMap";
 
 	private final String validateMethodName;
 	private String owner;
@@ -95,94 +96,90 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 	@Override
 	public void visitEnd() {
 		if (replaced) {
-			// --- Add static final field regexpCache ---
-			cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC, "regexpCache", "Ljava/util/Map;", null,
-					null).visitEnd();
-
-			// --- Add static initializer ---
-			MethodVisitor clinit = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
-			clinit.visitCode();
-			clinit.visitTypeInsn(NEW, "java/util/HashMap");
-			clinit.visitInsn(DUP);
-			clinit.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false);
-			clinit.visitFieldInsn(PUTSTATIC, owner, "regexpCache", "Ljava/util/Map;");
-			clinit.visitInsn(RETURN);
-			clinit.visitMaxs(2, 0);
-			clinit.visitEnd();
-
-			// --- Add synthetic helper method ---
-			MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, "getCachedPattern",
-					"(Ljava/lang/String;I)Ljava/util/regex/Pattern;", null, null);
-			mv.visitCode();
-			// Build key = regex + "\u0000" + flags
-			mv.visitVarInsn(ALOAD, 0); // regex
-			mv.visitVarInsn(ILOAD, 1); // flags
-			mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
-			mv.visitInsn(DUP);
-			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
-			mv.visitVarInsn(ALOAD, 0);
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
-					"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-			mv.visitLdcInsn("\u0000");
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
-					"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-			mv.visitVarInsn(ILOAD, 1);
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;",
-					false);
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
-			mv.visitVarInsn(ASTORE, 2); // key
-
-			// return (Pattern) regexpCache.computeIfAbsent(key, k -> Pattern.compile(regex,
-			// flags))
-			mv.visitFieldInsn(GETSTATIC, owner, "regexpCache", "Ljava/util/Map;");
-			mv.visitVarInsn(ALOAD, 2); // key
-			mv.visitInvokeDynamicInsn("apply", "()Ljava/util/function/Function;",
-					new Handle(H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory",
-							"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;"
-									+ "Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;"
-									+ "Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)"
-									+ "Ljava/lang/invoke/CallSite;",
-							false),
-					Type.getType("(Ljava/lang/Object;)Ljava/lang/Object;"), new Handle(H_INVOKESTATIC, owner,
-							"lambda$0", "(Ljava/lang/String;)Ljava/util/regex/Pattern;", false),
-					Type.getType("(Ljava/lang/String;)Ljava/util/regex/Pattern;"));
-
-			mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "computeIfAbsent",
-					"(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;", true);
-			mv.visitTypeInsn(CHECKCAST, "java/util/regex/Pattern");
-			mv.visitInsn(ARETURN);
-			mv.visitMaxs(4, 3);
-			mv.visitEnd();
-
-			// --- Add lambda$0(String) for invokedynamic ---
-			MethodVisitor lambda = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, "lambda$0",
-					"(Ljava/lang/String;)Ljava/util/regex/Pattern;", null, null);
-			lambda.visitCode();
-
-			// Split k using "\u0000" as in previous code
-			lambda.visitVarInsn(ALOAD, 0); // load k
-			lambda.visitLdcInsn("\u0000");
-			lambda.visitIntInsn(BIPUSH, 2);
-			lambda.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "split",
-					"(Ljava/lang/String;I)[Ljava/lang/String;", false);
-			lambda.visitVarInsn(ASTORE, 1); // store parts[]
-
-			lambda.visitVarInsn(ALOAD, 1);
-			lambda.visitInsn(ICONST_0);
-			lambda.visitInsn(AALOAD); // parts[0]
-			lambda.visitVarInsn(ALOAD, 1);
-			lambda.visitInsn(ICONST_1);
-			lambda.visitInsn(AALOAD); // parts[1]
-			lambda.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt", "(Ljava/lang/String;)I", false);
-			lambda.visitMethodInsn(INVOKESTATIC, "java/util/regex/Pattern", "compile",
-					"(Ljava/lang/String;I)Ljava/util/regex/Pattern;", false);
-
-			lambda.visitInsn(ARETURN);
-			lambda.visitMaxs(3, 2);
-			lambda.visitEnd();
+			addField();
+			addStaticInitializer();
+			addSyntheticLambdaBody();
+			addSyntheticHelperMethod();
 		}
-
 		super.visitEnd();
+	}
+
+	private void addField() {
+		cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC, "regexpCache", "Ljava/util/Map;", null,
+				null).visitEnd();
+	}
+
+	private void addStaticInitializer() {
+		MethodVisitor clinit = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+		clinit.visitCode();
+		clinit.visitTypeInsn(NEW, HASH_MAP_IMPLEMENTATION);
+		clinit.visitInsn(DUP);
+		clinit.visitMethodInsn(INVOKESPECIAL, HASH_MAP_IMPLEMENTATION, "<init>", "()V", false);
+		clinit.visitFieldInsn(PUTSTATIC, owner, "regexpCache", "Ljava/util/Map;");
+		clinit.visitInsn(RETURN);
+		clinit.visitMaxs(2, 0);
+		clinit.visitEnd();
+	}
+
+	private void addSyntheticLambdaBody() {
+		// --- Add synthetic lambda body ---
+		MethodVisitor lm = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, "lambda$0",
+				"(Ljava/lang/String;ILjava/lang/Object;)Ljava/util/regex/Pattern;", null, null);
+		lm.visitCode();
+		lm.visitVarInsn(ALOAD, 0); // regex
+		lm.visitVarInsn(ILOAD, 1); // flags
+		lm.visitMethodInsn(INVOKESTATIC, "java/util/regex/Pattern", "compile",
+				"(Ljava/lang/String;I)Ljava/util/regex/Pattern;", false);
+		lm.visitInsn(ARETURN);
+		lm.visitMaxs(2, 3);
+		lm.visitEnd();
+	}
+
+	private void addSyntheticHelperMethod() {
+		MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, "getCachedPattern",
+				"(Ljava/lang/String;I)Ljava/util/regex/Pattern;", null, null);
+		mv.visitCode();
+
+		// --- Build key = regex + "\u0000" + flags ---
+		mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+		mv.visitInsn(DUP);
+		mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
+		mv.visitVarInsn(ALOAD, 0); // regex
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
+				"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+		mv.visitLdcInsn("\u0000");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
+				"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+		mv.visitVarInsn(ILOAD, 1); // flags
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+		mv.visitVarInsn(ASTORE, 2); // key
+
+		// --- regexpCache.computeIfAbsent(key, k -> Pattern.compile(regex, flags)) ---
+		mv.visitFieldInsn(GETSTATIC, owner, "regexpCache", "Ljava/util/Map;");
+		mv.visitVarInsn(ALOAD, 2); // key
+
+		// captured variables for lambda
+		mv.visitVarInsn(ALOAD, 0); // regex
+		mv.visitVarInsn(ILOAD, 1); // flags
+
+		mv.visitInvokeDynamicInsn("apply", "(Ljava/lang/String;I)Ljava/util/function/Function;", new Handle(
+				H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory",
+				"(Ljava/lang/invoke/MethodHandles$Lookup;" + "Ljava/lang/String;" + "Ljava/lang/invoke/MethodType;"
+						+ "Ljava/lang/invoke/MethodType;" + "Ljava/lang/invoke/MethodHandle;"
+						+ "Ljava/lang/invoke/MethodType;)" + "Ljava/lang/invoke/CallSite;",
+				false), Type.getType("(Ljava/lang/Object;)Ljava/lang/Object;"),
+				new Handle(H_INVOKESTATIC, owner, "lambda$0",
+						"(Ljava/lang/String;ILjava/lang/Object;)Ljava/util/regex/Pattern;", false),
+				Type.getType("(Ljava/lang/Object;)Ljava/util/regex/Pattern;"));
+
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "computeIfAbsent",
+				"(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;", true);
+		mv.visitTypeInsn(CHECKCAST, "java/util/regex/Pattern");
+		mv.visitInsn(ARETURN);
+
+		mv.visitMaxs(5, 3);
+		mv.visitEnd();
 	}
 
 }

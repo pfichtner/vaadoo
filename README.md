@@ -225,7 +225,7 @@ Performance was measured with **100,000,000 constructor calls**:
 | Configuration                          | Execution Time | Overhead |
 |----------------------------------------|----------------|----------|
 | Regex field (static final)             | **5,700 ms**   | - (*1)   |
-| Vaadoo with cached regex (**default**) | 7,900 ms       | +39%     |
+| Vaadoo with cached regex (**default**) | 7,200 ms       | + 26%    |
 | Vaadoo with regex (compiled per call)  | 19,000 ms      | +233%    |
 | Hibernate (Reflection)                 | 16,800 ms      | +195%    |
 

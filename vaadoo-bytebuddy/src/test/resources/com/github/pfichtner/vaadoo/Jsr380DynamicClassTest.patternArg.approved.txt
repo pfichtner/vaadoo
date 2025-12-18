@@ -31,8 +31,8 @@ Analysing type com.example.Generated
 package com.example;
 
 import com.example.Generated;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.jmolecules.ddd.types.ValueObject;
 
@@ -55,17 +55,12 @@ implements ValueObject {
     }
 
     static {
-        regexpCache = new HashMap();
+        regexpCache = new ConcurrentHashMap();
     }
 
-    private static /* synthetic */ Pattern getCachedPattern(String string2, int n) {
-        String string3 = string2;
-        int n2 = n;
-        String string4 = string2 + "\u0000" + n;
-        return regexpCache.computeIfAbsent(string4, string -> {
-            String[] stringArray = string.split("\u0000", 2);
-            return Pattern.compile(stringArray[0], Integer.parseInt(stringArray[1]));
-        });
+    private static /* synthetic */ Pattern getCachedPattern(String string, int n) {
+        String string2 = string + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string2, object -> Pattern.compile(string, n));
     }
 }
 
