@@ -79,6 +79,7 @@ import java.util.stream.Stream;
 import org.approvaltests.ApprovalSettings;
 import org.assertj.core.api.SoftAssertionsProvider.ThrowingRunnable;
 
+import com.github.pfichtner.vaadoo.TestClassBuilder.AnnotationDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
@@ -154,15 +155,16 @@ class Jsr380DynamicClassPBTest {
 		Arbitrary<Class<?>> typeGen = Arbitraries.of(ALL_SUPPORTED_TYPES)
 				.flatMap(baseType -> Arbitraries.of(resolveAllSubtypes(baseType)));
 		return typeGen.flatMap(type -> {
-			List<Class<? extends Annotation>> applicable = ANNO_TO_TYPES.entrySet().stream()
+			List<AnnotationDefinition> applicable = ANNO_TO_TYPES.entrySet().stream()
 					.sorted(comparingByKey(comparing(Class::getName))) //
 					.filter(e -> e.getValue().stream().anyMatch(vt -> vt.isAssignableFrom(type))) //
 					.map(e -> (Class<? extends Annotation>) e.getKey()) //
+					.map(AnnotationDefinition::of) //
 					.collect(toList());
 
 			int maxSize = applicable.size();
 			IntUnaryOperator cap = n -> min(n, maxSize);
-			Arbitrary<List<Class<? extends Annotation>>> frequency = Arbitraries.frequency( //
+			Arbitrary<List<AnnotationDefinition>> frequency = Arbitraries.frequency( //
 					Tuple.of(15, uniquesOfMin(applicable, cap, 0)), //
 					Tuple.of(30, uniquesOfMin(applicable, cap, 1)), //
 					Tuple.of(30, uniquesOfMin(applicable, cap, 2)), //
@@ -184,8 +186,8 @@ class Jsr380DynamicClassPBTest {
 		return List.copyOf(result);
 	}
 
-	static ListArbitrary<Class<? extends Annotation>> uniquesOfMin(List<Class<? extends Annotation>> applicable,
-			IntUnaryOperator cap, int i) {
+	static ListArbitrary<AnnotationDefinition> uniquesOfMin(List<AnnotationDefinition> applicable, IntUnaryOperator cap,
+			int i) {
 		return Arbitraries.of(applicable).list().uniqueElements().ofSize(cap.applyAsInt(i));
 	}
 
@@ -221,7 +223,8 @@ class Jsr380DynamicClassPBTest {
 					.filter(t -> validTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
 			return invalidTypes.isEmpty() //
 					? Arbitraries.of(new DefaultParameterDefinition(Object.class)) //
-					: Arbitraries.of(invalidTypes).map(t -> new DefaultParameterDefinition(t, a));
+					: Arbitraries.of(invalidTypes)
+							.map(t -> new DefaultParameterDefinition(t, AnnotationDefinition.of(a)));
 		});
 	}
 
@@ -325,15 +328,15 @@ class Jsr380DynamicClassPBTest {
 		ApprovalSettings settings = settings();
 		settings.allowMultipleVerifyCallsForThisClass();
 		settings.allowMultipleVerifyCallsForThisMethod();
-		withProjectRoot(projectRoot, () -> approver.approveTransformed("Class implementing ValueObject: [JDK, keeping JSR380 annotations]",
-				params));
+		withProjectRoot(projectRoot, () -> approver
+				.approveTransformed("Class implementing ValueObject: [JDK, keeping JSR380 annotations]", params));
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
 	void implementsValueObjectWithRemovedAnnos(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
-		new Approver(new Transformer()).approveTransformed("Class implementing ValueObject: [JDK, removing JSR380 annotations]",
-				params);
+		new Approver(new Transformer())
+				.approveTransformed("Class implementing ValueObject: [JDK, removing JSR380 annotations]", params);
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -356,8 +359,8 @@ class Jsr380DynamicClassPBTest {
 		ApprovalSettings settings = settings();
 		settings.allowMultipleVerifyCallsForThisClass();
 		settings.allowMultipleVerifyCallsForThisMethod();
-		withProjectRoot(projectRoot, () -> approver.approveTransformed("Class implementing ValueObject: [Guava, removing JSR380 annotations]",
-				params));
+		withProjectRoot(projectRoot, () -> approver
+				.approveTransformed("Class implementing ValueObject: [Guava, removing JSR380 annotations]", params));
 	}
 
 	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
@@ -369,8 +372,8 @@ class Jsr380DynamicClassPBTest {
 		ApprovalSettings settings = settings();
 		settings.allowMultipleVerifyCallsForThisClass();
 		settings.allowMultipleVerifyCallsForThisMethod();
-		withProjectRoot(projectRoot, () -> approver.approveTransformed("Class implementing ValueObject: [Guava, IAE instead of NPE]",
-				params));
+		withProjectRoot(projectRoot, () -> approver
+				.approveTransformed("Class implementing ValueObject: [Guava, IAE instead of NPE]", params));
 	}
 
 	private static void withProjectRoot(File projectRoot, ThrowingRunnable runnable) throws Exception {

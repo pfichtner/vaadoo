@@ -22,13 +22,17 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
+import com.github.pfichtner.vaadoo.TestClassBuilder.AnnotationDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 class Jsr380DynamicClassTest {
 
@@ -37,7 +41,7 @@ class Jsr380DynamicClassTest {
 	TestClassBuilder classThatImplementsValueObject = baseTestClass.thatImplementsValueObject();
 
 	ConstructorDefinition notNullObjectConstructor = new ConstructorDefinition(
-			new DefaultParameterDefinition(Object.class, NotNull.class));
+			new DefaultParameterDefinition(Object.class, AnnotationDefinition.of(NotNull.class)));
 	Object[] nullArg = new Object[] { null };
 
 	Transformer transformer = new Transformer();
@@ -52,9 +56,18 @@ class Jsr380DynamicClassTest {
 	@Test
 	void namedArg() throws Exception {
 		var constructor = new ConstructorDefinition(
-				new DefaultParameterDefinition(Object.class, NotNull.class).withName("aNamedArgument"));
+				new DefaultParameterDefinition(Object.class, AnnotationDefinition.of(NotNull.class))
+						.withName("aNamedArgument"));
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
 		new Approver(new Transformer()).approveTransformed("namedArg", constructor.params(), unloaded);
+	}
+
+	@Test
+	void patternArg() throws Exception {
+		var constructor = new ConstructorDefinition(new DefaultParameterDefinition(String.class,
+				AnnotationDefinition.of(Pattern.class, Map.of("regexp", "\\d*"))));
+		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
+		new Approver(new Transformer()).approveTransformed("regexp", constructor.params(), unloaded);
 	}
 
 	@Test

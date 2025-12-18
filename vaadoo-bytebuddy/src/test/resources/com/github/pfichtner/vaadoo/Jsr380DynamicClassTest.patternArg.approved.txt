@@ -1,0 +1,71 @@
+Story:
+regexp
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.String, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Pattern, values={regexp=\d*})])
+
+
+Source:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Pattern;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    public Generated(@Pattern(flags={}, groups={}, message="{jakarta.validation.constraints.Pattern.message}", payload={}, regexp="\d*") String string) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    private static final /* synthetic */ Map regexpCache;
+
+    public Generated(String string) {
+        Generated.validate(string);
+        this(string, null);
+    }
+
+    private /* synthetic */ Generated(String string, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(String string) {
+        if (string != null && !Generated.getCachedPattern("\\d*", 0).matcher(string).matches()) {
+            throw new IllegalArgumentException("string must match \"\\d*\"");
+        }
+    }
+
+    static {
+        regexpCache = new HashMap();
+    }
+
+    private static /* synthetic */ Pattern getCachedPattern(String string2, int n) {
+        String string3 = string2;
+        int n2 = n;
+        String string4 = string2 + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string4, string -> {
+            String[] stringArray = string.split("\u0000", 2);
+            return Pattern.compile(stringArray[0], Integer.parseInt(stringArray[1]));
+        });
+    }
+}
+

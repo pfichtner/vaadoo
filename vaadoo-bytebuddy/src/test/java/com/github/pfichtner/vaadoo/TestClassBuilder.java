@@ -24,8 +24,10 @@ import static lombok.AccessLevel.PRIVATE;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -85,7 +87,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 		Class<?> getType();
 
-		List<Class<? extends Annotation>> getAnnotations();
+		List<AnnotationDefinition> getAnnotations();
 
 		public static String stableChecksum(List<ParameterDefinition> parameters) {
 			String stringValue = parameters.stream().map(ParameterDefinition::asString).collect(joining("|"));
@@ -94,7 +96,12 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 		static String asString(ParameterDefinition definition) {
 			return format("%s:%s", definition.getType().getName(),
-					definition.getAnnotations().stream().map(Class::getName).sorted().collect(joining(",")));
+					definition.getAnnotations().stream().map(d -> asString(d)).sorted().collect(joining(",")));
+		}
+
+		static String asString(AnnotationDefinition definition) {
+			return format("%s[%s]", definition.getAnno().getName(), definition.values.entrySet().stream()
+					.map(v -> v.getKey() + "=" + v.getValue()).collect(joining(",")));
 		}
 
 	}
@@ -111,13 +118,25 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	}
 
 	@Value
+	@RequiredArgsConstructor(staticName = "of")
+	public static class AnnotationDefinition {
+		Class<? extends Annotation> anno;
+		Map<String, Object> values;
+
+		public static AnnotationDefinition of(Class<? extends Annotation> anno) {
+			return new AnnotationDefinition(anno, Collections.emptyMap());
+		}
+
+	}
+
+	@Value
 	@RequiredArgsConstructor
 	public static class DefaultParameterDefinition implements ParameterDefinition {
 		Class<?> type;
-		List<Class<? extends Annotation>> annotations;
+		List<AnnotationDefinition> annotations;
 
 		@SafeVarargs
-		public DefaultParameterDefinition(Class<?> type, Class<? extends Annotation>... annotations) {
+		public DefaultParameterDefinition(Class<?> type, AnnotationDefinition... annotations) {
 			this(type, List.of(annotations));
 		}
 
@@ -221,7 +240,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 						? nameMaker.makeName(((NamedParameterDefinition) parameter).name())
 						: nameMaker.makeName(parameter.getType());
 				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.getType(), name);
-				for (Class<? extends Annotation> anno : parameter.getAnnotations()) {
+				for (AnnotationDefinition anno : parameter.getAnnotations()) {
 					paramDef = paramDef.annotateParameter(createAnnotation(anno));
 				}
 			}
@@ -244,22 +263,30 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 				.name(classname);
 	}
 
-	private static AnnotationDescription createAnnotation(Class<? extends Annotation> ann) {
+	private static AnnotationDescription createAnnotation(AnnotationDefinition annotationDefinition) {
+		Class<? extends Annotation> anno = annotationDefinition.getAnno();
 		try {
-			AnnotationDescription.Builder builder = AnnotationDescription.Builder.ofType(ann);
-			if (ann.equals(Min.class) || ann.equals(Max.class)) {
-				builder = builder.define("value", 0L);
-			} else if (ann.equals(DecimalMin.class) || ann.equals(DecimalMax.class)) {
-				builder = builder.define("value", "0");
-			} else if (ann.equals(Digits.class)) {
-				builder = builder.define("integer", 0).define("fraction", 0);
-			} else if (ann.equals(Pattern.class)) {
-				builder = builder.define("regexp", "");
+			AnnotationDescription.Builder builder = AnnotationDescription.Builder.ofType(anno);
+			if (anno.equals(Min.class) || anno.equals(Max.class)) {
+				builder = builder.define("value", getAnnotationValue(annotationDefinition, "value", 0L));
+			} else if (anno.equals(DecimalMin.class) || anno.equals(DecimalMax.class)) {
+				builder = builder.define("value", getAnnotationValue(annotationDefinition, "value", "0"));
+			} else if (anno.equals(Digits.class)) {
+				builder = builder //
+						.define("integer", getAnnotationValue(annotationDefinition, "integer", 0)) //
+						.define("fraction", getAnnotationValue(annotationDefinition, "fraction", 0));
+			} else if (anno.equals(Pattern.class)) {
+				builder = builder.define("regexp", getAnnotationValue(annotationDefinition, "regexp", ""));
 			}
 			return builder.build();
 		} catch (Exception e) {
-			throw new RuntimeException("Error creating " + ann, e);
+			throw new RuntimeException(format("Error creating %s", anno), e);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T getAnnotationValue(AnnotationDefinition annotationDefinition, String key, T defaultValue) {
+		return (T) annotationDefinition.getValues().getOrDefault(key, defaultValue);
 	}
 
 }

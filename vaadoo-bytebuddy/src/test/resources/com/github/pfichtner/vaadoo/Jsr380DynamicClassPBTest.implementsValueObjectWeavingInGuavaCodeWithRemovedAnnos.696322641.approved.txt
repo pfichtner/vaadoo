@@ -1,0 +1,69 @@
+Story:
+Class implementing ValueObject: [Guava, removing JSR380 annotations]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.PastOrPresent, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Digits, values={})])
+
+
+Source:
+Analysing type com.example.Generated_696322641
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import java.time.MonthDay;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_696322641
+implements ValueObject {
+    public Generated_696322641(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, @Digits(fraction=0, groups={}, integer=0, message="{jakarta.validation.constraints.Digits.message}", payload={}) int n) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_696322641
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_696322641;
+import com.google.common.base.Preconditions;
+import java.time.MonthDay;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_696322641
+implements ValueObject {
+    public Generated_696322641(MonthDay monthDay, MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, int n) {
+        Generated_696322641.validate(monthDay, monthDay2, objectArray, objectArray2, zonedDateTime, n);
+        this(monthDay, monthDay2, objectArray, objectArray2, zonedDateTime, n, null);
+    }
+
+    private /* synthetic */ Generated_696322641(MonthDay monthDay, MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, int n, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(MonthDay monthDay, MonthDay monthDay2, Object[] objectArray, Object[] objectArray2, ZonedDateTime zonedDateTime, int n) {
+        Preconditions.checkArgument(monthDay == null || monthDay.isBefore(MonthDay.now()), "monthDay must be a past date");
+        Preconditions.checkNotNull(monthDay2, "monthDay1 must not be null");
+        Preconditions.checkArgument(monthDay2 == null || !monthDay2.isAfter(MonthDay.now()), "monthDay1 must be a date in the past or in the present");
+        Preconditions.checkArgument(monthDay2 == null || !monthDay2.isBefore(MonthDay.now()), "monthDay1 must be a date in the present or in the future");
+        int n2 = n == 0 ? 1 : (int)Math.log10(Math.abs(n)) + 1;
+        Preconditions.checkArgument(n2 <= 0, "int numeric value out of bounds (<0 digits>.<0 digits> expected)");
+    }
+}
+

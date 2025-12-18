@@ -1,0 +1,56 @@
+Story:
+Class implementing ValueObject: [Guava, removing JSR380 annotations]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Long, annotations=[])
+
+
+Source:
+Analysing type com.example.Generated_1988849069
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Past;
+import java.time.chrono.HijrahDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1988849069
+implements ValueObject {
+    public Generated_1988849069(@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) HijrahDate hijrahDate, Long l) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_1988849069
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1988849069;
+import com.google.common.base.Preconditions;
+import java.time.chrono.HijrahDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1988849069
+implements ValueObject {
+    public Generated_1988849069(HijrahDate hijrahDate, Long l) {
+        Generated_1988849069.validate(hijrahDate, l);
+        this(hijrahDate, l, null);
+    }
+
+    private /* synthetic */ Generated_1988849069(HijrahDate hijrahDate, Long l, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(HijrahDate hijrahDate, Long l) {
+        Preconditions.checkArgument(hijrahDate == null || hijrahDate.isBefore(HijrahDate.now()), "hijrahDate must be a past date");
+        Preconditions.checkArgument(hijrahDate == null || !hijrahDate.isBefore(HijrahDate.now()), "hijrahDate must be a date in the present or in the future");
+    }
+}
+
