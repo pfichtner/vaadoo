@@ -221,7 +221,7 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
   With the **exception of regex validations**, Vaadoo generates validation code that is **essentially identical to handwritten checks**, so execution speed is the same as if you wrote the validation yourself.
 
 - **Reflection-based validation (e.g., Hibernate Validator) vs Vaadoo-generated validation:**
-  Vaadoo is **much faster**, because it eliminates reflection entirely — typically **3–10x faster** depending on the validations.
+  Vaadoo is **much faster**, because it eliminates reflection entirely — typically **5–30x faster** depending on the validations.
 
 - **Regex handling (special note):**
   - By default, Vaadoo compiles regex patterns on demand and caches them in a `Map`.
