@@ -254,26 +254,31 @@ class VaadooImplementor {
 		}
 
 		private Stream<InjectionTask> tasksFor(Parameter parameter) {
-			return Stream.of(parameter.annotations()).flatMap(a -> concat(jsr380(parameter, a, null), custom(parameter, a)));
+			return Stream.of(parameter.annotations())
+					.flatMap(a -> concat(jsr380(parameter, a, null), custom(parameter, a)));
 		}
 
-		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation, AnnotationDescription annotationDescription) {
-			// Handle repeatable annotations (e.g. @Pattern.List, @Size.List, etc.)
-			if (isRepeatableAnnotationContainer(annotation)) {
-				AnnotationDescription[] annotationDescriptions = extractRepeatableAnnotations(parameter, annotation);
-				return Stream.of(annotationDescriptions).flatMap(d -> jsr380(parameter, d.getAnnotationType(), d));
-			}
-
-			return Jsr380Annos.configs.stream() //
-					.filter(c -> annotation.equals(c.type())) //
-					.map(c -> codeFragmentMethod(c, parameter.type())) //
-					.map(f -> Jsr380AnnoInjectionTask.of(parameter, f, annotationDescription));
+		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation,
+				AnnotationDescription annotationDescription) {
+			return isRepeatableAnnotationContainer(annotation)
+					? Stream.of(extractRepeatableAnnotations(parameter, annotation))
+							.flatMap(d -> jsr380(parameter, d.getAnnotationType(), d))
+					: Jsr380Annos.configs.stream() //
+							.filter(c -> annotation.equals(c.type())) //
+							.map(c -> codeFragmentMethod(c, parameter.type())) //
+							.map(f -> Jsr380AnnoInjectionTask.of(parameter, f, annotationDescription));
 		}
 
 		private boolean isRepeatableAnnotationContainer(TypeDescription annotation) {
-			// Check if this is a repeatable annotation container (ends with $List)
-			String name = annotation.getName();
-			return name.endsWith("$List") && name.contains("jakarta.validation.constraints.");
+			return annotation.getDeclaredMethods().stream() //
+					.filter(m -> "value".equals(m.getName())) //
+					.filter(m -> m.getParameters().isEmpty()) //
+					.map(m -> m.getReturnType().asErasure()) //
+					.filter(TypeDescription::isArray) //
+					.map(TypeDescription::getComponentType) //
+					.flatMap(t -> t.getDeclaredAnnotations().stream()) //
+					.anyMatch(
+							a -> "java.lang.annotation.Repeatable".equals(a.getAnnotationType().asErasure().getName()));
 		}
 
 		private AnnotationDescription[] extractRepeatableAnnotations(Parameter parameter, TypeDescription annotation) {
@@ -283,7 +288,8 @@ class VaadooImplementor {
 			String internalName = annotationName.replace('.', '/');
 			Type annotationType = Type.getObjectType(internalName);
 			Object value = parameter.annotationValue(annotationType, "value");
-			return value instanceof AnnotationDescription[] ? (AnnotationDescription[]) value : new AnnotationDescription[0];
+			return value instanceof AnnotationDescription[] ? (AnnotationDescription[]) value
+					: new AnnotationDescription[0];
 		}
 
 		private Stream<InjectionTask> custom(Parameter parameter, TypeDescription annotation) {
