@@ -57,6 +57,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Accessors;
+import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.enumeration.EnumerationDescription;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
@@ -355,6 +356,81 @@ public class ValidationCodeInjector {
 		ClassVisitor remapper = new ClassRemapper(classVisitor,
 				new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
 		classReader(fragmentClass).accept(remapper, 0);
+	}
+
+	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod, AnnotationDescription annotationDescription) {
+		if (annotationDescription != null) {
+			AnnotationDescriptionParameterWrapper wrapper = new AnnotationDescriptionParameterWrapper(parameter, annotationDescription);
+			// Add the wrapper to the precomputed masks map so it can be looked up later
+			Map<Parameter, Integer> masks = new java.util.HashMap<>(precomputedMasks);
+			masks.put(wrapper, precomputedMasks.get(parameter));
+			
+			// Create a new injector with the updated masks and use it to inject
+			ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
+					signatureOfTargetMethod, wrapper, masks);
+			ClassVisitor remapper = new ClassRemapper(classVisitor,
+					new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
+			classReader(fragmentClass).accept(remapper, 0);
+		} else {
+			inject(mv, parameter, sourceMethod);
+		}
+	}
+
+	private void injectInternal(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
+		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
+				signatureOfTargetMethod, parameter, precomputedMasks);
+		ClassVisitor remapper = new ClassRemapper(classVisitor,
+				new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
+		classReader(fragmentClass).accept(remapper, 0);
+	}
+
+	private static class AnnotationDescriptionParameterWrapper implements Parameter {
+		private final Parameter delegate;
+		private final AnnotationDescription annotationDescription;
+
+		AnnotationDescriptionParameterWrapper(Parameter delegate, AnnotationDescription annotationDescription) {
+			this.delegate = delegate;
+			this.annotationDescription = annotationDescription;
+		}
+
+		@Override
+		public int index() {
+			return delegate.index();
+		}
+
+		@Override
+		public String name() {
+			return delegate.name();
+		}
+
+		@Override
+		public net.bytebuddy.description.type.TypeDescription type() {
+			return delegate.type();
+		}
+
+		@Override
+		public int offset() {
+			return delegate.offset();
+		}
+
+		@Override
+		public net.bytebuddy.description.type.TypeDescription[] annotations() {
+			return delegate.annotations();
+		}
+
+		@Override
+		public Object annotationValue(Type annotation, String name) {
+			// If we have a matching annotation description, try to extract from it first
+			if (annotationDescription.getAnnotationType().getName().equals(annotation.getClassName())) {
+				try {
+					return annotationDescription.getValue(name).resolve();
+				} catch (Exception e) {
+					// Fall back to delegate if extraction fails
+				}
+			}
+			// Otherwise, delegate to the original parameter
+			return delegate.annotationValue(annotation, name);
+		}
 	}
 
 	private static String defaultValue(String className, String name) {

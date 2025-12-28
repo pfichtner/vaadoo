@@ -41,6 +41,7 @@ import com.github.pfichtner.vaadoo.testclasses.EmptyClass;
 import com.github.pfichtner.vaadoo.testclasses.TwoConstructorsValueObject;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
+import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableRegexAttribute;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExample;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMessage;
 
@@ -100,11 +101,10 @@ class JMoleculesVaadooPluginTests {
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
 		var stringBooleanArgConstructor = transformed.getDeclaredConstructor(String.class, boolean.class);
 		assertSoftly(c -> {
-			c.assertThatException().isThrownBy(() -> stringArgConstructor.newInstance((String) null)).satisfies(e -> c
+			c.assertThatThrownBy(() -> stringArgConstructor.newInstance((String) null)).satisfies(e -> c
 					.assertThat(e.getCause()).isInstanceOf(JMOLESCULES_NULL_EXCEPTION_TYPE).hasMessage(notNull("a")));
-			c.assertThatException().isThrownBy(() -> stringBooleanArgConstructor.newInstance(null, true))
-					.satisfies(e -> c.assertThat(e.getCause()).isInstanceOf(JMOLESCULES_NULL_EXCEPTION_TYPE)
-							.hasMessage(notNull("a")));
+			c.assertThatThrownBy(() -> stringBooleanArgConstructor.newInstance(null, true)).satisfies(e -> c
+					.assertThat(e.getCause()).isInstanceOf(JMOLESCULES_NULL_EXCEPTION_TYPE).hasMessage(notNull("a")));
 		});
 	}
 
@@ -115,7 +115,6 @@ class JMoleculesVaadooPluginTests {
 		constructor.newInstance("42");
 		assertThatException().isThrownBy(() -> constructor.newInstance("4")).satisfies(e -> assertThat(e.getCause())
 				.isInstanceOf(IllegalArgumentException.class).hasMessage(mustMatch("someTwoDigits", "\"\\d\\d\"")));
-
 	}
 
 	@Test
@@ -134,6 +133,25 @@ class JMoleculesVaadooPluginTests {
 		constructor.newInstance(validArgs.toArray());
 		assertThatException().isThrownBy(() -> constructor.newInstance(invalidArgs.toArray())).satisfies(
 				e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class).hasMessage(message));
+	}
+
+	@Test
+	void repeatableAnnotations() throws Exception {
+		var transformed = transformer.transform(ValueObjectWithRepeatableRegexAttribute.class);
+		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
+
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance("Abc1!"));
+		assertSoftly(c -> {
+			c.assertThatThrownBy(() -> stringArgConstructor.newInstance("abc1!"))
+					.hasCauseInstanceOf(IllegalArgumentException.class)
+					.hasRootCauseMessage("Password must contain at least one uppercase letter");
+			c.assertThatThrownBy(() -> stringArgConstructor.newInstance("Abc!"))
+					.hasCauseInstanceOf(IllegalArgumentException.class)
+					.hasRootCauseMessage("Password must contain at least one digit");
+			c.assertThatThrownBy(() -> stringArgConstructor.newInstance("Abc1"))
+					.hasCauseInstanceOf(IllegalArgumentException.class)
+					.hasRootCauseMessage("Password must contain at least one special character");
+		});
 	}
 
 	static List<Arguments> customExampleSource() throws Exception {

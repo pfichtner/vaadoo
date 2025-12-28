@@ -62,6 +62,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Pattern.Flag;
 import lombok.Value;
 import net.bytebuddy.asm.AsmVisitorWrapper;
+import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.enumeration.EnumerationDescription;
 import net.bytebuddy.description.field.FieldDescription;
 import net.bytebuddy.description.field.FieldList;
@@ -184,6 +185,7 @@ class VaadooImplementor {
 		private static class Jsr380AnnoInjectionTask implements InjectionTask {
 			Parameter parameter;
 			Method fragmentMethod;
+			AnnotationDescription annotationDescription;
 
 			@Override
 			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
@@ -191,7 +193,7 @@ class VaadooImplementor {
 					@SuppressWarnings("unchecked")
 					Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
 							.getDeclaringClass();
-					injector.useFragmentClass(clazz).inject(mv, parameter, fragmentMethod);
+					injector.useFragmentClass(clazz).inject(mv, parameter, fragmentMethod, annotationDescription);
 				} catch (Exception e) {
 					throw new RuntimeException(format("Error injecting %s for %s", fragmentMethod, parameter), e);
 				}
@@ -252,14 +254,20 @@ class VaadooImplementor {
 		}
 
 		private Stream<InjectionTask> tasksFor(Parameter parameter) {
-			return Stream.of(parameter.annotations()).flatMap(a -> concat(jsr380(parameter, a), custom(parameter, a)));
+			return Stream.of(parameter.annotations()).flatMap(a -> concat(jsr380(parameter, a, null), custom(parameter, a)));
 		}
 
-		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation) {
+		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation, AnnotationDescription annotationDescription) {
+			if (annotation.isAssignableFrom(Pattern.List.class)) {
+				AnnotationDescription[] annotationDescriptions = (AnnotationDescription[]) parameter
+						.annotationValue(Type.getType(Pattern.List.class), "value");
+				return Stream.of(annotationDescriptions).flatMap(d -> jsr380(parameter, d.getAnnotationType(), d));
+			}
+
 			return Jsr380Annos.configs.stream() //
 					.filter(c -> annotation.equals(c.type())) //
 					.map(c -> codeFragmentMethod(c, parameter.type())) //
-					.map(f -> Jsr380AnnoInjectionTask.of(parameter, f));
+					.map(f -> Jsr380AnnoInjectionTask.of(parameter, f, annotationDescription));
 		}
 
 		private Stream<InjectionTask> custom(Parameter parameter, TypeDescription annotation) {
