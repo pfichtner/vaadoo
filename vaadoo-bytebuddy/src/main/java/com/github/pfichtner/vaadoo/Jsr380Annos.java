@@ -48,6 +48,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.jar.asm.Type;
 
@@ -198,13 +199,14 @@ public class Jsr380Annos {
 	}
 
 	private static Stream<TypeDescription> findRepeatableContainers(TypeDescription annoType) {
-		// Check if the annotation has a @Repeatable meta-annotation pointing to a
-		// container
 		return annoType.getDeclaredAnnotations().stream() //
 				.filter(a -> "java.lang.annotation.Repeatable".equals(a.getAnnotationType().asErasure().getName())) //
-				.flatMap(a -> {
-					Object resolved = a.getValue("value").resolve();
-					return resolved instanceof TypeDescription ? Stream.of((TypeDescription) resolved) : empty();
-				});
+				.flatMap(Jsr380Annos::resolveValue);
 	}
+
+	private static Stream<TypeDescription> resolveValue(AnnotationDescription annotationDescription) {
+		Object resolved = annotationDescription.getValue("value").resolve();
+		return resolved instanceof TypeDescription ? Stream.of((TypeDescription) resolved) : empty();
+	}
+
 }
