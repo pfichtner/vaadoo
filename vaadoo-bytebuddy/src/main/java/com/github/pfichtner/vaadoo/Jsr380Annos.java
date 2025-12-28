@@ -17,6 +17,7 @@ package com.github.pfichtner.vaadoo;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.empty;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -189,4 +190,21 @@ public class Jsr380Annos {
 				.anyMatch(type.getDescriptor()::equals);
 	}
 
+	public static List<TypeDescription> findRepeatableAnnotationContainers() {
+		return configs.stream() //
+				.map(ConfigEntry::anno) //
+				.flatMap(Jsr380Annos::findRepeatableContainers) //
+				.collect(toList());
+	}
+
+	private static Stream<TypeDescription> findRepeatableContainers(TypeDescription annoType) {
+		// Check if the annotation has a @Repeatable meta-annotation pointing to a
+		// container
+		return annoType.getDeclaredAnnotations().stream() //
+				.filter(a -> "java.lang.annotation.Repeatable".equals(a.getAnnotationType().asErasure().getName())) //
+				.flatMap(a -> {
+					Object resolved = a.getValue("value").resolve();
+					return resolved instanceof TypeDescription ? Stream.of((TypeDescription) resolved) : empty();
+				});
+	}
 }

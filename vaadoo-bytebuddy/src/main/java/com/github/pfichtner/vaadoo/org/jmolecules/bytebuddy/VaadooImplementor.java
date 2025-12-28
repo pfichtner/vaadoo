@@ -18,6 +18,7 @@ package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 import static com.github.pfichtner.vaadoo.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
+import static com.github.pfichtner.vaadoo.Jsr380Annos.findRepeatableAnnotationContainers;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isAbstract;
@@ -219,6 +220,7 @@ class VaadooImplementor {
 		private final List<Method> codeFragmentMethods;
 		private final String methodDescriptor;
 		private final List<InjectionTask> injectionTasks;
+		private final List<TypeDescription> jsr380RepeatableAnnotationContainers;
 
 		public StaticValidateAppender(String validateMethodName, Parameters parameters,
 				VaadooConfiguration configuration) {
@@ -231,6 +233,7 @@ class VaadooImplementor {
 			this.codeFragmentMethods = fragmentMethods(configuration.jsr380CodeFragmentClass());
 			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
 					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
+			this.jsr380RepeatableAnnotationContainers = findRepeatableAnnotationContainers();
 			this.injectionTasks = parameters.stream().flatMap(this::tasksFor).collect(toList());
 		}
 
@@ -270,15 +273,7 @@ class VaadooImplementor {
 		}
 
 		private boolean isRepeatableAnnotationContainer(TypeDescription annotation) {
-			return annotation.getDeclaredMethods().stream() //
-					.filter(m -> "value".equals(m.getName())) //
-					.filter(m -> m.getParameters().isEmpty()) //
-					.map(m -> m.getReturnType().asErasure()) //
-					.filter(TypeDescription::isArray) //
-					.map(TypeDescription::getComponentType) //
-					.flatMap(t -> t.getDeclaredAnnotations().stream()) //
-					.anyMatch(
-							a -> "java.lang.annotation.Repeatable".equals(a.getAnnotationType().asErasure().getName()));
+			return jsr380RepeatableAnnotationContainers.contains(annotation);
 		}
 
 		private AnnotationDescription[] extractRepeatableAnnotations(Parameter parameter, TypeDescription annotation) {
