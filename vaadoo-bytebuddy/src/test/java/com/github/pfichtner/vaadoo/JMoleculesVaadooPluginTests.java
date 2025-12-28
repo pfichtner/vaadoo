@@ -42,6 +42,7 @@ import com.github.pfichtner.vaadoo.testclasses.TwoConstructorsValueObject;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableRegexAttribute;
+import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableSizeAttribute;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExample;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMessage;
 
@@ -151,6 +152,24 @@ class JMoleculesVaadooPluginTests {
 			c.assertThatThrownBy(() -> stringArgConstructor.newInstance("Abc1"))
 					.hasCauseInstanceOf(IllegalArgumentException.class)
 					.hasRootCauseMessage("Password must contain at least one special character");
+		});
+	}
+
+	@Test
+	void repeatableSizeAnnotations() throws Exception {
+		var transformed = transformer.transform(ValueObjectWithRepeatableSizeAttribute.class);
+		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
+
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance("ab"));
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance("abc"));
+		assertThatNoException().isThrownBy(() -> stringArgConstructor.newInstance("abcdefghij"));
+		assertSoftly(c -> {
+			c.assertThatThrownBy(() -> stringArgConstructor.newInstance("a"))
+					.hasCauseInstanceOf(IllegalArgumentException.class)
+					.hasRootCauseMessage("must have at least 2 characters");
+			c.assertThatThrownBy(() -> stringArgConstructor.newInstance("abcdefghijk"))
+					.hasCauseInstanceOf(IllegalArgumentException.class)
+					.hasRootCauseMessage("must have at most 10 characters");
 		});
 	}
 

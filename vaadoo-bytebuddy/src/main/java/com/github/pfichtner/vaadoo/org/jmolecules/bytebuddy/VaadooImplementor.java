@@ -258,9 +258,9 @@ class VaadooImplementor {
 		}
 
 		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation, AnnotationDescription annotationDescription) {
-			if (annotation.isAssignableFrom(Pattern.List.class)) {
-				AnnotationDescription[] annotationDescriptions = (AnnotationDescription[]) parameter
-						.annotationValue(Type.getType(Pattern.List.class), "value");
+			// Handle repeatable annotations (e.g. @Pattern.List, @Size.List, etc.)
+			if (isRepeatableAnnotationContainer(annotation)) {
+				AnnotationDescription[] annotationDescriptions = extractRepeatableAnnotations(parameter, annotation);
 				return Stream.of(annotationDescriptions).flatMap(d -> jsr380(parameter, d.getAnnotationType(), d));
 			}
 
@@ -268,6 +268,22 @@ class VaadooImplementor {
 					.filter(c -> annotation.equals(c.type())) //
 					.map(c -> codeFragmentMethod(c, parameter.type())) //
 					.map(f -> Jsr380AnnoInjectionTask.of(parameter, f, annotationDescription));
+		}
+
+		private boolean isRepeatableAnnotationContainer(TypeDescription annotation) {
+			// Check if this is a repeatable annotation container (ends with $List)
+			String name = annotation.getName();
+			return name.endsWith("$List") && name.contains("jakarta.validation.constraints.");
+		}
+
+		private AnnotationDescription[] extractRepeatableAnnotations(Parameter parameter, TypeDescription annotation) {
+			// Convert the annotation type name to a Type and extract the "value" attribute
+			// Handle both '.' and '$' separators for inner classes
+			String annotationName = annotation.getName();
+			String internalName = annotationName.replace('.', '/');
+			Type annotationType = Type.getObjectType(internalName);
+			Object value = parameter.annotationValue(annotationType, "value");
+			return value instanceof AnnotationDescription[] ? (AnnotationDescription[]) value : new AnnotationDescription[0];
 		}
 
 		private Stream<InjectionTask> custom(Parameter parameter, TypeDescription annotation) {
