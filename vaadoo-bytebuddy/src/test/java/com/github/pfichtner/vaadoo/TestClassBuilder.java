@@ -254,22 +254,12 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 					grouped.computeIfAbsent(anno.getAnno(), k -> new ArrayList<>()).add(anno);
 				}
 				for (Map.Entry<Class<? extends Annotation>, List<AnnotationDefinition>> entry : grouped.entrySet()) {
-					List<AnnotationDefinition> defs = entry.getValue();
-					Class<? extends Annotation> annoClass = entry.getKey();
-					if (defs.size() == 1) {
-						paramDef = paramDef.annotateParameter(createAnnotation(defs.get(0)));
+					var definitions = entry.getValue();
+					var annoClass = entry.getKey();
+					if (definitions.size() == 1) {
+						paramDef = paramDef.annotateParameter(createAnnotation(definitions.get(0)));
 					} else {
-						// multiple annotations of the same type
-						Repeatable repeatable = annoClass.getAnnotation(Repeatable.class);
-						Class<? extends Annotation> container = repeatable.value();
-						AnnotationDescription[] individuals = defs.stream().map(TestClassBuilder::createAnnotation)
-								.toArray(AnnotationDescription[]::new);
-						AnnotationDescription containerAnno = AnnotationDescription.Builder.ofType(container)
-								.defineAnnotationArray("value",
-										net.bytebuddy.description.type.TypeDescription.ForLoadedType.of(annoClass),
-										individuals)
-								.build();
-						paramDef = paramDef.annotateParameter(containerAnno);
+						paramDef = paramDef.annotateParameter(repackToContainer(definitions, annoClass));
 					}
 				}
 			}
@@ -284,6 +274,16 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		}
 
 		return builder.make();
+	}
+
+	private static AnnotationDescription repackToContainer(List<AnnotationDefinition> defs,
+			Class<? extends Annotation> annoClass) {
+		Repeatable repeatable = annoClass.getAnnotation(Repeatable.class);
+		Class<? extends Annotation> container = repeatable.value();
+		AnnotationDescription[] individuals = defs.stream().map(TestClassBuilder::createAnnotation)
+				.toArray(AnnotationDescription[]::new);
+		return AnnotationDescription.Builder.ofType(container)
+				.defineAnnotationArray("value", TypeDescription.ForLoadedType.of(annoClass), individuals).build();
 	}
 
 	private Builder<Object> base() {
