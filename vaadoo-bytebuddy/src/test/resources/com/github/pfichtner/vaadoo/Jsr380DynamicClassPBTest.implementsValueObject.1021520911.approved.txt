@@ -24,7 +24,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_1021520911
 implements ValueObject {
-    public Generated_1021520911(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) LinkedHashMap linkedHashMap, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) MinguoDate minguoDate) {
+    public Generated_1021520911(@Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) LinkedHashMap linkedHashMap, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) MinguoDate minguoDate) {
     }
 }
 
@@ -49,7 +49,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_1021520911
 implements ValueObject {
-    public Generated_1021520911(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) LinkedHashMap linkedHashMap, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) MinguoDate minguoDate) {
+    public Generated_1021520911(@Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) LinkedHashMap linkedHashMap, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) MinguoDate minguoDate) {
         Generated_1021520911.validate(linkedHashMap, minguoDate);
         this(linkedHashMap, minguoDate, null);
     }
@@ -58,32 +58,32 @@ implements ValueObject {
     }
 
     private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
-        if (linkedHashMap == null) {
-            throw new NullPointerException("linkedHashMap must not be null");
-        }
         if (linkedHashMap != null && (linkedHashMap.size() < 0 || linkedHashMap.size() > Integer.MAX_VALUE)) {
             throw new IllegalArgumentException("size of linkedHashMap must be between 0 and 2147483647");
+        }
+        if (linkedHashMap == null) {
+            throw new NullPointerException("linkedHashMap must not be empty");
+        }
+        if (linkedHashMap.size() == 0) {
+            throw new IllegalArgumentException("linkedHashMap must not be empty");
+        }
+        if (linkedHashMap == null) {
+            throw new NullPointerException("linkedHashMap must not be empty");
+        }
+        if (linkedHashMap.size() == 0) {
+            throw new IllegalArgumentException("linkedHashMap must not be empty");
         }
         if (linkedHashMap != null) {
             throw new IllegalArgumentException("linkedHashMap must be null");
         }
         if (linkedHashMap == null) {
-            throw new NullPointerException("linkedHashMap must not be empty");
-        }
-        if (linkedHashMap.size() == 0) {
-            throw new IllegalArgumentException("linkedHashMap must not be empty");
-        }
-        if (linkedHashMap == null) {
-            throw new NullPointerException("linkedHashMap must not be empty");
-        }
-        if (linkedHashMap.size() == 0) {
-            throw new IllegalArgumentException("linkedHashMap must not be empty");
-        }
-        if (minguoDate == null) {
-            throw new NullPointerException("minguoDate must not be null");
+            throw new NullPointerException("linkedHashMap must not be null");
         }
         if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
             throw new IllegalArgumentException("minguoDate must be a past date");
+        }
+        if (minguoDate == null) {
+            throw new NullPointerException("minguoDate must not be null");
         }
         if (minguoDate != null) {
             throw new IllegalArgumentException("minguoDate must be null");

@@ -7,7 +7,7 @@ params annotations
 
 
 Source:
-Analysing type com.example.Generated_1678399129
+Analysing type com.example.Generated_4119245362
 /*
  * Decompiled with CFR.
  */
@@ -20,34 +20,34 @@ import jakarta.validation.constraints.Null;
 import java.time.chrono.HijrahDate;
 import org.jmolecules.ddd.types.ValueObject;
 
-public class Generated_1678399129
+public class Generated_4119245362
 implements ValueObject {
-    public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) Long l) {
+    public Generated_4119245362(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") Long l) {
     }
 }
 
 
 
 Transformed:
-Analysing type com.example.Generated_1678399129
+Analysing type com.example.Generated_4119245362
 /*
  * Decompiled with CFR.
  */
 package com.example;
 
-import com.example.Generated_1678399129;
+import com.example.Generated_4119245362;
 import java.math.BigDecimal;
 import java.time.chrono.HijrahDate;
 import org.jmolecules.ddd.types.ValueObject;
 
-public class Generated_1678399129
+public class Generated_4119245362
 implements ValueObject {
-    public Generated_1678399129(HijrahDate hijrahDate, Long l) {
-        Generated_1678399129.validate(hijrahDate, l);
+    public Generated_4119245362(HijrahDate hijrahDate, Long l) {
+        Generated_4119245362.validate(hijrahDate, l);
         this(hijrahDate, l, null);
     }
 
-    private /* synthetic */ Generated_1678399129(HijrahDate hijrahDate, Long l, auxiliary.[AUX1_1 AUX1_1] {
+    private /* synthetic */ Generated_4119245362(HijrahDate hijrahDate, Long l, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate(HijrahDate hijrahDate, Long l) {
@@ -57,10 +57,10 @@ implements ValueObject {
         if (l != null && l >= 0L) {
             throw new IllegalArgumentException("long must be less than 0");
         }
-        if (l != null && new BigDecimal(l).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
+        if (l != null && l > 0L) {
             throw new IllegalArgumentException("long must be less than or equal to 0");
         }
-        if (l != null && l > 0L) {
+        if (l != null && new BigDecimal(l).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
             throw new IllegalArgumentException("long must be less than or equal to 0");
         }
     }

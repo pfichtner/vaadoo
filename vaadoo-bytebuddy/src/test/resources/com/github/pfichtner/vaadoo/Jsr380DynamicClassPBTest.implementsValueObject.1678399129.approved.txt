@@ -22,7 +22,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_1678399129
 implements ValueObject {
-    public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) Long l) {
+    public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) Long l) {
     }
 }
 
@@ -46,7 +46,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_1678399129
 implements ValueObject {
-    public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) Long l) {
+    public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) Long l) {
         Generated_1678399129.validate(hijrahDate, l);
         this(hijrahDate, l, null);
     }
@@ -58,14 +58,14 @@ implements ValueObject {
         if (hijrahDate != null) {
             throw new IllegalArgumentException("hijrahDate must be null");
         }
-        if (l != null && l > 0L) {
-            throw new IllegalArgumentException("long must be less than or equal to 0");
+        if (l != null && l >= 0L) {
+            throw new IllegalArgumentException("long must be less than 0");
         }
         if (l != null && new BigDecimal(l).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
             throw new IllegalArgumentException("long must be less than or equal to 0");
         }
-        if (l != null && l >= 0L) {
-            throw new IllegalArgumentException("long must be less than 0");
+        if (l != null && l > 0L) {
+            throw new IllegalArgumentException("long must be less than or equal to 0");
         }
     }
 }

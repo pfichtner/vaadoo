@@ -27,7 +27,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_786058621
 implements ValueObject {
-    public Generated_786058621(@FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
+    public Generated_786058621(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
     }
 }
 
@@ -52,7 +52,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_786058621
 implements ValueObject {
-    public Generated_786058621(@FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
+    public Generated_786058621(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
         Generated_786058621.validate(offsetDateTime, calendar, minguoDate, instant, s);
         this(offsetDateTime, calendar, minguoDate, instant, s, null);
     }
@@ -61,14 +61,14 @@ implements ValueObject {
     }
 
     private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
-        if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException("offsetDateTime must be a date in the present or in the future");
+        if (offsetDateTime != null && !offsetDateTime.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("offsetDateTime must be a future date");
         }
         if (offsetDateTime == null) {
             throw new NullPointerException("offsetDateTime must not be null");
         }
-        if (offsetDateTime != null && !offsetDateTime.isAfter(OffsetDateTime.now())) {
-            throw new IllegalArgumentException("offsetDateTime must be a future date");
+        if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("offsetDateTime must be a date in the present or in the future");
         }
         if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
             throw new IllegalArgumentException("minguoDate must be a future date");

@@ -1,0 +1,120 @@
+Story:
+Class implementing ValueObject: [Guava, removing JSR380 annotations]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.PositiveOrZero, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.PositiveOrZero, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.PositiveOrZero, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Min, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.Instant, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Negative, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Max, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Max, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NegativeOrZero, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NegativeOrZero, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.PastOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Size, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=interface java.util.Map, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Size, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Long;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Size, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Size, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=interface java.util.List, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Size, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.util.LinkedList, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={})])
+
+
+Source:
+Analysing type com.example.Generated_417701629
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Negative;
+import jakarta.validation.constraints.NegativeOrZero;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_417701629
+implements ValueObject {
+    public Generated_417701629(@PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) short s, @PositiveOrZero.List(value={@PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}), @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={})}) @Min(groups={}, message="{jakarta.validation.constraints.Min.message}", payload={}, value=0L) Integer n, Instant instant, @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @Max.List(value={@Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L), @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L)}) @NegativeOrZero.List(value={@NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}), @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={})}) short s2, @Past.List(value={@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}), @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={})}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Object[] objectArray, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Map map, @Size.List(value={@Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}), @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={})}) @Null.List(value={@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}), @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={})}) Long[] longArray, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) List list, @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) @Null.List(value={@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}), @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={})}) LinkedList linkedList) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_417701629
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_417701629;
+import com.google.common.base.Preconditions;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NegativeOrZero;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_417701629
+implements ValueObject {
+    public Generated_417701629(short s, @PositiveOrZero.List(value={@PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}), @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={})}) Integer n, Instant instant, @Max.List(value={@Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L), @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L)}) @NegativeOrZero.List(value={@NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}), @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={})}) short s2, @Past.List(value={@Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}), @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={})}) OffsetDateTime offsetDateTime, Object[] objectArray, Map map, @Size.List(value={@Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}), @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={})}) @Null.List(value={@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}), @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={})}) Long[] longArray, @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) List list, @NotEmpty.List(value={@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}), @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={})}) @Null.List(value={@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}), @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={})}) LinkedList linkedList) {
+        Generated_417701629.validate(s, n, instant, s2, offsetDateTime, objectArray, map, longArray, list, linkedList);
+        this(s, n, instant, s2, offsetDateTime, objectArray, map, longArray, list, linkedList, null);
+    }
+
+    private /* synthetic */ Generated_417701629(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList) {
+        Preconditions.checkArgument(s >= 0, "short must be greater than or equal to 0");
+        Preconditions.checkArgument(n == null || n >= 0, "integer must be greater than or equal to 0");
+        Preconditions.checkArgument(n == null || n >= 0, "integer must be greater than or equal to 0");
+        Preconditions.checkArgument(n == null || (long)n.intValue() >= 0L, "integer must be greater than or equal to 0");
+        Preconditions.checkArgument(s2 < 0, "short1 must be less than 0");
+        Preconditions.checkArgument((long)s2 <= 0L, "short1 must be less than or equal to 0");
+        Preconditions.checkArgument((long)s2 <= 0L, "short1 must be less than or equal to 0");
+        Preconditions.checkArgument(s2 <= 0, "short1 must be less than or equal to 0");
+        Preconditions.checkArgument(s2 <= 0, "short1 must be less than or equal to 0");
+        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a past date");
+        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a past date");
+        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a future date");
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present");
+        int n2 = Preconditions.checkNotNull(objectArray, "size of objectArray must be between 0 and 2147483647").length;
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of objectArray must be between 0 and 2147483647");
+        n2 = Preconditions.checkNotNull(map, "size of map must be between 0 and 2147483647").size();
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of map must be between 0 and 2147483647");
+        n2 = ((Object[])Preconditions.checkNotNull(longArray, "size of longArray must be between 0 and 2147483647")).length;
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of longArray must be between 0 and 2147483647");
+        n2 = ((Object[])Preconditions.checkNotNull(longArray, "size of longArray must be between 0 and 2147483647")).length;
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of longArray must be between 0 and 2147483647");
+        Preconditions.checkArgument(longArray == null, "longArray must be null");
+        Preconditions.checkArgument(longArray == null, "longArray must be null");
+        n2 = ((Collection)Preconditions.checkNotNull(list, "size of list must be between 0 and 2147483647")).size();
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of list must be between 0 and 2147483647");
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(list, "list must not be empty")).size() > 0, "list must not be empty");
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(list, "list must not be empty")).size() > 0, "list must not be empty");
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(list, "list must not be empty")).size() > 0, "list must not be empty");
+        Preconditions.checkArgument(list == null, "list must be null");
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty");
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty");
+        Preconditions.checkArgument(linkedList == null, "linkedList must be null");
+        Preconditions.checkArgument(linkedList == null, "linkedList must be null");
+    }
+}
+

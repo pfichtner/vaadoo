@@ -17,16 +17,17 @@ package com.github.pfichtner.vaadoo;
 
 import static java.lang.Math.abs;
 import static java.lang.String.format;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Repeatable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -122,10 +123,14 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	@RequiredArgsConstructor(staticName = "of")
 	public static class AnnotationDefinition {
 		Class<? extends Annotation> anno;
-		Map<String, Object> values;
+		LinkedHashMap<String, Object> values;
 
 		public static AnnotationDefinition of(Class<? extends Annotation> anno) {
-			return new AnnotationDefinition(anno, Collections.emptyMap());
+			return of(anno, emptyMap());
+		}
+
+		public static AnnotationDefinition of(Class<? extends Annotation> anno, Map<String, Object> values) {
+			return new AnnotationDefinition(anno, new LinkedHashMap<>(values));
 		}
 
 	}
@@ -244,7 +249,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 				// Group annotations by their annotation type so we can create
 				// a container annotation when multiple repeatable annotations
 				// of the same type are present.
-				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = new HashMap<>();
+				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = new LinkedHashMap<>();
 				for (AnnotationDefinition anno : parameter.getAnnotations()) {
 					grouped.computeIfAbsent(anno.getAnno(), k -> new ArrayList<>()).add(anno);
 				}
@@ -255,20 +260,16 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 						paramDef = paramDef.annotateParameter(createAnnotation(defs.get(0)));
 					} else {
 						// multiple annotations of the same type
-						java.lang.annotation.Repeatable repeatable = annoClass.getAnnotation(java.lang.annotation.Repeatable.class);
-						if (repeatable != null) {
-							Class<? extends Annotation> container = repeatable.value();
-							AnnotationDescription[] individuals = defs.stream().map(TestClassBuilder::createAnnotation)
-									.toArray(AnnotationDescription[]::new);
-								    AnnotationDescription containerAnno = AnnotationDescription.Builder.ofType(container)
-									    .defineAnnotationArray("value", net.bytebuddy.description.type.TypeDescription.ForLoadedType.of(annoClass),
-										    individuals)
-									    .build();
-							paramDef = paramDef.annotateParameter(containerAnno);
-						} else {
-							// non-repeatable: pick first
-							paramDef = paramDef.annotateParameter(createAnnotation(defs.get(0)));
-						}
+						Repeatable repeatable = annoClass.getAnnotation(Repeatable.class);
+						Class<? extends Annotation> container = repeatable.value();
+						AnnotationDescription[] individuals = defs.stream().map(TestClassBuilder::createAnnotation)
+								.toArray(AnnotationDescription[]::new);
+						AnnotationDescription containerAnno = AnnotationDescription.Builder.ofType(container)
+								.defineAnnotationArray("value",
+										net.bytebuddy.description.type.TypeDescription.ForLoadedType.of(annoClass),
+										individuals)
+								.build();
+						paramDef = paramDef.annotateParameter(containerAnno);
 					}
 				}
 			}

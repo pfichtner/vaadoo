@@ -29,7 +29,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_371468532
 implements ValueObject {
-    public Generated_371468532(LocalTime localTime, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MinguoDate minguoDate, Float[] floatArray, Year year, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) JapaneseDate japaneseDate) {
+    public Generated_371468532(LocalTime localTime, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) MinguoDate minguoDate, Float[] floatArray, Year year, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) JapaneseDate japaneseDate) {
     }
 }
 
@@ -60,26 +60,26 @@ implements ValueObject {
     }
 
     private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
-        if (minguoDate == null) {
-            throw new IllegalArgumentException("minguoDate must not be null");
-        }
         if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
             throw new IllegalArgumentException("minguoDate must be a past date");
         }
         if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
             throw new IllegalArgumentException("minguoDate must be a future date");
         }
-        if (japaneseDate != null && japaneseDate.isBefore(JapaneseDate.now())) {
-            throw new IllegalArgumentException("japaneseDate must be a date in the present or in the future");
+        if (minguoDate == null) {
+            throw new IllegalArgumentException("minguoDate must not be null");
         }
         if (japaneseDate != null && !japaneseDate.isBefore(JapaneseDate.now())) {
             throw new IllegalArgumentException("japaneseDate must be a past date");
         }
+        if (japaneseDate != null && !japaneseDate.isAfter(JapaneseDate.now())) {
+            throw new IllegalArgumentException("japaneseDate must be a future date");
+        }
         if (japaneseDate != null) {
             throw new IllegalArgumentException("japaneseDate must be null");
         }
-        if (japaneseDate != null && !japaneseDate.isAfter(JapaneseDate.now())) {
-            throw new IllegalArgumentException("japaneseDate must be a future date");
+        if (japaneseDate != null && japaneseDate.isBefore(JapaneseDate.now())) {
+            throw new IllegalArgumentException("japaneseDate must be a date in the present or in the future");
         }
     }
 }

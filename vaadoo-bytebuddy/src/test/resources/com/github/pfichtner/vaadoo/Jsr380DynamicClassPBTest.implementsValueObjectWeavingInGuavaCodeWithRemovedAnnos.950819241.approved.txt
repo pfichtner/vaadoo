@@ -35,7 +35,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_950819241
 implements ValueObject {
-    public Generated_950819241(Object[] objectArray, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) MinguoDate minguoDate, YearMonth yearMonth, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, MinguoDate minguoDate2, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) OffsetDateTime offsetDateTime, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) LinkedList linkedList, short s) {
+    public Generated_950819241(Object[] objectArray, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) MinguoDate minguoDate, YearMonth yearMonth, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) ZonedDateTime zonedDateTime, MinguoDate minguoDate2, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) LinkedList linkedList, short s) {
     }
 }
 
@@ -72,11 +72,11 @@ implements ValueObject {
         Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date");
         Preconditions.checkArgument(minguoDate == null, "minguoDate must be null");
         Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), "zonedDateTime must be a past date");
-        Preconditions.checkArgument(zonedDateTime == null, "zonedDateTime must be null");
         Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), "zonedDateTime must be a future date");
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a date in the present or in the future");
+        Preconditions.checkArgument(zonedDateTime == null, "zonedDateTime must be null");
         Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present");
         Preconditions.checkArgument(offsetDateTime == null, "offsetDateTime must be null");
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a date in the present or in the future");
         int n = ((Collection)Preconditions.checkNotNull(linkedList, "size of linkedList must be between 0 and 2147483647")).size();
         Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, "size of linkedList must be between 0 and 2147483647");
         Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty");
