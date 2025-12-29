@@ -19,7 +19,6 @@ import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
 import static com.github.pfichtner.vaadoo.Transformer.newInstance;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfigurationSupplier.VAADOO_CONFIG;
-import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.nio.file.Files.walk;
@@ -28,7 +27,6 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import static java.util.Map.entry;
 import static java.util.Map.Entry.comparingByKey;
-import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
@@ -43,6 +41,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Repeatable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -94,9 +93,7 @@ import net.jqwik.api.Assume;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
-import net.jqwik.api.Tuple;
 import net.jqwik.api.arbitraries.ListArbitrary;
-import java.lang.annotation.Repeatable;
 
 class Jsr380DynamicClassPBTest {
 
