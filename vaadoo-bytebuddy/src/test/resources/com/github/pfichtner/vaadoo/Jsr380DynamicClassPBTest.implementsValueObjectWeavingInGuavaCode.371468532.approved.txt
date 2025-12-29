@@ -1,0 +1,78 @@
+Story:
+Class implementing ValueObject: [Guava]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.LocalTime, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotNull, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.Year, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+
+
+Source:
+Analysing type com.example.Generated_371468532
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import java.time.LocalTime;
+import java.time.Year;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.MinguoDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_371468532
+implements ValueObject {
+    public Generated_371468532(LocalTime localTime, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MinguoDate minguoDate, Float[] floatArray, Year year, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) JapaneseDate japaneseDate) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_371468532
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_371468532;
+import com.google.common.base.Preconditions;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import java.time.LocalTime;
+import java.time.Year;
+import java.time.chrono.JapaneseDate;
+import java.time.chrono.MinguoDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_371468532
+implements ValueObject {
+    public Generated_371468532(LocalTime localTime, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MinguoDate minguoDate, Float[] floatArray, Year year, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) JapaneseDate japaneseDate) {
+        Generated_371468532.validate(localTime, minguoDate, floatArray, year, japaneseDate);
+        this(localTime, minguoDate, floatArray, year, japaneseDate, null);
+    }
+
+    private /* synthetic */ Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
+        Preconditions.checkNotNull(minguoDate, "minguoDate must not be null");
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date");
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), "minguoDate must be a future date");
+        Preconditions.checkArgument(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a date in the present or in the future");
+        Preconditions.checkArgument(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a past date");
+        Preconditions.checkArgument(japaneseDate == null, "japaneseDate must be null");
+        Preconditions.checkArgument(japaneseDate == null || japaneseDate.isAfter(JapaneseDate.now()), "japaneseDate must be a future date");
+    }
+}
+

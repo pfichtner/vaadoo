@@ -1,0 +1,72 @@
+Story:
+Class implementing ValueObject: [Guava]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.util.Calendar, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.Instant, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+
+
+Source:
+Analysing type com.example.Generated_786058621
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.chrono.MinguoDate;
+import java.util.Calendar;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_786058621
+implements ValueObject {
+    public Generated_786058621(@FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_786058621
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_786058621;
+import com.google.common.base.Preconditions;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.chrono.MinguoDate;
+import java.util.Calendar;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_786058621
+implements ValueObject {
+    public Generated_786058621(@FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
+        Generated_786058621.validate(offsetDateTime, calendar, minguoDate, instant, s);
+        this(offsetDateTime, calendar, minguoDate, instant, s, null);
+    }
+
+    private /* synthetic */ Generated_786058621(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a date in the present or in the future");
+        Preconditions.checkNotNull(offsetDateTime, "offsetDateTime must not be null");
+        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a future date");
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), "minguoDate must be a future date");
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), "minguoDate must be a future date");
+    }
+}
+

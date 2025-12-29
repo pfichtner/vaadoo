@@ -1,0 +1,75 @@
+Story:
+Class implementing ValueObject: [JDK, keeping JSR380 annotations]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Positive, values={})])
+
+
+Source:
+Analysing type com.example.Generated_1605684248
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Positive;
+import java.time.MonthDay;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1605684248
+implements ValueObject {
+    public Generated_1605684248(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MonthDay monthDay, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay2, Float[] floatArray, short s, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) int n) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_1605684248
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1605684248;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Positive;
+import java.time.MonthDay;
+import java.time.ZonedDateTime;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1605684248
+implements ValueObject {
+    public Generated_1605684248(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MonthDay monthDay, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay2, Float[] floatArray, short s, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) int n) {
+        Generated_1605684248.validate(monthDay, monthDay2, floatArray, s, zonedDateTime, n);
+        this(monthDay, monthDay2, floatArray, s, zonedDateTime, n, null);
+    }
+
+    private /* synthetic */ Generated_1605684248(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
+        if (monthDay != null && !monthDay.isAfter(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay must be a future date");
+        }
+        if (monthDay2 != null && !monthDay2.isBefore(MonthDay.now())) {
+            throw new IllegalArgumentException("monthDay1 must be a past date");
+        }
+        if (zonedDateTime != null && !zonedDateTime.isAfter(ZonedDateTime.now())) {
+            throw new IllegalArgumentException("zonedDateTime must be a future date");
+        }
+        if (n <= 0) {
+            throw new IllegalArgumentException("int must be greater than 0");
+        }
+    }
+}
+

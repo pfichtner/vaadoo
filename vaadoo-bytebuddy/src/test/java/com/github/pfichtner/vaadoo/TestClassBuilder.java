@@ -26,6 +26,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -240,8 +241,35 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 						? nameMaker.makeName(((NamedParameterDefinition) parameter).name())
 						: nameMaker.makeName(parameter.getType());
 				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.getType(), name);
+				// Group annotations by their annotation type so we can create
+				// a container annotation when multiple repeatable annotations
+				// of the same type are present.
+				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = new HashMap<>();
 				for (AnnotationDefinition anno : parameter.getAnnotations()) {
-					paramDef = paramDef.annotateParameter(createAnnotation(anno));
+					grouped.computeIfAbsent(anno.getAnno(), k -> new ArrayList<>()).add(anno);
+				}
+				for (Map.Entry<Class<? extends Annotation>, List<AnnotationDefinition>> entry : grouped.entrySet()) {
+					List<AnnotationDefinition> defs = entry.getValue();
+					Class<? extends Annotation> annoClass = entry.getKey();
+					if (defs.size() == 1) {
+						paramDef = paramDef.annotateParameter(createAnnotation(defs.get(0)));
+					} else {
+						// multiple annotations of the same type
+						java.lang.annotation.Repeatable repeatable = annoClass.getAnnotation(java.lang.annotation.Repeatable.class);
+						if (repeatable != null) {
+							Class<? extends Annotation> container = repeatable.value();
+							AnnotationDescription[] individuals = defs.stream().map(TestClassBuilder::createAnnotation)
+									.toArray(AnnotationDescription[]::new);
+								    AnnotationDescription containerAnno = AnnotationDescription.Builder.ofType(container)
+									    .defineAnnotationArray("value", net.bytebuddy.description.type.TypeDescription.ForLoadedType.of(annoClass),
+										    individuals)
+									    .build();
+							paramDef = paramDef.annotateParameter(containerAnno);
+						} else {
+							// non-repeatable: pick first
+							paramDef = paramDef.annotateParameter(createAnnotation(defs.get(0)));
+						}
+					}
 				}
 			}
 

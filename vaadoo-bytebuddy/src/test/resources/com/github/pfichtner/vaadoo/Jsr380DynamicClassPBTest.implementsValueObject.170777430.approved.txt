@@ -1,0 +1,56 @@
+Story:
+Class implementing ValueObject: [JDK, keeping JSR380 annotations]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={})])
+
+
+Source:
+Analysing type com.example.Generated_170777430
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotEmpty;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_170777430
+implements ValueObject {
+    public Generated_170777430(@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) Object[] objectArray) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_170777430
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_170777430;
+import jakarta.validation.constraints.NotEmpty;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_170777430
+implements ValueObject {
+    public Generated_170777430(@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) Object[] objectArray) {
+        Generated_170777430.validate(objectArray);
+        this(objectArray, null);
+    }
+
+    private /* synthetic */ Generated_170777430(Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Object[] objectArray) {
+        if (objectArray == null) {
+            throw new NullPointerException("objectArray must not be empty");
+        }
+        if (objectArray.length == 0) {
+            throw new IllegalArgumentException("objectArray must not be empty");
+        }
+    }
+}
+

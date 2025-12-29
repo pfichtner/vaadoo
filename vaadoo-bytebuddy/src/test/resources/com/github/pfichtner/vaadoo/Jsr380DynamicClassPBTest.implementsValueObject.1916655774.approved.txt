@@ -1,0 +1,117 @@
+Story:
+Class implementing ValueObject: [JDK, keeping JSR380 annotations]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Short, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.DecimalMax, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.math.BigDecimal, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.PositiveOrZero, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Double;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Size, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=byte, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.DecimalMin, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Max, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+
+
+Source:
+Analysing type com.example.Generated_1916655774
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.chrono.JapaneseDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1916655774
+implements ValueObject {
+    public Generated_1916655774(@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) Object[] objectArray, Short s, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") Integer n, @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) BigDecimal bigDecimal, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) Double[] doubleArray, @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) @DecimalMin(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMin.message}", payload={}, value="0") byte by, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) JapaneseDate japaneseDate) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_1916655774
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1916655774;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.chrono.JapaneseDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1916655774
+implements ValueObject {
+    public Generated_1916655774(@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) Object[] objectArray, Short s, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") Integer n, @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) BigDecimal bigDecimal, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) Double[] doubleArray, @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) @DecimalMin(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMin.message}", payload={}, value="0") byte by, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) JapaneseDate japaneseDate) {
+        Generated_1916655774.validate(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate);
+        this(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate, null);
+    }
+
+    private /* synthetic */ Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {
+        if (objectArray == null) {
+            throw new NullPointerException("objectArray must not be empty");
+        }
+        if (objectArray.length == 0) {
+            throw new IllegalArgumentException("objectArray must not be empty");
+        }
+        if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("offsetDateTime must be a date in the present or in the future");
+        }
+        if (n != null && new BigDecimal(n).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
+            throw new IllegalArgumentException("integer must be less than or equal to 0");
+        }
+        if (bigDecimal != null && bigDecimal.signum() < 0) {
+            throw new IllegalArgumentException("bigDecimal must be greater than or equal to 0");
+        }
+        if (doubleArray != null && (doubleArray.length < 0 || doubleArray.length > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException("size of doubleArray must be between 0 and 2147483647");
+        }
+        if (doubleArray != null) {
+            throw new IllegalArgumentException("doubleArray must be null");
+        }
+        if ((long)by > 0L) {
+            throw new IllegalArgumentException("byte must be less than or equal to 0");
+        }
+        if (new BigDecimal(by).compareTo(new BigDecimal("0")) < (1 != 0 ? 0 : 1)) {
+            throw new IllegalArgumentException("byte must be greater than or equal to 0");
+        }
+        if (japaneseDate != null && japaneseDate.isBefore(JapaneseDate.now())) {
+            throw new IllegalArgumentException("japaneseDate must be a date in the present or in the future");
+        }
+        if (japaneseDate == null) {
+            throw new NullPointerException("japaneseDate must not be null");
+        }
+        if (japaneseDate != null && !japaneseDate.isBefore(JapaneseDate.now())) {
+            throw new IllegalArgumentException("japaneseDate must be a past date");
+        }
+    }
+}
+

@@ -1,0 +1,61 @@
+Story:
+Class implementing ValueObject: [Guava, IAE instead of NPE]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Long, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Negative, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.DecimalMax, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NegativeOrZero, values={})])
+
+
+Source:
+Analysing type com.example.Generated_1678399129
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Negative;
+import jakarta.validation.constraints.NegativeOrZero;
+import jakarta.validation.constraints.Null;
+import java.time.chrono.HijrahDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1678399129
+implements ValueObject {
+    public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) Long l) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_1678399129
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1678399129;
+import com.google.common.base.Preconditions;
+import java.math.BigDecimal;
+import java.time.chrono.HijrahDate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1678399129
+implements ValueObject {
+    public Generated_1678399129(HijrahDate hijrahDate, Long l) {
+        Generated_1678399129.validate(hijrahDate, l);
+        this(hijrahDate, l, null);
+    }
+
+    private /* synthetic */ Generated_1678399129(HijrahDate hijrahDate, Long l, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(HijrahDate hijrahDate, Long l) {
+        Preconditions.checkArgument(hijrahDate == null, "hijrahDate must be null");
+        Preconditions.checkArgument(l == null || l <= 0L, "long must be less than or equal to 0");
+        Preconditions.checkArgument(l == null || new BigDecimal(l).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), "long must be less than or equal to 0");
+        Preconditions.checkArgument(l == null || l < 0L, "long must be less than 0");
+    }
+}
+

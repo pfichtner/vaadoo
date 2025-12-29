@@ -96,6 +96,7 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import net.jqwik.api.Tuple;
 import net.jqwik.api.arbitraries.ListArbitrary;
+import java.lang.annotation.Repeatable;
 
 class Jsr380DynamicClassPBTest {
 
@@ -162,16 +163,43 @@ class Jsr380DynamicClassPBTest {
 					.map(AnnotationDefinition::of) //
 					.collect(toList());
 
-			int maxSize = applicable.size();
-			IntUnaryOperator cap = n -> min(n, maxSize);
-			Arbitrary<List<AnnotationDefinition>> frequency = Arbitraries.frequency( //
-					Tuple.of(15, uniquesOfMin(applicable, cap, 0)), //
-					Tuple.of(30, uniquesOfMin(applicable, cap, 1)), //
-					Tuple.of(30, uniquesOfMin(applicable, cap, 2)), //
-					Tuple.of(20, uniquesOfMin(applicable, cap, 3)), //
-					Tuple.of(5, uniquesOfMin(applicable, cap, 4).ofMaxSize(maxSize))) //
-					.flatMap(identity());
-			return frequency.map(annos -> new DefaultParameterDefinition(type, annos));
+			    // Separate repeatable and non-repeatable annotations
+			    List<AnnotationDefinition> repeatableAnnos = applicable.stream()
+				    .filter(a -> a.getAnno().isAnnotationPresent(Repeatable.class))
+				    .collect(toList());
+			    List<AnnotationDefinition> nonRepeatableAnnos = applicable.stream()
+				    .filter(a -> !a.getAnno().isAnnotationPresent(Repeatable.class))
+				    .collect(toList());
+
+			    // non-repeatable: choose unique elements
+			    Arbitrary<List<AnnotationDefinition>> nonRepeatableGen = nonRepeatableAnnos.isEmpty()
+				    ? Arbitraries.just(List.of())
+				    : Arbitraries.of(nonRepeatableAnnos).list().uniqueElements().ofMaxSize(nonRepeatableAnnos.size());
+
+			    // repeatable: allow duplicates (same annotation type can appear multiple times)
+			    Arbitrary<List<AnnotationDefinition>> repeatableGen = repeatableAnnos.isEmpty()
+				    ? Arbitraries.just(List.of())
+				    : Arbitraries.of(repeatableAnnos).list().ofMaxSize(5);
+
+				return repeatableGen.flatMap(rep -> nonRepeatableGen.map(nonRep -> {
+					List<AnnotationDefinition> combined = new ArrayList<>(rep);
+					combined.addAll(nonRep);
+					// Ensure non-repeatable annotations are not duplicated — dedupe by annotation name
+					Map<String, List<AnnotationDefinition>> groupedByName = combined.stream()
+							.collect(groupingBy(d -> d.getAnno().getName(), mapping(Function.identity(), toList())));
+					List<AnnotationDefinition> finalList = new ArrayList<>();
+					for (Map.Entry<String, List<AnnotationDefinition>> e : groupedByName.entrySet()) {
+						List<AnnotationDefinition> defs = e.getValue();
+						boolean allowMultiple = defs.stream()
+								.anyMatch(d -> d.getAnno().isAnnotationPresent(Repeatable.class));
+						if (allowMultiple) {
+							finalList.addAll(defs);
+						} else if (!defs.isEmpty()) {
+							finalList.add(defs.get(0));
+						}
+					}
+					return new DefaultParameterDefinition(type, finalList);
+				}));
 		});
 	}
 
