@@ -15,11 +15,16 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.JMoleculesPlugin;
 
@@ -80,14 +85,47 @@ public final class Transformer {
 		}
 	}
 
+	/**
+	 * Default newInstance: forbid well-known JSR380 packages.
+	 */
 	public static Object newInstance(Unloaded<?> unloaded, Object[] args) throws Exception {
-		Class<?> clazz = unloaded.load(new ClassLoader() {
-		}, ClassLoadingStrategy.Default.INJECTION).getLoaded();
+		return newInstance(unloaded, args, "javax.validation.", "jakarta.validation.");
+	}
+
+	/**
+	 * Overloaded newInstance allowing to specify forbidden package prefixes.
+	 */
+	public static Object newInstance(Unloaded<?> unloaded, Object[] args, String... forbiddenPackagePrefixes)
+			throws Exception {
+		ClassLoader blockingClassLoader = new ForbiddenPackagesClassLoader(
+				Thread.currentThread().getContextClassLoader(), forbiddenPackagePrefixes);
+		Class<?> clazz = unloaded.load(blockingClassLoader, ClassLoadingStrategy.Default.INJECTION).getLoaded();
 		try {
 			return clazz.getDeclaredConstructors()[0].newInstance(args);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			throw cause instanceof Exception ? (Exception) cause : new RuntimeException(e);
+		}
+	}
+
+	static final class ForbiddenPackagesClassLoader extends ClassLoader {
+		private final List<String> forbiddenPrefixes;
+
+		ForbiddenPackagesClassLoader(ClassLoader parent, String... forbiddenPrefixes) {
+			super(parent);
+			this.forbiddenPrefixes = List.copyOf(Arrays.asList(forbiddenPrefixes));
+		}
+
+		@Override
+		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+			if (name != null) {
+				var forbiddenNames = forbiddenPrefixes.stream().filter(p -> name.startsWith(p)).collect(toList());
+				if (!forbiddenNames.isEmpty()) {
+					throw new ClassNotFoundException(
+							format("Class(es) forbidden by prefix %s: %s", forbiddenNames, name));
+				}
+			}
+			return super.loadClass(name, resolve);
 		}
 	}
 
