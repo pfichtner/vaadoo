@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -113,7 +112,7 @@ public final class Transformer {
 
 		ForbiddenPackagesClassLoader(ClassLoader parent, String... forbiddenPrefixes) {
 			super(parent);
-			this.forbiddenPrefixes = List.copyOf(Arrays.asList(forbiddenPrefixes));
+			this.forbiddenPrefixes = List.of(forbiddenPrefixes);
 		}
 
 		@Override
