@@ -96,8 +96,12 @@ public final class Transformer {
 	 */
 	public static Object newInstance(Unloaded<?> unloaded, Object[] args, String... forbiddenPackagePrefixes)
 			throws Exception {
-		ClassLoader blockingClassLoader = new ForbiddenPackagesClassLoader(
-				Thread.currentThread().getContextClassLoader(), forbiddenPackagePrefixes);
+		return newInstance(unloaded, args, new ForbiddenPackagesClassLoader(
+				Thread.currentThread().getContextClassLoader(), forbiddenPackagePrefixes));
+	}
+
+	private static Object newInstance(Unloaded<?> unloaded, Object[] args, ClassLoader blockingClassLoader)
+			throws Exception {
 		Class<?> clazz = unloaded.load(blockingClassLoader, ClassLoadingStrategy.Default.INJECTION).getLoaded();
 		try {
 			return clazz.getDeclaredConstructors()[0].newInstance(args);
@@ -107,7 +111,7 @@ public final class Transformer {
 		}
 	}
 
-	static final class ForbiddenPackagesClassLoader extends ClassLoader {
+	private static final class ForbiddenPackagesClassLoader extends ClassLoader {
 		private final List<String> forbiddenPrefixes;
 
 		ForbiddenPackagesClassLoader(ClassLoader parent, String... forbiddenPrefixes) {

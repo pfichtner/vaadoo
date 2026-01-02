@@ -28,13 +28,17 @@ import jakarta.validation.constraints.NotNull;
 
 class TransformerTest {
 
+	Transformer transformer = new Transformer();
+
 	@Test
 	void newInstanceShouldFailWhenClassRefersToJsr380Annotation() throws Exception {
 		// Use the JSR-380 annotation type itself as the constructor parameter type
-		// so the generated class references the forbidden package at load time.
+		// so the generated class still references the forbidden package at load time.
 		var ctor = new ConstructorDefinition(new DefaultParameterDefinition(NotNull.class));
 		var unloaded = a(testClass("com.example.RefersJsr380").withConstructor(ctor));
-		assertThrows(NoClassDefFoundError.class, () -> Transformer.newInstance(unloaded, new Object[] { null }));
+		var transformedClass = transformer.transform(unloaded);
+		assertThrows(NoClassDefFoundError.class,
+				() -> Transformer.newInstance(transformedClass, new Object[] { null }));
 	}
 
 }
