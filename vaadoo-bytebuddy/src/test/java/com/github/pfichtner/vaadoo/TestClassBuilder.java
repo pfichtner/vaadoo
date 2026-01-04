@@ -18,8 +18,10 @@ package com.github.pfichtner.vaadoo;
 import static java.lang.Math.abs;
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.concat;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.lang.annotation.Annotation;
@@ -87,9 +89,9 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 	public interface ParameterDefinition {
 
-		Class<?> getType();
+		Class<?> type();
 
-		List<AnnotationDefinition> getAnnotations();
+		List<AnnotationDefinition> annotations();
 
 		public static String stableChecksum(List<ParameterDefinition> parameters) {
 			String stringValue = parameters.stream().map(ParameterDefinition::asString).collect(joining("|"));
@@ -97,12 +99,12 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		}
 
 		static String asString(ParameterDefinition definition) {
-			return format("%s:%s", definition.getType().getName(),
-					definition.getAnnotations().stream().map(d -> asString(d)).sorted().collect(joining(",")));
+			return format("%s:%s", definition.type().getName(),
+					definition.annotations().stream().map(d -> asString(d)).sorted().collect(joining(",")));
 		}
 
 		static String asString(AnnotationDefinition definition) {
-			return format("%s[%s]", definition.getAnno().getName(), definition.values.entrySet().stream()
+			return format("%s[%s]", definition.annotation().getName(), definition.values.entrySet().stream()
 					.map(v -> v.getKey() + "=" + v.getValue()).collect(joining(",")));
 		}
 
@@ -121,24 +123,33 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 	@Value
 	@RequiredArgsConstructor(staticName = "of")
+	@Accessors(fluent = true)
 	public static class AnnotationDefinition {
-		Class<? extends Annotation> anno;
+		Class<? extends Annotation> annotation;
 		LinkedHashMap<String, Object> values;
 
-		public static AnnotationDefinition of(Class<? extends Annotation> anno) {
-			return of(anno, emptyMap());
+		public static AnnotationDefinition of(Class<? extends Annotation> annotation) {
+			return of(annotation, emptyMap());
 		}
 
-		public static AnnotationDefinition of(Class<? extends Annotation> anno, Map<String, Object> values) {
-			return new AnnotationDefinition(anno, new LinkedHashMap<>(values));
+		public static AnnotationDefinition of(Class<? extends Annotation> annotation, Map<String, Object> values) {
+			return new AnnotationDefinition(annotation, new LinkedHashMap<>(values));
 		}
 
 	}
 
 	@Value
 	@RequiredArgsConstructor
-	public static class DefaultParameterDefinition implements ParameterDefinition {
+	@Accessors(fluent = true)
+	public static class TypeDefinition {
 		Class<?> type;
+	}
+
+	@Value
+	@RequiredArgsConstructor
+	@Accessors(fluent = true)
+	public static class DefaultParameterDefinition implements ParameterDefinition {
+		TypeDefinition type;
 		List<AnnotationDefinition> annotations;
 
 		@SafeVarargs
@@ -146,8 +157,23 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 			this(type, List.of(annotations));
 		}
 
+		public DefaultParameterDefinition(Class<?> type, List<AnnotationDefinition> annotations) {
+			this(new TypeDefinition(type), annotations);
+		}
+
+		@SafeVarargs
+		public DefaultParameterDefinition(TypeDefinition type, AnnotationDefinition... annotations) {
+			this(type, List.of(annotations));
+		}
+
 		public ParameterDefinition withName(String name) {
 			return new NamedParameterDefinition(this, name);
+		}
+
+		@Override
+		@Deprecated
+		public Class<?> type() {
+			return type.type();
 		}
 
 	}
@@ -227,7 +253,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	}
 
 	private static <T> List<T> append(List<T> col, T add) {
-		return Stream.concat(col.stream(), Stream.of(add)).collect(toList());
+		return concat(col.stream(), Stream.of(add)).collect(toList());
 	}
 
 	@Override
@@ -244,18 +270,15 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 			for (ParameterDefinition parameter : ctor.params()) {
 				String name = parameter instanceof NamedParameterDefinition
 						? nameMaker.makeName(((NamedParameterDefinition) parameter).name())
-						: nameMaker.makeName(parameter.getType());
-				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.getType(), name);
-				// Group annotations by their annotation type so we can create
-				// a container annotation when multiple repeatable annotations
-				// of the same type are present.
-				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = new LinkedHashMap<>();
-				for (AnnotationDefinition anno : parameter.getAnnotations()) {
-					grouped.computeIfAbsent(anno.getAnno(), k -> new ArrayList<>()).add(anno);
-				}
+						: nameMaker.makeName(parameter.type());
+				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.type(), name);
+				// Group annotations by their annotation type so we can create a container
+				// annotation when multiple repeatable annotations of the same type are present.
+				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = parameter.annotations().stream()
+						.collect(groupingBy(AnnotationDefinition::annotation, LinkedHashMap::new, toList()));
 				for (Map.Entry<Class<? extends Annotation>, List<AnnotationDefinition>> entry : grouped.entrySet()) {
-					var definitions = entry.getValue();
 					var annoClass = entry.getKey();
+					var definitions = entry.getValue();
 					if (definitions.size() == 1) {
 						paramDef = paramDef.annotateParameter(createAnnotation(definitions.get(0)));
 					} else {
@@ -293,7 +316,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	}
 
 	private static AnnotationDescription createAnnotation(AnnotationDefinition annotationDefinition) {
-		Class<? extends Annotation> anno = annotationDefinition.getAnno();
+		Class<? extends Annotation> anno = annotationDefinition.annotation();
 		try {
 			AnnotationDescription.Builder builder = AnnotationDescription.Builder.ofType(anno);
 			if (anno.equals(Min.class) || anno.equals(Max.class)) {
@@ -315,7 +338,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 	@SuppressWarnings("unchecked")
 	private static <T> T getAnnotationValue(AnnotationDefinition annotationDefinition, String key, T defaultValue) {
-		return (T) annotationDefinition.getValues().getOrDefault(key, defaultValue);
+		return (T) annotationDefinition.values().getOrDefault(key, defaultValue);
 	}
 
 }

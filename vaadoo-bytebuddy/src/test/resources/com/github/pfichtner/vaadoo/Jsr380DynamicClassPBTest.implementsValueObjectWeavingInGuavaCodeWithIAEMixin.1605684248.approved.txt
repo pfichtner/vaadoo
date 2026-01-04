@@ -2,12 +2,12 @@ Story:
 Class implementing ValueObject: [Guava, IAE instead of NPE]
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
 -: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Positive, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Positive, values={})])
 
 
 Source:

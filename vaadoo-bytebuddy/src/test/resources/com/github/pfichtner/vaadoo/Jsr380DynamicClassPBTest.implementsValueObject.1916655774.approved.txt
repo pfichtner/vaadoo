@@ -2,14 +2,14 @@ Story:
 Class implementing ValueObject: [JDK, keeping JSR380 annotations]
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotEmpty, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Short, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.DecimalMax, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.math.BigDecimal, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.PositiveOrZero, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Double;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Size, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=byte, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.DecimalMin, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Max, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Integer, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.DecimalMax, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.math.BigDecimal, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.PositiveOrZero, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Double;, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Size, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=byte, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.DecimalMin, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Max, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
 
 
 Source:

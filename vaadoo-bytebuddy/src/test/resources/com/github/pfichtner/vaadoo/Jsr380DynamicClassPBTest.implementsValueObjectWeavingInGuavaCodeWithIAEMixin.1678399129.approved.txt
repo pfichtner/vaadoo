@@ -2,8 +2,8 @@ Story:
 Class implementing ValueObject: [Guava, IAE instead of NPE]
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Long, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Negative, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.DecimalMax, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NegativeOrZero, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.HijrahDate, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Long, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Negative, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.DecimalMax, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NegativeOrZero, values={})])
 
 
 Source:

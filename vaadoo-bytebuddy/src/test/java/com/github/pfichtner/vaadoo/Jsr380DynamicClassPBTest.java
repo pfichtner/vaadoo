@@ -160,43 +160,44 @@ class Jsr380DynamicClassPBTest {
 					.map(AnnotationDefinition::of) //
 					.collect(toList());
 
-			    // Separate repeatable and non-repeatable annotations
-			    List<AnnotationDefinition> repeatableAnnos = applicable.stream()
-				    .filter(a -> a.getAnno().isAnnotationPresent(Repeatable.class))
-				    .collect(toList());
-			    List<AnnotationDefinition> nonRepeatableAnnos = applicable.stream()
-				    .filter(a -> !a.getAnno().isAnnotationPresent(Repeatable.class))
-				    .collect(toList());
+			// Separate repeatable and non-repeatable annotations
+			List<AnnotationDefinition> repeatableAnnos = applicable.stream() //
+					.filter(a -> a.annotation().isAnnotationPresent(Repeatable.class)) //
+					.collect(toList());
+			List<AnnotationDefinition> nonRepeatableAnnos = applicable.stream() //
+					.filter(a -> !a.annotation().isAnnotationPresent(Repeatable.class)) //
+					.collect(toList());
 
-			    // non-repeatable: choose unique elements
-			    Arbitrary<List<AnnotationDefinition>> nonRepeatableGen = nonRepeatableAnnos.isEmpty()
-				    ? Arbitraries.just(List.of())
-				    : Arbitraries.of(nonRepeatableAnnos).list().uniqueElements().ofMaxSize(nonRepeatableAnnos.size());
+			// non-repeatable: choose unique elements
+			Arbitrary<List<AnnotationDefinition>> nonRepeatableGen = nonRepeatableAnnos.isEmpty()
+					? Arbitraries.just(List.of())
+					: Arbitraries.of(nonRepeatableAnnos).list().uniqueElements().ofMaxSize(nonRepeatableAnnos.size());
 
-			    // repeatable: allow duplicates (same annotation type can appear multiple times)
-			    Arbitrary<List<AnnotationDefinition>> repeatableGen = repeatableAnnos.isEmpty()
-				    ? Arbitraries.just(List.of())
-				    : Arbitraries.of(repeatableAnnos).list().ofMaxSize(5);
+			// repeatable: allow duplicates (same annotation type can appear multiple times)
+			Arbitrary<List<AnnotationDefinition>> repeatableGen = repeatableAnnos.isEmpty()
+					? Arbitraries.just(List.of())
+					: Arbitraries.of(repeatableAnnos).list().ofMaxSize(5);
 
-				return repeatableGen.flatMap(rep -> nonRepeatableGen.map(nonRep -> {
-					List<AnnotationDefinition> combined = new ArrayList<>(rep);
-					combined.addAll(nonRep);
-					// Ensure non-repeatable annotations are not duplicated — dedupe by annotation name
-					Map<String, List<AnnotationDefinition>> groupedByName = combined.stream()
-							.collect(groupingBy(d -> d.getAnno().getName(), mapping(Function.identity(), toList())));
-					List<AnnotationDefinition> finalList = new ArrayList<>();
-					for (Map.Entry<String, List<AnnotationDefinition>> e : groupedByName.entrySet()) {
-						List<AnnotationDefinition> defs = e.getValue();
-						boolean allowMultiple = defs.stream()
-								.anyMatch(d -> d.getAnno().isAnnotationPresent(Repeatable.class));
-						if (allowMultiple) {
-							finalList.addAll(defs);
-						} else if (!defs.isEmpty()) {
-							finalList.add(defs.get(0));
-						}
+			return repeatableGen.flatMap(rep -> nonRepeatableGen.map(nonRep -> {
+				List<AnnotationDefinition> combined = new ArrayList<>(rep);
+				combined.addAll(nonRep);
+				// Ensure non-repeatable annotations are not duplicated — dedupe by annotation
+				// name
+				Map<String, List<AnnotationDefinition>> groupedByName = combined.stream()
+						.collect(groupingBy(d -> d.annotation().getName(), mapping(Function.identity(), toList())));
+				List<AnnotationDefinition> finalList = new ArrayList<>();
+				for (Map.Entry<String, List<AnnotationDefinition>> e : groupedByName.entrySet()) {
+					List<AnnotationDefinition> defs = e.getValue();
+					boolean allowMultiple = defs.stream()
+							.anyMatch(d -> d.annotation().isAnnotationPresent(Repeatable.class));
+					if (allowMultiple) {
+						finalList.addAll(defs);
+					} else if (!defs.isEmpty()) {
+						finalList.add(defs.get(0));
 					}
-					return new DefaultParameterDefinition(type, finalList);
-				}));
+				}
+				return new DefaultParameterDefinition(type, finalList);
+			}));
 		});
 	}
 
@@ -227,7 +228,7 @@ class Jsr380DynamicClassPBTest {
 	@Property
 	void throwsExceptionIfTypeIsNotSupportedByAnnotation(
 			@ForAll("invalidParameterConfigs") List<ParameterDefinition> params) throws Exception {
-		Assume.that(params.stream().map(ParameterDefinition::getAnnotations).anyMatch(not(List::isEmpty)));
+		Assume.that(params.stream().map(ParameterDefinition::annotations).anyMatch(not(List::isEmpty)));
 		var unloaded = a(testClass("com.example.InvalidGenerated").thatImplementsValueObject()
 				.withConstructor(new ConstructorDefinition(params)));
 		newInstance(unloaded, args(params));
@@ -274,7 +275,7 @@ class Jsr380DynamicClassPBTest {
 	}
 
 	static Object[] args(List<ParameterDefinition> params) {
-		return params.stream().map(ParameterDefinition::getType).map(Jsr380DynamicClassPBTest::getDefault).toArray();
+		return params.stream().map(ParameterDefinition::type).map(Jsr380DynamicClassPBTest::getDefault).toArray();
 	}
 
 	// TODO use Arbitrary to generate value, e.g. null, "", "XXX" for CharSequence,

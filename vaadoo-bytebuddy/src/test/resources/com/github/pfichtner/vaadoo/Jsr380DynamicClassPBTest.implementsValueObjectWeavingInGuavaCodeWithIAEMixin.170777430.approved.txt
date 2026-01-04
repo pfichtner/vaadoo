@@ -2,7 +2,7 @@ Story:
 Class implementing ValueObject: [Guava, IAE instead of NPE]
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotEmpty, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Object;, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotEmpty, values={})])
 
 
 Source:

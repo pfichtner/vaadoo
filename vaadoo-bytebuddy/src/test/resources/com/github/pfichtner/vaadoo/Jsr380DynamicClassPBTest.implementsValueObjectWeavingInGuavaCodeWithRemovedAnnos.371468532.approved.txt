@@ -3,10 +3,10 @@ Class implementing ValueObject: [Guava, removing JSR380 annotations]
 
 params annotations
 -: TestClassBuilder.DefaultParameterDefinition(type=class java.time.LocalTime, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.NotNull, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
 -: TestClassBuilder.DefaultParameterDefinition(type=class java.time.Year, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(anno=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.JapaneseDate, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
 
 
 Source:

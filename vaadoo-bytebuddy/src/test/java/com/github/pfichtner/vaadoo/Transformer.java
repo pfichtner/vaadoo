@@ -16,7 +16,6 @@
 package com.github.pfichtner.vaadoo;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
