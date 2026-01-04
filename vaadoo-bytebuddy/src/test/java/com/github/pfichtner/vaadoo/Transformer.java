@@ -114,7 +114,7 @@ public final class Transformer {
 	private static final class ForbiddenPackagesClassLoader extends ClassLoader {
 		private final List<String> forbiddenPrefixes;
 
-		ForbiddenPackagesClassLoader(ClassLoader parent, String... forbiddenPrefixes) {
+		private ForbiddenPackagesClassLoader(ClassLoader parent, String... forbiddenPrefixes) {
 			super(parent);
 			this.forbiddenPrefixes = List.of(forbiddenPrefixes);
 		}
@@ -122,14 +122,16 @@ public final class Transformer {
 		@Override
 		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 			if (name != null) {
-				var forbiddenNames = forbiddenPrefixes.stream().filter(p -> name.startsWith(p)).collect(toList());
-				if (!forbiddenNames.isEmpty()) {
-					throw new ClassNotFoundException(
-							format("Class(es) forbidden by prefix %s: %s", forbiddenNames, name));
+				for (String forbiddenPrefix : forbiddenPrefixes) {
+					if (name.startsWith(forbiddenPrefix)) {
+						throw new ClassNotFoundException(
+								format("Class %s forbidden by prefix %s", name, forbiddenPrefix));
+					}
 				}
 			}
 			return super.loadClass(name, resolve);
 		}
+
 	}
 
 }
