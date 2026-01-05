@@ -2,7 +2,7 @@ Story:
 namedArg
 
 params annotations
--: TestClassBuilder.NamedParameterDefinition(delegate=TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})]), name=aNamedArgument)
+-: TestClassBuilder.NamedParameterDefinition(delegate=TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.Object, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})]), name=aNamedArgument)
 
 
 Source:

@@ -2,7 +2,7 @@ Story:
 regexp
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.String, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Pattern, values={regexp=\d*})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.String, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Pattern, values={regexp=\d*})])
 
 
 Source:

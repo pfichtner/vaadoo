@@ -2,7 +2,7 @@ Story:
 Class already defines #validate method
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class java.lang.Object, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.Object, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
 
 
 Source:

@@ -17,6 +17,7 @@ package com.github.pfichtner.vaadoo;
 
 import static java.lang.Math.abs;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
@@ -89,7 +90,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 	public interface ParameterDefinition {
 
-		Class<?> type();
+		TypeDefinition typeDefinition();
 
 		List<AnnotationDefinition> annotations();
 
@@ -99,7 +100,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		}
 
 		static String asString(ParameterDefinition definition) {
-			return format("%s:%s", definition.type().getName(),
+			return format("%s:%s", definition.typeDefinition().type().getName(),
 					definition.annotations().stream().map(d -> asString(d)).sorted().collect(joining(",")));
 		}
 
@@ -141,15 +142,25 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	@Value
 	@RequiredArgsConstructor
 	@Accessors(fluent = true)
+	// example List<@NotBlank String>
 	public static class TypeDefinition {
+		// e.g. List
 		Class<?> type;
+		// e.g. String
+		Class<?> genericType;
+		// e.g. NotBlank()
+		List<AnnotationDefinition> genericTypeAnnotations;
+
+		public TypeDefinition(Class<?> type) {
+			this(type, null, emptyList());
+		}
 	}
 
 	@Value
 	@RequiredArgsConstructor
 	@Accessors(fluent = true)
 	public static class DefaultParameterDefinition implements ParameterDefinition {
-		TypeDefinition type;
+		TypeDefinition typeDefinition;
 		List<AnnotationDefinition> annotations;
 
 		@SafeVarargs
@@ -168,12 +179,6 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 		public ParameterDefinition withName(String name) {
 			return new NamedParameterDefinition(this, name);
-		}
-
-		@Override
-		@Deprecated
-		public Class<?> type() {
-			return type.type();
 		}
 
 	}
@@ -270,8 +275,8 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 			for (ParameterDefinition parameter : ctor.params()) {
 				String name = parameter instanceof NamedParameterDefinition
 						? nameMaker.makeName(((NamedParameterDefinition) parameter).name())
-						: nameMaker.makeName(parameter.type());
-				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(parameter.type(), name);
+						: nameMaker.makeName(parameter.typeDefinition().type());
+				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(toByteBuddyType(parameter), name);
 				// Group annotations by their annotation type so we can create a container
 				// annotation when multiple repeatable annotations of the same type are present.
 				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = parameter.annotations().stream()
@@ -297,6 +302,15 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		}
 
 		return builder.make();
+	}
+
+	private static TypeDescription.Generic toByteBuddyType(ParameterDefinition parameter) {
+		TypeDefinition typeDefinition = parameter.typeDefinition();
+		TypeDescription.Generic.Builder typeBuilder = typeDefinition.genericType() == null
+				? TypeDescription.Generic.Builder.rawType(typeDefinition.type())
+				: TypeDescription.Generic.Builder.parameterizedType(typeDefinition.type(),
+						typeDefinition.genericType());
+		return typeBuilder.build();
 	}
 
 	private static AnnotationDescription repackToContainer(List<AnnotationDefinition> defs,

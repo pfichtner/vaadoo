@@ -82,6 +82,7 @@ import com.github.pfichtner.vaadoo.TestClassBuilder.AnnotationDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.TypeDefinition;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragmentIAEMixin;
@@ -275,7 +276,11 @@ class Jsr380DynamicClassPBTest {
 	}
 
 	static Object[] args(List<ParameterDefinition> params) {
-		return params.stream().map(ParameterDefinition::type).map(Jsr380DynamicClassPBTest::getDefault).toArray();
+		return params.stream() //
+				.map(ParameterDefinition::typeDefinition) //
+				.map(TypeDefinition::type) //
+				.map(Jsr380DynamicClassPBTest::getDefault) //
+				.toArray();
 	}
 
 	// TODO use Arbitrary to generate value, e.g. null, "", "XXX" for CharSequence,

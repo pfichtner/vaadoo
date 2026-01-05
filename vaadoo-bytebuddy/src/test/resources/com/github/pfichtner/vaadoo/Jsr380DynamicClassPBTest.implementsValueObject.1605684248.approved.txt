@@ -2,12 +2,12 @@ Story:
 Class implementing ValueObject: [JDK, keeping JSR380 annotations]
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.MonthDay, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class [Ljava.lang.Float;, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.ZonedDateTime, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=int, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Positive, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.MonthDay, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.MonthDay, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class [Ljava.lang.Float;, genericType=null, genericTypeAnnotations=[]), annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=short, genericType=null, genericTypeAnnotations=[]), annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.ZonedDateTime, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=int, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Positive, values={})])
 
 
 Source:

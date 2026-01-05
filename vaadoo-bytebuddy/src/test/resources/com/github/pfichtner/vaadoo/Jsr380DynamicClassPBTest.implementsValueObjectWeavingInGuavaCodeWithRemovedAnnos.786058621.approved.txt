@@ -2,11 +2,11 @@ Story:
 Class implementing ValueObject: [Guava, removing JSR380 annotations]
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.OffsetDateTime, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.util.Calendar, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.chrono.MinguoDate, annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
--: TestClassBuilder.DefaultParameterDefinition(type=class java.time.Instant, annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(type=short, annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.OffsetDateTime, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.util.Calendar, genericType=null, genericTypeAnnotations=[]), annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.chrono.MinguoDate, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.Instant, genericType=null, genericTypeAnnotations=[]), annotations=[])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=short, genericType=null, genericTypeAnnotations=[]), annotations=[])
 
 
 Source:
