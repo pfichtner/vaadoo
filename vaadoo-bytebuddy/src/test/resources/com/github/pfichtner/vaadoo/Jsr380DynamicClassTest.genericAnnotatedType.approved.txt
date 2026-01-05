@@ -1,0 +1,57 @@
+Story:
+genericAnnotatedType
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=interface java.util.List, genericType=class java.lang.String, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotBlank, values={})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
+
+
+Source:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    public Generated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) List<@NotBlank(groups={}, message="{jakarta.validation.constraints.NotBlank.message}", payload={}) String> list) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated;
+import jakarta.validation.constraints.NotBlank;
+import java.util.List;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    public Generated(List<@NotBlank(groups={}, message="{jakarta.validation.constraints.NotBlank.message}", payload={}) String> list) {
+        Generated.validate(list);
+        this(list, null);
+    }
+
+    private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(List list) {
+        if (list == null) {
+            throw new IllegalArgumentException("list must not be null");
+        }
+	// TODO list's entries have to checked for "NotBlank"
+    }
+}
+
