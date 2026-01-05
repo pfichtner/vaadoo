@@ -103,7 +103,7 @@ class Jsr380DynamicClassTest {
 	@Disabled
 	void genericAnnotatedType() throws Exception {
 		var listOfNotBlankStrings = TypeDefinition.of(List.class, String.class,
-				List.of(AnnotationDefinition.of(NotBlank.class)));
+				AnnotationDefinition.of(NotBlank.class));
 		var constructor = ConstructorDefinition
 				.of(DefaultParameterDefinition.of(listOfNotBlankStrings, AnnotationDefinition.of(NotNull.class)));
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
