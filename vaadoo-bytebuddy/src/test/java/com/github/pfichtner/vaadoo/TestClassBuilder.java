@@ -112,6 +112,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	}
 
 	@Value
+	@RequiredArgsConstructor(staticName = "of")
 	@Accessors(fluent = true)
 	public static class NamedParameterDefinition implements ParameterDefinition {
 
@@ -140,7 +141,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 	}
 
 	@Value
-	@RequiredArgsConstructor
+	@RequiredArgsConstructor(staticName = "of")
 	@Accessors(fluent = true)
 	// example List<@NotBlank String>
 	public static class TypeDefinition {
@@ -151,46 +152,50 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		// e.g. NotBlank()
 		List<AnnotationDefinition> genericTypeAnnotations;
 
-		public TypeDefinition(Class<?> type) {
-			this(type, null, emptyList());
+		public static TypeDefinition of(Class<?> type) {
+			return of(type, null, emptyList());
 		}
+
+		public static TypeDefinition of(Class<?> type, Class<?> genericType,
+				AnnotationDefinition... genericTypeAnnotations) {
+			return of(type, null, List.of(genericTypeAnnotations));
+		}
+
 	}
 
 	@Value
-	@RequiredArgsConstructor
+	@RequiredArgsConstructor(staticName = "of")
 	@Accessors(fluent = true)
 	public static class DefaultParameterDefinition implements ParameterDefinition {
 		TypeDefinition typeDefinition;
 		List<AnnotationDefinition> annotations;
 
-		@SafeVarargs
-		public DefaultParameterDefinition(Class<?> type, AnnotationDefinition... annotations) {
-			this(type, List.of(annotations));
+		public static DefaultParameterDefinition of(Class<?> type, AnnotationDefinition... annotations) {
+			return of(type, List.of(annotations));
 		}
 
-		public DefaultParameterDefinition(Class<?> type, List<AnnotationDefinition> annotations) {
-			this(new TypeDefinition(type), annotations);
+		public static DefaultParameterDefinition of(Class<?> type, List<AnnotationDefinition> annotations) {
+			return of(TypeDefinition.of(type), annotations);
 		}
 
-		@SafeVarargs
-		public DefaultParameterDefinition(TypeDefinition type, AnnotationDefinition... annotations) {
-			this(type, List.of(annotations));
+		public static DefaultParameterDefinition of(TypeDefinition type, AnnotationDefinition... annotations) {
+			return of(type, List.of(annotations));
 		}
 
 		public ParameterDefinition withName(String name) {
-			return new NamedParameterDefinition(this, name);
+			return NamedParameterDefinition.of(this, name);
 		}
 
 	}
 
 	@Value
 	@Accessors(fluent = true)
-	@RequiredArgsConstructor
+	@RequiredArgsConstructor(staticName = "of")
 	public static class ConstructorDefinition {
 		List<ParameterDefinition> params;
 
-		public ConstructorDefinition(ParameterDefinition... params) {
-			this(List.of(params));
+		public static ConstructorDefinition of(ParameterDefinition... params) {
+			return of(List.of(params));
 		}
 	}
 

@@ -22,15 +22,19 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.AnnotationDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ConstructorDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.MethodDefinition;
+import com.github.pfichtner.vaadoo.TestClassBuilder.TypeDefinition;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
@@ -40,31 +44,30 @@ class Jsr380DynamicClassTest {
 	TestClassBuilder classAnnotatedByValueObject = baseTestClass.annotatedByValueObject();
 	TestClassBuilder classThatImplementsValueObject = baseTestClass.thatImplementsValueObject();
 
-	ConstructorDefinition notNullObjectConstructor = new ConstructorDefinition(
-			new DefaultParameterDefinition(Object.class, AnnotationDefinition.of(NotNull.class)));
+	ConstructorDefinition notNullObjectConstructor = ConstructorDefinition
+			.of(DefaultParameterDefinition.of(Object.class, AnnotationDefinition.of(NotNull.class)));
 	Object[] nullArg = new Object[] { null };
 
 	Transformer transformer = new Transformer();
 
 	@Test
 	void noArg() throws Exception {
-		var noArgsConstructor = new ConstructorDefinition(emptyList());
+		var noArgsConstructor = ConstructorDefinition.of(emptyList());
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(noArgsConstructor));
 		new Approver(new Transformer()).approveTransformed("noArg", noArgsConstructor.params(), unloaded);
 	}
 
 	@Test
 	void namedArg() throws Exception {
-		var constructor = new ConstructorDefinition(
-				new DefaultParameterDefinition(Object.class, AnnotationDefinition.of(NotNull.class))
-						.withName("aNamedArgument"));
+		var constructor = ConstructorDefinition.of(DefaultParameterDefinition
+				.of(Object.class, AnnotationDefinition.of(NotNull.class)).withName("aNamedArgument"));
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
 		new Approver(new Transformer()).approveTransformed("namedArg", constructor.params(), unloaded);
 	}
 
 	@Test
 	void patternArg() throws Exception {
-		var constructor = new ConstructorDefinition(new DefaultParameterDefinition(String.class,
+		var constructor = ConstructorDefinition.of(DefaultParameterDefinition.of(String.class,
 				AnnotationDefinition.of(Pattern.class, Map.of("regexp", "\\d*"))));
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
 		new Approver(new Transformer()).approveTransformed("regexp", constructor.params(), unloaded);

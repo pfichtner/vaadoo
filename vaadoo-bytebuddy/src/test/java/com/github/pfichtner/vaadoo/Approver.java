@@ -44,16 +44,17 @@ class Approver {
 	public void approveTransformed(String story, List<ParameterDefinition> params) throws Exception {
 		var checksum = ParameterDefinition.stableChecksum(params);
 		var testClass = a(testClass("com.example.Generated_" + checksum).thatImplementsValueObject()
-				.withConstructor(new ConstructorDefinition(params)));
+				.withConstructor(ConstructorDefinition.of(params)));
 		approveTransformed(story, params, testClass, Approvals.NAMES.withParameters(checksum));
 	}
 
-	public void approveTransformed(String story, List<ParameterDefinition> params, Unloaded<?> generatedClass) throws Exception {
+	public void approveTransformed(String story, List<ParameterDefinition> params, Unloaded<?> generatedClass)
+			throws Exception {
 		approveTransformed(story, params, generatedClass, new Options());
 	}
 
-	public void approveTransformed(String story, List<ParameterDefinition> params, Unloaded<?> generatedClass, Options options)
-			throws Exception {
+	public void approveTransformed(String story, List<ParameterDefinition> params, Unloaded<?> generatedClass,
+			Options options) throws Exception {
 		Unloaded<?> transformedClass = transformer.transform(generatedClass);
 		StoryBoard sb = new StoryBoard();
 		sb = sb.addFrame("Story", story);

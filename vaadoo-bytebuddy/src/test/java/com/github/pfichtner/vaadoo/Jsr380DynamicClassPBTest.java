@@ -197,7 +197,7 @@ class Jsr380DynamicClassPBTest {
 						finalList.add(defs.get(0));
 					}
 				}
-				return new DefaultParameterDefinition(type, finalList);
+				return DefaultParameterDefinition.of(type, finalList);
 			}));
 		});
 	}
@@ -222,7 +222,7 @@ class Jsr380DynamicClassPBTest {
 	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
 		var unloaded = a(testClass("com.example.Generated").thatImplementsValueObject()
-				.withConstructor(new ConstructorDefinition(params)));
+				.withConstructor(ConstructorDefinition.of(params)));
 		createInstances(params, unloaded);
 	}
 
@@ -231,7 +231,7 @@ class Jsr380DynamicClassPBTest {
 			@ForAll("invalidParameterConfigs") List<ParameterDefinition> params) throws Exception {
 		Assume.that(params.stream().map(ParameterDefinition::annotations).anyMatch(not(List::isEmpty)));
 		var unloaded = a(testClass("com.example.InvalidGenerated").thatImplementsValueObject()
-				.withConstructor(new ConstructorDefinition(params)));
+				.withConstructor(ConstructorDefinition.of(params)));
 		newInstance(unloaded, args(params));
 		assertThatIllegalStateException().isThrownBy(() -> transformer.transform(unloaded))
 				.withMessageContaining("not allowed, allowed only on");
@@ -249,9 +249,9 @@ class Jsr380DynamicClassPBTest {
 			var invalidTypes = SUPERTYPE_TO_SUBTYPES.keySet().stream()
 					.filter(t -> validTypes.stream().noneMatch(v -> v.isAssignableFrom(t))).collect(toList());
 			return invalidTypes.isEmpty() //
-					? Arbitraries.of(new DefaultParameterDefinition(Object.class)) //
+					? Arbitraries.of(DefaultParameterDefinition.of(Object.class)) //
 					: Arbitraries.of(invalidTypes)
-							.map(t -> new DefaultParameterDefinition(t, AnnotationDefinition.of(a)));
+							.map(t -> DefaultParameterDefinition.of(t, AnnotationDefinition.of(a)));
 		});
 	}
 
@@ -347,7 +347,7 @@ class Jsr380DynamicClassPBTest {
 			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
 		var checksum = ParameterDefinition.stableChecksum(params);
 		var testClass = a(testClass("com.example.Generated_" + checksum) //
-				.withConstructor(new ConstructorDefinition(params)));
+				.withConstructor(ConstructorDefinition.of(params)));
 		var transformedClass = transformer.transform(testClass);
 		newInstance(transformedClass, args(params));
 	}

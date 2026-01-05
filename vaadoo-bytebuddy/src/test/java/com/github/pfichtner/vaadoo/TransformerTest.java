@@ -34,7 +34,7 @@ class TransformerTest {
 	void newInstanceShouldFailWhenClassRefersToJsr380Annotation() throws Exception {
 		// Use the JSR-380 annotation type itself as the constructor parameter type
 		// so the generated class still references the forbidden package at load time.
-		var ctor = new ConstructorDefinition(new DefaultParameterDefinition(NotNull.class));
+		var ctor = ConstructorDefinition.of(DefaultParameterDefinition.of(NotNull.class));
 		var unloaded = a(testClass("com.example.RefersJsr380").withConstructor(ctor));
 		var transformedClass = transformer.transform(unloaded);
 		assertThrows(NoClassDefFoundError.class,
