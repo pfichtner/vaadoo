@@ -276,7 +276,11 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 				String name = parameter instanceof NamedParameterDefinition
 						? nameMaker.makeName(((NamedParameterDefinition) parameter).name())
 						: nameMaker.makeName(parameter.typeDefinition().type());
-				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(toByteBuddyType(parameter), name);
+				TypeDefinition typeDefinition = parameter.typeDefinition();
+				TypeDescription rawType = TypeDescription.Generic.Builder.rawType(typeDefinition.type()).build()
+						.asErasure();
+				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(
+						typeDefinition.genericType() == null ? rawType : toGenericType(parameter, rawType), name);
 				// Group annotations by their annotation type so we can create a container
 				// annotation when multiple repeatable annotations of the same type are present.
 				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = parameter.annotations().stream()
@@ -304,13 +308,21 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		return builder.make();
 	}
 
-	private static TypeDescription.Generic toByteBuddyType(ParameterDefinition parameter) {
+	private static TypeDescription.Generic toGenericType(ParameterDefinition parameter, TypeDescription rawType) {
 		TypeDefinition typeDefinition = parameter.typeDefinition();
-		TypeDescription.Generic.Builder typeBuilder = typeDefinition.genericType() == null
-				? TypeDescription.Generic.Builder.rawType(typeDefinition.type())
-				: TypeDescription.Generic.Builder.parameterizedType(typeDefinition.type(),
-						typeDefinition.genericType());
-		return typeBuilder.build();
+		return TypeDescription.Generic.Builder.parameterizedType(rawType,
+				addAnnotations(TypeDescription.Generic.Builder.of(typeDefinition.genericType()),
+						typeDefinition.genericTypeAnnotations()).build())
+				.build();
+	}
+
+	private static TypeDescription.Generic.Builder addAnnotations(TypeDescription.Generic.Builder genericType,
+			List<AnnotationDefinition> genericTypeAnnotations) {
+		for (AnnotationDefinition annotationDefinition : genericTypeAnnotations) {
+			genericType = genericType
+					.annotate(AnnotationDescription.Builder.ofType(annotationDefinition.annotation()).build());
+		}
+		return genericType;
 	}
 
 	private static AnnotationDescription repackToContainer(List<AnnotationDefinition> defs,
