@@ -102,6 +102,10 @@ class Jsr380DynamicClassTest {
 	@Test
 	@Disabled
 	void genericAnnotatedType() throws Exception {
+		// Support: The specification mandates support for the following, ensuring they work "out of the box":
+		// - CollectionsIterable, List, and Set.
+		// - Maps: Both keys and values of java.util.Map.
+		// - Arrays: Object arrays and all primitive arrays (e.g., int[], double[]).
 		var listOfNotBlankStrings = TypeDefinition.of(List.class, String.class,
 				AnnotationDefinition.of(NotBlank.class));
 		var constructor = ConstructorDefinition
