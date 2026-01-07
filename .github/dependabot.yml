@@ -16,7 +16,7 @@ updates:
   assignees:
   - pfichtner
   ignore:
-    - dependency-name: "org.junit.jupiter:junit-jupiter"
+    - dependency-name: "org.junit:junit-bom"
       versions: [">=6.0.0"]
 
     - dependency-name: "nl.jqno.equalsverifier:equalsverifier"
