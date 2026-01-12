@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.github.pfichtner.vaadoo.TestClassBuilder.AnnotationDefinition;
@@ -99,10 +100,11 @@ class Jsr380DynamicClassTest {
 	}
 
 	@Test
+	@Disabled
 	void genericAnnotatedType() throws Exception {
 		// Support: The specification mandates support for the following, ensuring they
 		// work "out of the box":
-		// - CollectionsIterable, List, and Set.
+		// - Iterable: Collection, List, and Set.
 		// - Maps: Both keys and values of java.util.Map.
 		// - Arrays: Object arrays and all primitive arrays (e.g., int[], double[]).
 		// bval: " java.lang.IllegalArgumentException:

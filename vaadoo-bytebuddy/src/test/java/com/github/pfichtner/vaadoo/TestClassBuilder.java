@@ -158,7 +158,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 		public static TypeDefinition of(Class<?> type, Class<?> genericType,
 				AnnotationDefinition... genericTypeAnnotations) {
-			return of(type, null, List.of(genericTypeAnnotations));
+			return of(type, genericType, List.of(genericTypeAnnotations));
 		}
 
 	}

@@ -140,6 +140,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		}
 	}
 
+	@Override
 	public void check(NotEmpty anno, Collection<?> collection) {
 		if (collection == null) {
 			throw new NullValueException(anno.message());
