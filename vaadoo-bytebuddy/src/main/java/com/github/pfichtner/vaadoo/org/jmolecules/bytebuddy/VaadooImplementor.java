@@ -37,6 +37,7 @@ import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
+import static net.bytebuddy.jar.asm.Opcodes.CHECKCAST;
 import static net.bytebuddy.jar.asm.Opcodes.GOTO;
 import static net.bytebuddy.jar.asm.Opcodes.IFNE;
 import static net.bytebuddy.jar.asm.Opcodes.IFNULL;
@@ -435,6 +436,9 @@ class VaadooImplementor {
 
 			private void generateForEachLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
 					Parameter containerParam, AnnotationDescription annotation) {
+				// Get the element type from the container's generic type
+				TypeDescription elementType = getGenericElementType(containerParam);
+
 				// Load the container and get its iterator
 				mv.visitVarInsn(ALOAD, containerParam.offset());
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
@@ -442,6 +446,9 @@ class VaadooImplementor {
 				// Store iterator in a local variable
 				int iteratorVar = containerParam.offset() + 1;
 				mv.visitVarInsn(ASTORE, iteratorVar);
+
+				// Store element in a local variable (after the iterator)
+				int elementVar = iteratorVar + 1;
 
 				Label loopStart = new Label();
 				Label loopTest = new Label();
@@ -456,8 +463,12 @@ class VaadooImplementor {
 				mv.visitVarInsn(ALOAD, iteratorVar);
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
 
+				// Cast to the actual element type if it's not Object
+				if (!elementType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
+					mv.visitTypeInsn(CHECKCAST, elementType.asErasure().getInternalName());
+				}
+
 				// Store element in local variable
-				int elementVar = iteratorVar + 1;
 				mv.visitVarInsn(ASTORE, elementVar);
 
 				// Use the injector to call the fragment method with the element
@@ -475,6 +486,15 @@ class VaadooImplementor {
 				mv.visitVarInsn(ALOAD, iteratorVar);
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
 				mv.visitJumpInsn(IFNE, loopStart);
+			}
+
+			private TypeDescription getGenericElementType(Parameter containerParam) {
+				// Get the generic type from the parameter itself, which has the type
+				// information
+				TypeDescription.Generic generic = containerParam.genericType();
+				return generic == null || generic.getTypeArguments().isEmpty()
+						? TypeDescription.ForLoadedType.of(Object.class)
+						: generic.getTypeArguments().get(0).asErasure();
 			}
 		}
 
