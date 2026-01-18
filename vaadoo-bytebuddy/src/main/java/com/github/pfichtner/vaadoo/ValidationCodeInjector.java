@@ -399,6 +399,7 @@ public class ValidationCodeInjector {
 			// Otherwise, delegate to the original parameter
 			return delegate.annotationValue(annotation, name);
 		}
+
 	}
 
 	private static String defaultValue(String className, String name) {

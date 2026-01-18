@@ -17,11 +17,12 @@ package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
 import static com.github.pfichtner.vaadoo.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
-import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.findRepeatableAnnotationContainers;
+import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isAbstract;
+import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
@@ -34,6 +35,13 @@ import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_FRAMES;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_MAXS;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
+import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
+import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
+import static net.bytebuddy.jar.asm.Opcodes.GOTO;
+import static net.bytebuddy.jar.asm.Opcodes.IFNE;
+import static net.bytebuddy.jar.asm.Opcodes.IFNULL;
+import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
+import static net.bytebuddy.jar.asm.Opcodes.RETURN;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
@@ -76,8 +84,8 @@ import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import net.bytebuddy.jar.asm.ClassVisitor;
+import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
-import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.jar.asm.Type;
 import net.bytebuddy.pool.TypePool;
 
@@ -257,8 +265,49 @@ class VaadooImplementor {
 		}
 
 		private Stream<InjectionTask> tasksFor(Parameter parameter) {
-			return Stream.of(parameter.annotations())
+			Stream<InjectionTask> fromParam = Stream.of(parameter.annotations())
 					.flatMap(a -> concat(jsr380(parameter, a, null), custom(parameter, a)));
+
+			List<List<AnnotationDescription>> genericAnnotations = parameter.genericAnnotations();
+			return genericAnnotations.isEmpty() //
+					? fromParam //
+					: concat(fromParam, handleGenericAnnotations(parameter, genericAnnotations));
+		}
+
+		private Stream<InjectionTask> handleGenericAnnotations(Parameter parameter,
+				List<List<AnnotationDescription>> genericAnnotations) {
+			TypeDescription.Generic genericType = parameter.genericType();
+
+			// Only process if this is a parameterized type
+			if (!genericType.getSort().isParameterized()) {
+				return empty();
+			}
+
+			List<TypeDescription.Generic> typeArguments = genericType.getTypeArguments();
+			return range(0, genericAnnotations.size()).boxed().flatMap(i -> {
+				List<AnnotationDescription> typeArgAnnotations = genericAnnotations.get(i);
+				if (typeArgAnnotations.isEmpty() || i >= typeArguments.size()) {
+					return empty();
+				}
+
+				TypeDescription.Generic typeArgument = typeArguments.get(i);
+				if (typeArgument == null) {
+					return empty();
+				}
+
+				// Create injection tasks for each annotation on the type argument
+				return typeArgAnnotations.stream().flatMap(annotation -> {
+					TypeDescription annotationType = annotation.getAnnotationType();
+					if (isStandardJr380Anno(annotationType)) {
+						Optional<Method> fragmentMethod = codeFragmentMethod(annotationType, typeArgument.asErasure());
+						if (fragmentMethod.isPresent()) {
+							return Stream.of(new GenericTypeInjectionTask(parameter, typeArgument.asErasure(),
+									fragmentMethod.get(), annotation));
+						}
+					}
+					return empty();
+				});
+			});
 		}
 
 		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation,
@@ -304,7 +353,7 @@ class VaadooImplementor {
 			for (InjectionTask task : injectionTasks) {
 				task.apply(injector, mv);
 			}
-			mv.visitInsn(Opcodes.RETURN);
+			mv.visitInsn(RETURN);
 			return Size.ZERO;
 		}
 
@@ -344,6 +393,144 @@ class VaadooImplementor {
 
 		private static boolean isCodeFragmentMethod(Method method) {
 			return "check".equals(method.getName());
+		}
+
+		private static class GenericTypeInjectionTask implements InjectionTask {
+			Parameter parameter;
+			TypeDescription elementType;
+			Method fragmentMethod;
+			AnnotationDescription annotation;
+
+			GenericTypeInjectionTask(Parameter parameter, TypeDescription elementType, Method fragmentMethod,
+					AnnotationDescription annotation) {
+				this.parameter = parameter;
+				this.elementType = elementType;
+				this.fragmentMethod = fragmentMethod;
+				this.annotation = annotation;
+			}
+
+			@Override
+			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
+				try {
+					generateIterationWithValidation(injector, mv, parameter, annotation);
+				} catch (Exception e) {
+					throw new RuntimeException(format("Error injecting generic type %s for %s", elementType, parameter),
+							e);
+				}
+			}
+
+			private void generateIterationWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
+					Parameter containerParam, AnnotationDescription annotation) {
+				Label ifNullLabel = new Label();
+
+				// Generate: if (parameter != null)
+				mv.visitVarInsn(ALOAD, containerParam.offset());
+				mv.visitJumpInsn(IFNULL, ifNullLabel);
+
+				// Generate: for (Object e : parameter)
+				generateForEachLoopWithValidation(injector, mv, containerParam, annotation);
+
+				mv.visitLabel(ifNullLabel);
+			}
+
+			private void generateForEachLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
+					Parameter containerParam, AnnotationDescription annotation) {
+				// Load the container and get its iterator
+				mv.visitVarInsn(ALOAD, containerParam.offset());
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
+
+				// Store iterator in a local variable
+				int iteratorVar = containerParam.offset() + 1;
+				mv.visitVarInsn(ASTORE, iteratorVar);
+
+				Label loopStart = new Label();
+				Label loopTest = new Label();
+
+				// Jump to loop condition
+				mv.visitJumpInsn(GOTO, loopTest);
+
+				// Loop body label
+				mv.visitLabel(loopStart);
+
+				// Load iterator and get next element
+				mv.visitVarInsn(ALOAD, iteratorVar);
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
+
+				// Store element in local variable
+				int elementVar = iteratorVar + 1;
+				mv.visitVarInsn(ASTORE, elementVar);
+
+				// Use the injector to call the fragment method with the element
+				// Create a synthetic parameter representing the element
+				SyntheticElementParameter elementParam = new SyntheticElementParameter(elementVar, elementType);
+
+				// Call the fragment method using the injector
+				@SuppressWarnings("unchecked")
+				Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
+						.getDeclaringClass();
+				injector.useFragmentClass(clazz).inject(mv, elementParam, fragmentMethod, annotation);
+
+				// Loop condition: check if hasNext()
+				mv.visitLabel(loopTest);
+				mv.visitVarInsn(ALOAD, iteratorVar);
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
+				mv.visitJumpInsn(IFNE, loopStart);
+			}
+		}
+
+		private static class SyntheticElementParameter implements Parameters.Parameter {
+			private final int offset;
+			private final TypeDescription type;
+
+			SyntheticElementParameter(int offset, TypeDescription type) {
+				this.offset = offset;
+				this.type = type;
+			}
+
+			@Override
+			public int index() {
+				return 0; // Synthetic parameter, no real index
+			}
+
+			@Override
+			public int offset() {
+				return offset;
+			}
+
+			@Override
+			public TypeDescription type() {
+				return type;
+			}
+
+			@Override
+			public String name() {
+				return "element";
+			}
+
+			@Override
+			public TypeDescription.Generic genericType() {
+				return type.asGenericType();
+			}
+
+			@Override
+			public TypeDescription[] annotations() {
+				return new TypeDescription[0];
+			}
+
+			@Override
+			public Object annotationValue(Type annotation, String name) {
+				return null;
+			}
+
+			@Override
+			public List<List<AnnotationDescription>> genericAnnotations() {
+				return emptyList();
+			}
+
+			@Override
+			public Object genericAnnotationValue(Type annotation, String name) {
+				return null;
+			}
 		}
 
 	}

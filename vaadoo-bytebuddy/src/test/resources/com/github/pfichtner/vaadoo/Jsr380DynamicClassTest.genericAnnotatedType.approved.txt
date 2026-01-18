@@ -2,7 +2,7 @@ Story:
 genericAnnotatedType
 
 params annotations
--: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=interface java.util.List, genericType=null, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotBlank, values={})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=interface java.util.List, genericType=class java.lang.String, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotBlank, values={})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
 
 
 Source:
@@ -52,13 +52,12 @@ implements ValueObject {
             throw new IllegalArgumentException("list must not be null");
         }
         if (list != null) {
-            for (String s : list) {
-		if (s == null) {
-			throw new NullValueException("list must not be blank");
-		}
-		if (s.toString().trim().length() == 0) {
-			throw new IllegalArgumentException("list must not be blank");
-		}
+            for (Object t : list) {
+                if (t == null) {
+                    throw new IllegalArgumentException("element must not be blank");
+                }
+                if (t.toString().trim().length() != 0) continue;
+                throw new IllegalArgumentException("element must not be blank");
             }
         }
     }

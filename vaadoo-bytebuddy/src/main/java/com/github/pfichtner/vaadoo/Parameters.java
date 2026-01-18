@@ -15,6 +15,7 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
@@ -26,6 +27,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
@@ -119,6 +121,28 @@ public class Parameters implements Iterable<Parameter> {
 		 */
 		Object annotationValue(Type annotation, String name);
 
+		List<List<AnnotationDescription>> genericAnnotations();
+
+		/**
+		 * Retrieves the value of a specified attribute from annotations on generic
+		 * type.
+		 * 
+		 * @param annotation the annotation type from which to retrieve the attribute
+		 * @param name       the name of the attribute whose value should be returned
+		 * @return the value of the specified annotation attribute, or {@code null} if
+		 *         unavailable
+		 */
+		Object genericAnnotationValue(Type annotation, String name);
+
+		/**
+		 * Returns the generic type description of this parameter, allowing access to
+		 * type arguments and their annotations.
+		 * 
+		 * @return a {@link TypeDescription.Generic} representing the parameter's type
+		 *         with generic information
+		 */
+		TypeDescription.Generic genericType();
+
 	}
 
 	private class ParameterWrapper implements Parameter {
@@ -176,8 +200,49 @@ public class Parameters implements Iterable<Parameter> {
 			return null;
 		}
 
+		@Override
+		public List<List<AnnotationDescription>> genericAnnotations() {
+			TypeDescription.Generic typeDescription = definedShape().getType();
+			return typeDescription.getSort().isParameterized() //
+					? typeDescription.getTypeArguments().stream() //
+							.filter(Objects::nonNull) //
+							.map(TypeDescription.Generic::getDeclaredAnnotations) //
+							.collect(toList()) //
+					: emptyList();
+		}
+
+		@Override
+		public Object genericAnnotationValue(Type annotation, String name) {
+			TypeDescription.Generic td = definedShape().getType();
+			if (td.getSort().isParameterized()) {
+				for (TypeDescription.Generic typeArg : td.getTypeArguments()) {
+					if (typeArg != null) {
+						for (AnnotationDescription annotationDescription : typeArg.getDeclaredAnnotations()) {
+							if (annotationDescription.getAnnotationType().getName().equals(annotation.getClassName())) {
+								MethodList<MethodDescription.InDefinedShape> candidates = annotationDescription
+										.getAnnotationType() //
+										.getDeclaredMethods().filter(named(name) //
+												.and(takesArguments(0)) //
+												.and(isPublic()) //
+												.and(not(isStatic())));
+								return candidates.size() == 1
+										? annotationDescription.getValue(candidates.getOnly()).resolve()
+										: null;
+							}
+						}
+					}
+				}
+			}
+			return null;
+		}
+
 		private AnnotationList annotationList() {
 			return definedShape().getDeclaredAnnotations();
+		}
+
+		@Override
+		public TypeDescription.Generic genericType() {
+			return definedShape().getType();
 		}
 
 		@Override
