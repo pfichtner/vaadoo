@@ -55,16 +55,16 @@ implements ValueObject {
         if (map != null) {
             for (Object object : map.keySet()) {
                 if (object == null) {
-                    throw new IllegalArgumentException("map[] must not be blank");
+                    throw new IllegalArgumentException("map[key] must not be blank");
                 }
                 if (object.toString().trim().length() != 0) continue;
-                throw new IllegalArgumentException("map[] must not be blank");
+                throw new IllegalArgumentException("map[key] must not be blank");
             }
         }
         if (map != null) {
             for (Object object : map.values()) {
                 if (object != null) continue;
-                throw new IllegalArgumentException("map[] must not be null");
+                throw new IllegalArgumentException("map[value] must not be null");
             }
         }
     }

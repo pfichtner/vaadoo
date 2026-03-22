@@ -581,8 +581,10 @@ class VaadooImplementor {
 			private void injectValidation(ValidationCodeInjector injector, MethodVisitor mv, Parameter containerParam,
 					AnnotationDescription annotation, TypeDescription elementType, int elementVar) {
 				// Create a synthetic parameter representing the element
-				SyntheticElementParameter elementParam = new SyntheticElementParameter(containerParam, elementVar,
-						elementType);
+				String name = containerParam.name() + (containerParam.type().isAssignableTo(Map.class) //
+						? (index == 0 ? "[key]" : "[value]") //
+						: "[]");
+				SyntheticElementParameter elementParam = new SyntheticElementParameter(name, elementVar, elementType);
 
 				// Call the fragment method using the injector
 				@SuppressWarnings("unchecked")
@@ -594,12 +596,12 @@ class VaadooImplementor {
 		}
 
 		private static class SyntheticElementParameter implements Parameters.Parameter {
-			private final Parameter containerParam;
+			private final String name;
 			private final int offset;
 			private final TypeDescription type;
 
-			SyntheticElementParameter(Parameter containerParam, int offset, TypeDescription type) {
-				this.containerParam = containerParam;
+			SyntheticElementParameter(String name, int offset, TypeDescription type) {
+				this.name = name;
 				this.offset = offset;
 				this.type = type;
 			}
@@ -621,7 +623,7 @@ class VaadooImplementor {
 
 			@Override
 			public String name() {
-				return containerParam.name() + "[]";
+				return name;
 			}
 
 			@Override
