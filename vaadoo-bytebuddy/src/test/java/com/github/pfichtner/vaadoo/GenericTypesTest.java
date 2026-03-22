@@ -77,13 +77,51 @@ class GenericTypesTest {
 
 		// Validation of key: " " is blank
 		Exception e1 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { Map.of(" ", 1) }));
-		assertThat(e1).hasMessageContaining("myMap[key] must not be blank");
+		assertThat(e1).hasMessageContaining("myMap[key= ] must not be blank");
 
 		// Validation of value: null is not allowed
 		Map<String, Integer> mapWithValueNull = new java.util.HashMap<>();
 		mapWithValueNull.put("key", null);
 		Exception e2 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { mapWithValueNull }));
-		assertThat(e2).hasMessageContaining("myMap[value] must not be null");
+		assertThat(e2).hasMessageContaining("myMap[value for key=key] must not be null");
+	}
+
+	@Test
+	void arrayWithAnnotatedElementsExceptionMessage() throws Exception {
+		var arrayOfNotBlankStrings = TypeDefinition.of(String[].class, String.class,
+				AnnotationDefinition.of(NotBlank.class));
+		var constructor = ConstructorDefinition.of(
+				DefaultParameterDefinition.of(arrayOfNotBlankStrings, AnnotationDefinition.of(NotNull.class))
+				.withName("myArray")
+				);
+		var transformed = transformer.transform(a(baseTestClass.thatImplementsValueObject().withConstructor(constructor)));
+
+		// Validation of element at index 0: " " is blank
+		Exception e1 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { new String[] { " " } }));
+		assertThat(e1).hasMessageContaining("myArray[0] must not be blank");
+
+		// Validation of element at index 1: " " is blank
+		Exception e2 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { new String[] { "valid", " " } }));
+		assertThat(e2).hasMessageContaining("myArray[1] must not be blank");
+	}
+
+	@Test
+	void listWithAnnotatedElementsExceptionMessage() throws Exception {
+		var listOfNotBlankStrings = TypeDefinition.of(List.class, String.class,
+				AnnotationDefinition.of(NotBlank.class));
+		var constructor = ConstructorDefinition.of(
+				DefaultParameterDefinition.of(listOfNotBlankStrings, AnnotationDefinition.of(NotNull.class))
+				.withName("myList")
+				);
+		var transformed = transformer.transform(a(baseTestClass.thatImplementsValueObject().withConstructor(constructor)));
+
+		// Validation of element at index 0: " " is blank
+		Exception e1 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { List.of(" ") }));
+		assertThat(e1).hasMessageContaining("myList[0] must not be blank");
+
+		// Validation of element at index 1: " " is blank
+		Exception e2 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { List.of("valid", " ") }));
+		assertThat(e2).hasMessageContaining("myList[1] must not be blank");
 	}
 
 }

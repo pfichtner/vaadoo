@@ -309,9 +309,84 @@ public class ValidationCodeInjector {
 
 					@Override
 					public void visitLdcInsn(Object value) {
-						super.visitLdcInsn(value instanceof String //
-								? NamedPlaceholders.replace((String) value, resolver) //
-								: value);
+						if (value instanceof String) {
+							String replaced = NamedPlaceholders.replace((String) value, resolver);
+							Map<String, Integer> placeholders = targetParam.placeholderValues();
+							if (placeholders.isEmpty() || !hasPlaceholder(replaced, placeholders.keySet())) {
+								super.visitLdcInsn(replaced);
+							} else {
+								injectDynamicMessage(replaced, placeholders);
+							}
+						} else {
+							super.visitLdcInsn(value);
+						}
+					}
+
+					private boolean hasPlaceholder(String text, java.util.Set<String> keys) {
+						for (String key : keys) {
+							if (text.contains("{" + key + "}")) {
+								return true;
+							}
+						}
+						return false;
+					}
+
+					private void injectDynamicMessage(String text, Map<String, Integer> placeholders) {
+						// Simple implementation using StringBuilder:
+						// new StringBuilder().append("part1").append(var).append("part2").toString()
+						mv.visitTypeInsn(net.bytebuddy.jar.asm.Opcodes.NEW, "java/lang/StringBuilder");
+						mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.DUP);
+						mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL, "java/lang/StringBuilder",
+								"<init>", "()V", false);
+
+						int lastPos = 0;
+						while (lastPos < text.length()) {
+							int start = text.indexOf('{', lastPos);
+							if (start == -1) {
+								appendString(text.substring(lastPos));
+								break;
+							}
+							int end = text.indexOf('}', start);
+							if (end == -1) {
+								appendString(text.substring(lastPos));
+								break;
+							}
+
+							String placeholder = text.substring(start + 1, end);
+							if (placeholders.containsKey(placeholder)) {
+								if (start > lastPos) {
+									appendString(text.substring(lastPos, start));
+								}
+								appendVariable(placeholder, placeholders.get(placeholder));
+								lastPos = end + 1;
+							} else {
+								appendString(text.substring(lastPos, end + 1));
+								lastPos = end + 1;
+							}
+						}
+						mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
+								"toString", "()Ljava/lang/String;", false);
+					}
+
+					private void appendString(String s) {
+						mv.visitLdcInsn(s);
+						mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
+								"append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+					}
+
+					private void appendVariable(String placeholder, int varIndex) {
+						if ("index".equals(placeholder)) {
+							mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, varIndex);
+							mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
+									"append", "(I)Ljava/lang/StringBuilder;", false);
+						} else if ("key".equals(placeholder)) {
+							// it's a Map.Entry
+							mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ALOAD, varIndex);
+							mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE, "java/util/Map$Entry",
+									"getKey", "()Ljava/lang/Object;", true);
+							mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
+									"append", "(Ljava/lang/Object;)Ljava/lang/StringBuilder;", false);
+						}
 					}
 
 					public void visitInvokeDynamicInsn(String name, String descriptor, Handle handle, Object... args) {
@@ -398,6 +473,11 @@ public class ValidationCodeInjector {
 			}
 			// Otherwise, delegate to the original parameter
 			return delegate.annotationValue(annotation, name);
+		}
+
+		@Override
+		public java.util.Map<String, Integer> placeholderValues() {
+			return delegate.placeholderValues();
 		}
 
 	}

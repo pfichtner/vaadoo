@@ -143,6 +143,13 @@ public class Parameters implements Iterable<Parameter> {
 		 */
 		TypeDescription.Generic genericType();
 
+		/**
+		 * Returns a map of placeholder names to their local variable indices.
+		 * 
+		 * @return a map of placeholder names to their local variable indices
+		 */
+		java.util.Map<String, Integer> placeholderValues();
+
 	}
 
 	private class ParameterWrapper implements Parameter {
@@ -151,6 +158,11 @@ public class Parameters implements Iterable<Parameter> {
 
 		public ParameterWrapper(int index) {
 			this.index = index;
+		}
+
+		@Override
+		public java.util.Map<String, Integer> placeholderValues() {
+			return java.util.Collections.emptyMap();
 		}
 
 		private InDefinedShape definedShape() {

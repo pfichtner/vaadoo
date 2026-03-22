@@ -34,6 +34,7 @@ package com.example;
 
 import com.example.Generated;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Iterator;
 import java.util.List;
 import org.jmolecules.ddd.types.ValueObject;
 
@@ -52,12 +53,17 @@ implements ValueObject {
             throw new IllegalArgumentException("list must not be null");
         }
         if (list != null) {
-            for (String string : list) {
+            Iterator iterator = list.iterator();
+            int n = 0;
+            while (iterator.hasNext()) {
+                String string = (String)iterator.next();
                 if (string == null) {
-                    throw new IllegalArgumentException("list[] must not be blank");
+                    throw new IllegalArgumentException("list[" + n + "] must not be blank");
                 }
-                if (string.toString().trim().length() != 0) continue;
-                throw new IllegalArgumentException("list[] must not be blank");
+                if (string.toString().trim().length() == 0) {
+                    throw new IllegalArgumentException("list[" + n + "] must not be blank");
+                }
+                ++n;
             }
         }
     }

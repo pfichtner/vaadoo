@@ -503,7 +503,8 @@ class VaadooImplementor {
 				}
 
 				// Call the fragment method using the injector
-				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar);
+				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
+						Map.of("index", indexVar));
 
 				// increment index and goto start
 				mv.visitIincInsn(indexVar, 1);
@@ -516,36 +517,89 @@ class VaadooImplementor {
 					Parameter containerParam, AnnotationDescription annotation) {
 				// Load the map
 				mv.visitVarInsn(ALOAD, containerParam.offset());
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "entrySet", "()Ljava/util/Set;", true);
 
-				if (index == 0) {
-					// Iterate over keys
-					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "keySet", "()Ljava/util/Set;", true);
-				} else {
-					// Iterate over values
-					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "values", "()Ljava/util/Collection;", true);
-				}
-
-				// Now we have an Iterable on the stack, we can use the foreach loop logic
-				generateIteratorLoopWithValidation(injector, mv, containerParam, annotation, elementType);
-			}
-
-			private void generateForEachLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation) {
-				// Load the container and get its iterator
-				mv.visitVarInsn(ALOAD, containerParam.offset());
-				generateIteratorLoopWithValidation(injector, mv, containerParam, annotation, elementType);
-			}
-
-			private void generateIteratorLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation, TypeDescription elementType) {
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
 
 				// Store iterator in a local variable
 				int iteratorVar = containerParam.offset() + 1;
 				mv.visitVarInsn(ASTORE, iteratorVar);
 
-				// Store element in a local variable (after the iterator)
-				int elementVar = iteratorVar + 1;
+				// Store entry in a local variable
+				int entryVar = iteratorVar + 1;
+
+				// Store element in a local variable
+				int elementVar = entryVar + 1;
+
+				Label loopStart = new Label();
+				Label loopTest = new Label();
+
+				// Jump to loop condition
+				mv.visitJumpInsn(GOTO, loopTest);
+
+				// Loop body label
+				mv.visitLabel(loopStart);
+
+				// Load iterator and get next entry
+				mv.visitVarInsn(ALOAD, iteratorVar);
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
+				mv.visitTypeInsn(CHECKCAST, "java/util/Map$Entry");
+				mv.visitVarInsn(ASTORE, entryVar);
+
+				// Load entry and get key or value
+				mv.visitVarInsn(ALOAD, entryVar);
+				if (index == 0) {
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;", true);
+				} else {
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;", true);
+				}
+
+				// Cast to the actual element type if it's not Object
+				if (!elementType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
+					mv.visitTypeInsn(CHECKCAST, elementType.asErasure().getInternalName());
+				}
+
+				// Store element in local variable
+				mv.visitVarInsn(ASTORE, elementVar);
+
+				// Call the fragment method using the injector
+				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
+						Map.of("key", entryVar));
+
+				// Loop condition: check if hasNext()
+				mv.visitLabel(loopTest);
+				mv.visitVarInsn(ALOAD, iteratorVar);
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
+				mv.visitJumpInsn(IFNE, loopStart);
+			}
+
+			private void generateForEachLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
+					Parameter containerParam, AnnotationDescription annotation) {
+				// Load the container and get its iterator
+				mv.visitVarInsn(ALOAD, containerParam.offset());
+				generateIteratorLoopWithValidation(injector, mv, containerParam, annotation, elementType, false);
+			}
+
+			private void generateIteratorLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
+					Parameter containerParam, AnnotationDescription annotation, TypeDescription elementType,
+					boolean isMap) {
+				if (isMap) {
+					generateMapLoopWithValidation(injector, mv, containerParam, annotation);
+					return;
+				}
+				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
+
+				// Store iterator in a local variable
+				int iteratorVar = containerParam.offset() + 1;
+				mv.visitVarInsn(ASTORE, iteratorVar);
+
+				// Initialize index in a local variable
+				int indexVar = iteratorVar + 1;
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.ICONST_0);
+				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ISTORE, indexVar);
+
+				// Store element in a local variable (after index)
+				int elementVar = indexVar + 1;
 
 				Label loopStart = new Label();
 				Label loopTest = new Label();
@@ -569,7 +623,11 @@ class VaadooImplementor {
 				mv.visitVarInsn(ASTORE, elementVar);
 
 				// Call the fragment method using the injector
-				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar);
+				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
+						Map.of("index", indexVar));
+
+				// increment index
+				mv.visitIincInsn(indexVar, 1);
 
 				// Loop condition: check if hasNext()
 				mv.visitLabel(loopTest);
@@ -579,12 +637,20 @@ class VaadooImplementor {
 			}
 
 			private void injectValidation(ValidationCodeInjector injector, MethodVisitor mv, Parameter containerParam,
-					AnnotationDescription annotation, TypeDescription elementType, int elementVar) {
+					AnnotationDescription annotation, TypeDescription elementType, int elementVar,
+					Map<String, Integer> placeholderValues) {
 				// Create a synthetic parameter representing the element
-				String name = containerParam.name() + (containerParam.type().isAssignableTo(Map.class) //
-						? (index == 0 ? "[key]" : "[value]") //
-						: "[]");
-				SyntheticElementParameter elementParam = new SyntheticElementParameter(name, elementVar, elementType);
+				String suffix;
+				if (containerParam.type().isAssignableTo(Map.class)) {
+					suffix = index == 0 ? "[key={key}]" : "[value for key={key}]";
+				} else if (placeholderValues.containsKey("index")) {
+					suffix = "[{index}]";
+				} else {
+					suffix = "[]";
+				}
+				String name = containerParam.name() + suffix;
+				SyntheticElementParameter elementParam = new SyntheticElementParameter(name, elementVar, elementType,
+						placeholderValues);
 
 				// Call the fragment method using the injector
 				@SuppressWarnings("unchecked")
@@ -599,11 +665,19 @@ class VaadooImplementor {
 			private final String name;
 			private final int offset;
 			private final TypeDescription type;
+			private final java.util.Map<String, Integer> placeholderValues;
 
-			SyntheticElementParameter(String name, int offset, TypeDescription type) {
+			SyntheticElementParameter(String name, int offset, TypeDescription type,
+					java.util.Map<String, Integer> placeholderValues) {
 				this.name = name;
 				this.offset = offset;
 				this.type = type;
+				this.placeholderValues = placeholderValues;
+			}
+
+			@Override
+			public java.util.Map<String, Integer> placeholderValues() {
+				return placeholderValues;
 			}
 
 			@Override

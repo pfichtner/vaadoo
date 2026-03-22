@@ -50,9 +50,11 @@ implements ValueObject {
             throw new IllegalArgumentException("intArray must not be null");
         }
         if (nArray != null) {
-            for (int n : nArray) {
-                if ((long)n >= 1L) continue;
-                throw new IllegalArgumentException("intArray[] must be greater than or equal to 1");
+            int n = nArray.length;
+            for (int i = 0; i < n; ++i) {
+                int n2 = nArray[i];
+                if ((long)n2 >= 1L) continue;
+                throw new IllegalArgumentException("intArray[" + i + "] must be greater than or equal to 1");
             }
         }
     }
