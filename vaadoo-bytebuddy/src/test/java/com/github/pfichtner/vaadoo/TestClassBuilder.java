@@ -148,17 +148,25 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		// e.g. List
 		Class<?> type;
 		// e.g. String
-		Class<?> genericType;
+		List<Class<?>> genericTypes;
 		// e.g. NotBlank()
-		List<AnnotationDefinition> genericTypeAnnotations;
+		List<List<AnnotationDefinition>> genericTypeAnnotations;
+
+		@Override
+		public String toString() {
+			return "TestClassBuilder.TypeDefinition(type=" + type + ", genericType="
+					+ (genericTypes.isEmpty() ? "null" : genericTypes.get(0)) + ", genericTypeAnnotations="
+					+ (genericTypeAnnotations.isEmpty() ? "[]" : genericTypeAnnotations.get(0)) + ")";
+		}
 
 		public static TypeDefinition of(Class<?> type) {
-			return of(type, null, emptyList());
+			return of(type, emptyList(), emptyList());
 		}
 
 		public static TypeDefinition of(Class<?> type, Class<?> genericType,
 				AnnotationDefinition... genericTypeAnnotations) {
-			return of(type, genericType, List.of(genericTypeAnnotations));
+			return genericType == null ? of(type)
+					: of(type, List.of(genericType), List.of(List.of(genericTypeAnnotations)));
 		}
 
 	}
@@ -285,7 +293,7 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 				TypeDescription rawType = TypeDescription.Generic.Builder.rawType(typeDefinition.type()).build()
 						.asErasure();
 				paramDef = (paramDef == null ? ctorInitial : paramDef).withParameter(
-						typeDefinition.genericType() == null ? rawType : toGenericType(parameter, rawType), name);
+						typeDefinition.genericTypes().isEmpty() ? rawType : toGenericType(parameter, rawType), name);
 				// Group annotations by their annotation type so we can create a container
 				// annotation when multiple repeatable annotations of the same type are present.
 				Map<Class<? extends Annotation>, List<AnnotationDefinition>> grouped = parameter.annotations().stream()
@@ -315,17 +323,36 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 	private static TypeDescription.Generic toGenericType(ParameterDefinition parameter, TypeDescription rawType) {
 		TypeDefinition typeDefinition = parameter.typeDefinition();
-		return TypeDescription.Generic.Builder.parameterizedType(rawType,
-				addAnnotations(TypeDescription.Generic.Builder.of(typeDefinition.genericType()),
-						typeDefinition.genericTypeAnnotations()).build())
-				.build();
+		if (typeDefinition.type().isArray()) {
+			TypeDescription.Generic.Builder builder = TypeDescription.Generic.Builder
+					.of(typeDefinition.type().getComponentType());
+			if (!typeDefinition.genericTypeAnnotations().isEmpty()) {
+				builder = addAnnotations(builder, typeDefinition.genericTypeAnnotations().get(0));
+			}
+			return new TypeDescription.Generic.OfGenericArray.Latent(builder.build(),
+					net.bytebuddy.description.annotation.AnnotationSource.Empty.INSTANCE);
+		}
+
+		if (typeDefinition.genericTypes().isEmpty()) {
+			return TypeDescription.Generic.Builder.rawType(typeDefinition.type()).build();
+		}
+
+		List<TypeDescription.Generic> typeArguments = new ArrayList<>();
+		for (int i = 0; i < typeDefinition.genericTypes().size(); i++) {
+			TypeDescription.Generic.Builder builder = TypeDescription.Generic.Builder.of(typeDefinition.genericTypes().get(i));
+			if (i < typeDefinition.genericTypeAnnotations().size()) {
+				builder = addAnnotations(builder, typeDefinition.genericTypeAnnotations().get(i));
+			}
+			typeArguments.add(builder.build());
+		}
+
+		return TypeDescription.Generic.Builder.parameterizedType(rawType, typeArguments).build();
 	}
 
 	private static TypeDescription.Generic.Builder addAnnotations(TypeDescription.Generic.Builder genericType,
 			List<AnnotationDefinition> genericTypeAnnotations) {
 		for (AnnotationDefinition annotationDefinition : genericTypeAnnotations) {
-			genericType = genericType
-					.annotate(AnnotationDescription.Builder.ofType(annotationDefinition.annotation()).build());
+			genericType = genericType.annotate(createAnnotation(annotationDefinition));
 		}
 		return genericType;
 	}

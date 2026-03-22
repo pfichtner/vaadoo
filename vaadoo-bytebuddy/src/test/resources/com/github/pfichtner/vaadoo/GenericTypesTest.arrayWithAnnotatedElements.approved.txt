@@ -1,0 +1,63 @@
+Story:
+arrayWithAnnotatedElements
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class [Ljava.lang.String;, genericType=class java.lang.String, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotBlank, values={})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
+
+
+Source:
+Analysing type com.example.GenericGenerated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class GenericGenerated
+implements ValueObject {
+    public GenericGenerated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @NotBlank(groups={}, message="{jakarta.validation.constraints.NotBlank.message}", payload={}) String[] stringArray) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.GenericGenerated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.GenericGenerated;
+import jakarta.validation.constraints.NotBlank;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class GenericGenerated
+implements ValueObject {
+    public GenericGenerated(@NotBlank(groups={}, message="{jakarta.validation.constraints.NotBlank.message}", payload={}) String[] stringArray) {
+        GenericGenerated.validate(stringArray);
+        this(stringArray, null);
+    }
+
+    private /* synthetic */ GenericGenerated(String[] stringArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(String[] stringArray) {
+        if (stringArray == null) {
+            throw new IllegalArgumentException("stringArray must not be null");
+        }
+        if (stringArray != null) {
+            for (String string : stringArray) {
+                if (string == null) {
+                    throw new IllegalArgumentException("stringArray[] must not be blank");
+                }
+                if (string.toString().trim().length() != 0) continue;
+                throw new IllegalArgumentException("stringArray[] must not be blank");
+            }
+        }
+    }
+}
+

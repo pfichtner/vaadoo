@@ -54,10 +54,10 @@ implements ValueObject {
         if (list != null) {
             for (String string : list) {
                 if (string == null) {
-                    throw new IllegalArgumentException("element must not be blank");
+                    throw new IllegalArgumentException("list[] must not be blank");
                 }
                 if (string.toString().trim().length() != 0) continue;
-                throw new IllegalArgumentException("element must not be blank");
+                throw new IllegalArgumentException("list[] must not be blank");
             }
         }
     }

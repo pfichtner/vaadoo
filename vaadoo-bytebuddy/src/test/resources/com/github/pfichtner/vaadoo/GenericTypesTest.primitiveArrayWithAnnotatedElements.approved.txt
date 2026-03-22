@@ -1,0 +1,60 @@
+Story:
+primitiveArrayWithAnnotatedElements
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class [I, genericType=int, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Min, values={value=1})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
+
+
+Source:
+Analysing type com.example.GenericGenerated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class GenericGenerated
+implements ValueObject {
+    public GenericGenerated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Min(groups={}, message="{jakarta.validation.constraints.Min.message}", payload={}, value=1L) int[] nArray) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.GenericGenerated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.GenericGenerated;
+import jakarta.validation.constraints.Min;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class GenericGenerated
+implements ValueObject {
+    public GenericGenerated(@Min(groups={}, message="{jakarta.validation.constraints.Min.message}", payload={}, value=1L) int[] nArray) {
+        GenericGenerated.validate(nArray);
+        this(nArray, null);
+    }
+
+    private /* synthetic */ GenericGenerated(int[] nArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(int[] nArray) {
+        if (nArray == null) {
+            throw new IllegalArgumentException("intArray must not be null");
+        }
+        if (nArray != null) {
+            for (int n : nArray) {
+                if ((long)n >= 1L) continue;
+                throw new IllegalArgumentException("intArray[] must be greater than or equal to 1");
+            }
+        }
+    }
+}
+

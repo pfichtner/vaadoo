@@ -203,12 +203,16 @@ public class Parameters implements Iterable<Parameter> {
 		@Override
 		public List<List<AnnotationDescription>> genericAnnotations() {
 			TypeDescription.Generic typeDescription = definedShape().getType();
-			return typeDescription.getSort().isParameterized() //
-					? typeDescription.getTypeArguments().stream() //
-							.filter(Objects::nonNull) //
-							.map(TypeDescription.Generic::getDeclaredAnnotations) //
-							.collect(toList()) //
-					: emptyList();
+			if (typeDescription.getSort().isParameterized()) {
+				return typeDescription.getTypeArguments().stream() //
+						.filter(Objects::nonNull) //
+						.map(TypeDescription.Generic::getDeclaredAnnotations) //
+						.collect(toList());
+			}
+			if (typeDescription.isArray()) {
+				return List.of(typeDescription.getComponentType().getDeclaredAnnotations());
+			}
+			return emptyList();
 		}
 
 		@Override

@@ -279,36 +279,53 @@ class VaadooImplementor {
 				List<List<AnnotationDescription>> genericAnnotations) {
 			TypeDescription.Generic genericType = parameter.genericType();
 
-			// Only process if this is a parameterized type
-			if (!genericType.getSort().isParameterized()) {
-				return empty();
-			}
+			if (genericType.getSort().isParameterized()) {
+				List<TypeDescription.Generic> typeArguments = genericType.getTypeArguments();
+				return range(0, genericAnnotations.size()).boxed().flatMap(i -> {
+					List<AnnotationDescription> typeArgAnnotations = genericAnnotations.get(i);
+					if (typeArgAnnotations.isEmpty() || i >= typeArguments.size()) {
+						return empty();
+					}
 
-			List<TypeDescription.Generic> typeArguments = genericType.getTypeArguments();
-			return range(0, genericAnnotations.size()).boxed().flatMap(i -> {
-				List<AnnotationDescription> typeArgAnnotations = genericAnnotations.get(i);
-				if (typeArgAnnotations.isEmpty() || i >= typeArguments.size()) {
+					TypeDescription.Generic typeArgument = typeArguments.get(i);
+					if (typeArgument == null) {
+						return empty();
+					}
+
+					return typeArgAnnotations.stream().flatMap(annotation -> {
+						TypeDescription annotationType = annotation.getAnnotationType();
+						if (isStandardJr380Anno(annotationType)) {
+							Optional<Method> fragmentMethod = codeFragmentMethod(annotationType,
+									typeArgument.asErasure());
+							if (fragmentMethod.isPresent()) {
+								return Stream.of(new GenericTypeInjectionTask(parameter, typeArgument.asErasure(),
+										fragmentMethod.get(), annotation, i));
+							}
+						}
+						return empty();
+					});
+				});
+			} else if (genericType.isArray()) {
+				List<AnnotationDescription> typeArgAnnotations = genericAnnotations.get(0);
+				if (typeArgAnnotations.isEmpty()) {
 					return empty();
 				}
 
-				TypeDescription.Generic typeArgument = typeArguments.get(i);
-				if (typeArgument == null) {
-					return empty();
-				}
-
-				// Create injection tasks for each annotation on the type argument
+				TypeDescription.Generic typeArgument = genericType.getComponentType();
 				return typeArgAnnotations.stream().flatMap(annotation -> {
 					TypeDescription annotationType = annotation.getAnnotationType();
 					if (isStandardJr380Anno(annotationType)) {
 						Optional<Method> fragmentMethod = codeFragmentMethod(annotationType, typeArgument.asErasure());
 						if (fragmentMethod.isPresent()) {
 							return Stream.of(new GenericTypeInjectionTask(parameter, typeArgument.asErasure(),
-									fragmentMethod.get(), annotation));
+									fragmentMethod.get(), annotation, 0));
 						}
 					}
 					return empty();
 				});
-			});
+			}
+
+			return empty();
 		}
 
 		private Stream<InjectionTask> jsr380(Parameter parameter, TypeDescription annotation,
@@ -401,13 +418,15 @@ class VaadooImplementor {
 			TypeDescription elementType;
 			Method fragmentMethod;
 			AnnotationDescription annotation;
+			int index;
 
 			GenericTypeInjectionTask(Parameter parameter, TypeDescription elementType, Method fragmentMethod,
-					AnnotationDescription annotation) {
+					AnnotationDescription annotation, int index) {
 				this.parameter = parameter;
 				this.elementType = elementType;
 				this.fragmentMethod = fragmentMethod;
 				this.annotation = annotation;
+				this.index = index;
 			}
 
 			@Override
@@ -428,19 +447,97 @@ class VaadooImplementor {
 				mv.visitVarInsn(ALOAD, containerParam.offset());
 				mv.visitJumpInsn(IFNULL, ifNullLabel);
 
-				// Generate: for (Object e : parameter)
-				generateForEachLoopWithValidation(injector, mv, containerParam, annotation);
+				TypeDescription containerType = containerParam.type();
+				if (containerType.isArray()) {
+					generateArrayLoopWithValidation(injector, mv, containerParam, annotation);
+				} else if (containerType.isAssignableTo(Map.class)) {
+					generateMapLoopWithValidation(injector, mv, containerParam, annotation);
+				} else {
+					// Assume Iterable (Collection, List, Set)
+					generateForEachLoopWithValidation(injector, mv, containerParam, annotation);
+				}
 
 				mv.visitLabel(ifNullLabel);
 			}
 
+			private void generateArrayLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
+					Parameter containerParam, AnnotationDescription annotation) {
+				TypeDescription containerType = containerParam.type();
+				TypeDescription elementType = containerType.getComponentType();
+
+				// Load the array
+				mv.visitVarInsn(ALOAD, containerParam.offset());
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.ARRAYLENGTH);
+
+				// Store length in a local variable
+				int lengthVar = containerParam.offset() + 1;
+				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ISTORE, lengthVar);
+
+				// Initialize index in a local variable
+				int indexVar = lengthVar + 1;
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.ICONST_0);
+				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ISTORE, indexVar);
+
+				Label loopStart = new Label();
+				Label loopEnd = new Label();
+
+				mv.visitLabel(loopStart);
+
+				// Loop condition: if index >= length then goto end
+				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, indexVar);
+				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, lengthVar);
+				mv.visitJumpInsn(net.bytebuddy.jar.asm.Opcodes.IF_ICMPGE, loopEnd);
+
+				// Load element from array: array[index]
+				mv.visitVarInsn(ALOAD, containerParam.offset());
+				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, indexVar);
+
+				int elementVar = indexVar + 1;
+				if (elementType.isPrimitive()) {
+					Type primitiveType = Type.getType(elementType.getDescriptor());
+					mv.visitInsn(primitiveType.getOpcode(net.bytebuddy.jar.asm.Opcodes.IALOAD));
+					mv.visitVarInsn(primitiveType.getOpcode(net.bytebuddy.jar.asm.Opcodes.ISTORE), elementVar);
+				} else {
+					mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.AALOAD);
+					mv.visitVarInsn(ASTORE, elementVar);
+				}
+
+				// Call the fragment method using the injector
+				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar);
+
+				// increment index and goto start
+				mv.visitIincInsn(indexVar, 1);
+				mv.visitJumpInsn(GOTO, loopStart);
+
+				mv.visitLabel(loopEnd);
+			}
+
+			private void generateMapLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
+					Parameter containerParam, AnnotationDescription annotation) {
+				// Load the map
+				mv.visitVarInsn(ALOAD, containerParam.offset());
+
+				if (index == 0) {
+					// Iterate over keys
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "keySet", "()Ljava/util/Set;", true);
+				} else {
+					// Iterate over values
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "values", "()Ljava/util/Collection;", true);
+				}
+
+				// Now we have an Iterable on the stack, we can use the foreach loop logic
+				generateIteratorLoopWithValidation(injector, mv, containerParam, annotation, elementType);
+			}
+
 			private void generateForEachLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
 					Parameter containerParam, AnnotationDescription annotation) {
-				// Get the element type from the container's generic type
-				TypeDescription elementType = getGenericElementType(containerParam);
-
 				// Load the container and get its iterator
 				mv.visitVarInsn(ALOAD, containerParam.offset());
+				generateIteratorLoopWithValidation(injector, mv, containerParam, annotation, elementType);
+			}
+
+			private void generateIteratorLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
+					Parameter containerParam, AnnotationDescription annotation, TypeDescription elementType) {
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
 
 				// Store iterator in a local variable
@@ -471,15 +568,8 @@ class VaadooImplementor {
 				// Store element in local variable
 				mv.visitVarInsn(ASTORE, elementVar);
 
-				// Use the injector to call the fragment method with the element
-				// Create a synthetic parameter representing the element
-				SyntheticElementParameter elementParam = new SyntheticElementParameter(elementVar, elementType);
-
 				// Call the fragment method using the injector
-				@SuppressWarnings("unchecked")
-				Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
-						.getDeclaringClass();
-				injector.useFragmentClass(clazz).inject(mv, elementParam, fragmentMethod, annotation);
+				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar);
 
 				// Loop condition: check if hasNext()
 				mv.visitLabel(loopTest);
@@ -488,21 +578,28 @@ class VaadooImplementor {
 				mv.visitJumpInsn(IFNE, loopStart);
 			}
 
-			private TypeDescription getGenericElementType(Parameter containerParam) {
-				// Get the generic type from the parameter itself, which has the type
-				// information
-				TypeDescription.Generic generic = containerParam.genericType();
-				return generic == null || generic.getTypeArguments().isEmpty()
-						? TypeDescription.ForLoadedType.of(Object.class)
-						: generic.getTypeArguments().get(0).asErasure();
+			private void injectValidation(ValidationCodeInjector injector, MethodVisitor mv, Parameter containerParam,
+					AnnotationDescription annotation, TypeDescription elementType, int elementVar) {
+				// Create a synthetic parameter representing the element
+				SyntheticElementParameter elementParam = new SyntheticElementParameter(containerParam, elementVar,
+						elementType);
+
+				// Call the fragment method using the injector
+				@SuppressWarnings("unchecked")
+				Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
+						.getDeclaringClass();
+				injector.useFragmentClass(clazz).inject(mv, elementParam, fragmentMethod, annotation);
 			}
+
 		}
 
 		private static class SyntheticElementParameter implements Parameters.Parameter {
+			private final Parameter containerParam;
 			private final int offset;
 			private final TypeDescription type;
 
-			SyntheticElementParameter(int offset, TypeDescription type) {
+			SyntheticElementParameter(Parameter containerParam, int offset, TypeDescription type) {
+				this.containerParam = containerParam;
 				this.offset = offset;
 				this.type = type;
 			}
@@ -524,7 +621,7 @@ class VaadooImplementor {
 
 			@Override
 			public String name() {
-				return "element";
+				return containerParam.name() + "[]";
 			}
 
 			@Override
