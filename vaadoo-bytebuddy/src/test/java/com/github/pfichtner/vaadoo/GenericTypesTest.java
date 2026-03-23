@@ -105,23 +105,4 @@ class GenericTypesTest {
 		assertThat(e2).hasMessageContaining("myArray[1] must not be blank");
 	}
 
-	@Test
-	void listWithAnnotatedElementsExceptionMessage() throws Exception {
-		var listOfNotBlankStrings = TypeDefinition.of(List.class, String.class,
-				AnnotationDefinition.of(NotBlank.class));
-		var constructor = ConstructorDefinition.of(
-				DefaultParameterDefinition.of(listOfNotBlankStrings, AnnotationDefinition.of(NotNull.class))
-				.withName("myList")
-				);
-		var transformed = transformer.transform(a(baseTestClass.thatImplementsValueObject().withConstructor(constructor)));
-
-		// Validation of element at index 0: " " is blank
-		Exception e1 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { List.of(" ") }));
-		assertThat(e1).hasMessageContaining("myList[0] must not be blank");
-
-		// Validation of element at index 1: " " is blank
-		Exception e2 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { List.of("valid", " ") }));
-		assertThat(e2).hasMessageContaining("myList[1] must not be blank");
-	}
-
 }

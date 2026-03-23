@@ -650,8 +650,13 @@ class VaadooImplementor {
 					suffix = "[]";
 				}
 				String name = containerParam.name() + suffix;
+
+				Map<String, Integer> cumulativePlaceholders = new HashMap<>(
+						containerParam.placeholderValues());
+				cumulativePlaceholders.putAll(placeholderValues);
+
 				SyntheticElementParameter elementParam = new SyntheticElementParameter(name, elementVar, elementType,
-						placeholderValues);
+						cumulativePlaceholders);
 
 				// Call the fragment method using the injector
 				@SuppressWarnings("unchecked")

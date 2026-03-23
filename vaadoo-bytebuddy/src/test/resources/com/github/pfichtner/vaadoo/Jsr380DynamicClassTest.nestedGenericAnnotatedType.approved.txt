@@ -1,0 +1,67 @@
+Story:
+nestedGenericAnnotatedType
+
+params annotations
+-: TestClassBuilder.NamedParameterDefinition(delegate=TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=interface java.util.List, genericType=interface java.util.List, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})]), name=nested)
+
+
+Source:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    public Generated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) List<@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) List> list) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated;
+import jakarta.validation.constraints.NotNull;
+import java.util.Iterator;
+import java.util.List;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    public Generated(List<@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) List> list) {
+        Generated.validate(list);
+        this(list, null);
+    }
+
+    private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(List list) {
+        if (list == null) {
+            throw new IllegalArgumentException("nested must not be null");
+        }
+        if (list != null) {
+            Iterator iterator = list.iterator();
+            int n = 0;
+            while (iterator.hasNext()) {
+                List list2 = (List)iterator.next();
+                if (list2 == null) {
+                    throw new IllegalArgumentException("nested[" + n + "] must not be null");
+                }
+                ++n;
+            }
+        }
+    }
+}
+
