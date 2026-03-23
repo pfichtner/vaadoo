@@ -49,6 +49,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -665,10 +666,10 @@ class VaadooImplementor {
 			private final String name;
 			private final int offset;
 			private final TypeDescription type;
-			private final java.util.Map<String, Integer> placeholderValues;
+			private final Map<String, Integer> placeholderValues;
 
 			SyntheticElementParameter(String name, int offset, TypeDescription type,
-					java.util.Map<String, Integer> placeholderValues) {
+					Map<String, Integer> placeholderValues) {
 				this.name = name;
 				this.offset = offset;
 				this.type = type;
@@ -676,7 +677,7 @@ class VaadooImplementor {
 			}
 
 			@Override
-			public java.util.Map<String, Integer> placeholderValues() {
+			public Map<String, Integer> placeholderValues() {
 				return placeholderValues;
 			}
 

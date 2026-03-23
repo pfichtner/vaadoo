@@ -45,8 +45,10 @@ import static net.bytebuddy.jar.asm.Type.getReturnType;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
@@ -322,7 +324,7 @@ public class ValidationCodeInjector {
 						}
 					}
 
-					private boolean hasPlaceholder(String text, java.util.Set<String> keys) {
+					private boolean hasPlaceholder(String text, Set<String> keys) {
 						for (String key : keys) {
 							if (text.contains("{" + key + "}")) {
 								return true;
@@ -440,7 +442,7 @@ public class ValidationCodeInjector {
 			AnnotationDescriptionParameterWrapper wrapper = new AnnotationDescriptionParameterWrapper(parameter,
 					annotationDescription);
 			// Add the wrapper to the precomputed masks map so it can be looked up later
-			Map<Parameter, Integer> masks = new java.util.HashMap<>(precomputedMasks);
+			Map<Parameter, Integer> masks = new HashMap<>(precomputedMasks);
 			masks.put(wrapper, precomputedMasks.get(parameter));
 
 			// Create a new injector with the updated masks and use it to inject
@@ -476,7 +478,7 @@ public class ValidationCodeInjector {
 		}
 
 		@Override
-		public java.util.Map<String, Integer> placeholderValues() {
+		public Map<String, Integer> placeholderValues() {
 			return delegate.placeholderValues();
 		}
 

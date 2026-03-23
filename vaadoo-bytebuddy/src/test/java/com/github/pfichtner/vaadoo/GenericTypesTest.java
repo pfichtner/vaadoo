@@ -2,10 +2,10 @@ package com.github.pfichtner.vaadoo;
 
 import static com.github.pfichtner.vaadoo.Buildable.a;
 import static com.github.pfichtner.vaadoo.TestClassBuilder.testClass;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,7 +80,7 @@ class GenericTypesTest {
 		assertThat(e1).hasMessageContaining("myMap[key= ] must not be blank");
 
 		// Validation of value: null is not allowed
-		Map<String, Integer> mapWithValueNull = new java.util.HashMap<>();
+		Map<String, Integer> mapWithValueNull = new HashMap<>();
 		mapWithValueNull.put("key", null);
 		Exception e2 = assertThrows(Exception.class, () -> Transformer.newInstance(transformed, new Object[] { mapWithValueNull }));
 		assertThat(e2).hasMessageContaining("myMap[value for key=key] must not be null");

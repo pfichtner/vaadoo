@@ -16,6 +16,7 @@
 package com.github.pfichtner.vaadoo;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
@@ -27,6 +28,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -148,7 +150,7 @@ public class Parameters implements Iterable<Parameter> {
 		 * 
 		 * @return a map of placeholder names to their local variable indices
 		 */
-		java.util.Map<String, Integer> placeholderValues();
+		Map<String, Integer> placeholderValues();
 
 	}
 
@@ -161,8 +163,8 @@ public class Parameters implements Iterable<Parameter> {
 		}
 
 		@Override
-		public java.util.Map<String, Integer> placeholderValues() {
-			return java.util.Collections.emptyMap();
+		public Map<String, Integer> placeholderValues() {
+			return emptyMap();
 		}
 
 		private InDefinedShape definedShape() {
