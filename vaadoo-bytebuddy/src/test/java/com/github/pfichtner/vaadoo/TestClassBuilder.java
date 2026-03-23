@@ -130,6 +130,13 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 		Class<? extends Annotation> annotation;
 		LinkedHashMap<String, Object> values;
 
+		@Override
+		public String toString() {
+			return "TestClassBuilder.AnnotationDefinition(annotation=" + annotation + ", values={"
+					+ values.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).sorted().collect(joining(", "))
+					+ "})";
+		}
+
 		public static AnnotationDefinition of(Class<? extends Annotation> annotation) {
 			return of(annotation, emptyMap());
 		}
@@ -387,6 +394,8 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 						.define("fraction", getAnnotationValue(annotationDefinition, "fraction", 0));
 			} else if (anno.equals(Pattern.class)) {
 				builder = builder.define("regexp", getAnnotationValue(annotationDefinition, "regexp", ""));
+				Pattern.Flag[] flags = getAnnotationValue(annotationDefinition, "flags", new Pattern.Flag[0]);
+				builder = builder.defineEnumerationArray("flags", Pattern.Flag.class, flags);
 			}
 			return builder.build();
 		} catch (Exception e) {

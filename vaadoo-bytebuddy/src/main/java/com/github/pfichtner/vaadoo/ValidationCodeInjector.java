@@ -443,7 +443,16 @@ public class ValidationCodeInjector {
 					annotationDescription);
 			// Add the wrapper to the precomputed masks map so it can be looked up later
 			Map<Parameter, Integer> masks = new HashMap<>(precomputedMasks);
-			masks.put(wrapper, precomputedMasks.get(parameter));
+			Integer mask = precomputedMasks.get(parameter);
+			if (mask == null && annotationDescription.getAnnotationType()
+					.represents(jakarta.validation.constraints.Pattern.class)) {
+				EnumerationDescription[] flags = annotationDescription.getValue("flags")
+						.resolve(EnumerationDescription[].class);
+				mask = com.github.pfichtner.vaadoo.fragments.impl.Template.bitwiseOr(java.util.stream.Stream.of(flags)
+						.map(EnumerationDescription::getValue).map(jakarta.validation.constraints.Pattern.Flag::valueOf)
+						.toArray(jakarta.validation.constraints.Pattern.Flag[]::new));
+			}
+			masks.put(wrapper, mask);
 
 			// Create a new injector with the updated masks and use it to inject
 			ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,

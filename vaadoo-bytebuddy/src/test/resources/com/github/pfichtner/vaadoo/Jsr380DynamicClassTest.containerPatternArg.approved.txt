@@ -1,0 +1,81 @@
+Story:
+containerPatternArg
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=interface java.util.List, genericType=class java.lang.String, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Pattern, values={regexp=\d*})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
+
+
+Source:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import java.util.List;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    public Generated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) List<@Pattern(flags={}, groups={}, message="{jakarta.validation.constraints.Pattern.message}", payload={}, regexp="\d*") String> list) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated;
+import jakarta.validation.constraints.Pattern;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated
+implements ValueObject {
+    private static final /* synthetic */ Map regexpCache;
+
+    public Generated(List<@Pattern(flags={}, groups={}, message="{jakarta.validation.constraints.Pattern.message}", payload={}, regexp="\d*") String> list) {
+        Generated.validate(list);
+        this(list, null);
+    }
+
+    private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(List list) {
+        if (list == null) {
+            throw new IllegalArgumentException("list must not be null");
+        }
+        if (list != null) {
+            Iterator iterator = list.iterator();
+            int n = 0;
+            while (iterator.hasNext()) {
+                String string = (String)iterator.next();
+                if (string != null && !Generated.getCachedPattern("\\d*", 0).matcher(string).matches()) {
+                    throw new IllegalArgumentException("list[" + n + "] must match \"\\d*\"");
+                }
+                ++n;
+            }
+        }
+    }
+
+    static {
+        regexpCache = new ConcurrentHashMap();
+    }
+
+    private static /* synthetic */ java.util.regex.Pattern getCachedPattern(String string, int n) {
+        String string2 = string + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string2, object -> java.util.regex.Pattern.compile(string, n));
+    }
+}
+

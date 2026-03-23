@@ -69,7 +69,30 @@ class Jsr380DynamicClassTest {
 		var constructor = ConstructorDefinition.of(DefaultParameterDefinition.of(String.class,
 				AnnotationDefinition.of(Pattern.class, Map.of("regexp", "\\d*"))));
 		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
-		new Approver(new Transformer()).approveTransformed("regexp", constructor.params(), unloaded);
+		new Approver(new Transformer()).approveTransformed("patternArg", constructor.params(), unloaded);
+	}
+
+	@Test
+	void containerPatternArg() throws Exception {
+		var listOfPatternStrings = TypeDefinition.of(List.class, String.class,
+				AnnotationDefinition.of(Pattern.class, Map.of("regexp", "\\d*")));
+		var constructor = ConstructorDefinition.of(
+				DefaultParameterDefinition.of(listOfPatternStrings, AnnotationDefinition.of(NotNull.class))
+				);
+		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
+		new Approver(new Transformer()).approveTransformed("containerPatternArg", constructor.params(), unloaded);
+	}
+
+	@Test
+	void containerPatternWithFlagsArg() throws Exception {
+		var listOfPatternStrings = TypeDefinition.of(List.class, String.class,
+				AnnotationDefinition.of(Pattern.class,
+						Map.of("regexp", "\\d*", "flags", new Pattern.Flag[] { Pattern.Flag.CASE_INSENSITIVE })));
+		var constructor = ConstructorDefinition.of(
+				DefaultParameterDefinition.of(listOfPatternStrings, AnnotationDefinition.of(NotNull.class)));
+		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
+		new Approver(new Transformer()).approveTransformed("containerPatternWithFlagsArg", constructor.params(),
+				unloaded);
 	}
 
 	@Test

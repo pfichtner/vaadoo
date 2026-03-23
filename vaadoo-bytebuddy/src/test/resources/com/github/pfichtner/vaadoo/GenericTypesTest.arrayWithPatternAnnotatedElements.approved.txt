@@ -1,0 +1,75 @@
+Story:
+arrayWithPatternAnnotatedElements
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class [Ljava.lang.String;, genericType=class java.lang.String, genericTypeAnnotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Pattern, values={regexp=\d*})]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={})])
+
+
+Source:
+Analysing type com.example.GenericGenerated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class GenericGenerated
+implements ValueObject {
+    public GenericGenerated(@NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Pattern(flags={}, groups={}, message="{jakarta.validation.constraints.Pattern.message}", payload={}, regexp="\d*") String[] stringArray) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.GenericGenerated
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.GenericGenerated;
+import jakarta.validation.constraints.Pattern;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class GenericGenerated
+implements ValueObject {
+    private static final /* synthetic */ Map regexpCache;
+
+    public GenericGenerated(@Pattern(flags={}, groups={}, message="{jakarta.validation.constraints.Pattern.message}", payload={}, regexp="\d*") String[] stringArray) {
+        GenericGenerated.validate(stringArray);
+        this(stringArray, null);
+    }
+
+    private /* synthetic */ GenericGenerated(String[] stringArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(String[] stringArray) {
+        if (stringArray == null) {
+            throw new IllegalArgumentException("stringArray must not be null");
+        }
+        if (stringArray != null) {
+            int n = stringArray.length;
+            for (int i = 0; i < n; ++i) {
+                String string = stringArray[i];
+                if (string == null || GenericGenerated.getCachedPattern("\\d*", 0).matcher(string).matches()) continue;
+                throw new IllegalArgumentException("stringArray[" + i + "] must match \"\\d*\"");
+            }
+        }
+    }
+
+    static {
+        regexpCache = new ConcurrentHashMap();
+    }
+
+    private static /* synthetic */ java.util.regex.Pattern getCachedPattern(String string, int n) {
+        String string2 = string + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string2, object -> java.util.regex.Pattern.compile(string, n));
+    }
+}
+

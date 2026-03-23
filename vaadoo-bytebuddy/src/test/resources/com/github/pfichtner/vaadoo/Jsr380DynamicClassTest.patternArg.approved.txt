@@ -1,5 +1,5 @@
 Story:
-regexp
+patternArg
 
 params annotations
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.String, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Pattern, values={regexp=\d*})])

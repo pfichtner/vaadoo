@@ -70,7 +70,11 @@ class Approver {
 	}
 
 	public static Scrubber scrubber() {
-		return new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]", i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
+		Scrubber s1 = new RegExScrubber("auxiliary\\.\\S+\\s+\\S+[),]",
+				i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
+		Scrubber s2 = new RegExScrubber("\\[Ljakarta\\.validation\\.constraints\\.Pattern\\$Flag;@[0-9a-f]+",
+				i -> "[Ljakarta.validation.constraints.Pattern$Flag;@HASHCODE");
+		return (s) -> s2.scrub(s1.scrub(s));
 	}
 
 	public static String decompile(Unloaded<?> clazz) throws IOException {

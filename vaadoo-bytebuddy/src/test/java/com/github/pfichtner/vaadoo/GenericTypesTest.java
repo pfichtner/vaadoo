@@ -105,4 +105,28 @@ class GenericTypesTest {
 		assertThat(e2).hasMessageContaining("myArray[1] must not be blank");
 	}
 
+	@Test
+	void arrayWithPatternAnnotatedElements() throws Exception {
+		var arrayOfPatternStrings = TypeDefinition.of(String[].class, String.class,
+				AnnotationDefinition.of(jakarta.validation.constraints.Pattern.class, Map.of("regexp", "\\d*")));
+		var constructor = ConstructorDefinition.of(
+				DefaultParameterDefinition.of(arrayOfPatternStrings, AnnotationDefinition.of(NotNull.class))
+				);
+		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
+		new Approver(new Transformer()).approveTransformed("arrayWithPatternAnnotatedElements", constructor.params(),
+				unloaded);
+	}
+
+	@Test
+	void mapWithPatternAnnotatedKeysAndValues() throws Exception {
+		var mapOfPatternStringsToPatternStrings = TypeDefinition.of(Map.class, List.of(String.class, String.class),
+				List.of(List.of(AnnotationDefinition.of(jakarta.validation.constraints.Pattern.class, Map.of("regexp", "K\\d*"))),
+						List.of(AnnotationDefinition.of(jakarta.validation.constraints.Pattern.class, Map.of("regexp", "V\\d*")))));
+		var constructor = ConstructorDefinition.of(DefaultParameterDefinition
+				.of(mapOfPatternStringsToPatternStrings, AnnotationDefinition.of(NotNull.class)));
+		var unloaded = a(baseTestClass.thatImplementsValueObject().withConstructor(constructor));
+		new Approver(new Transformer()).approveTransformed("mapWithPatternAnnotatedKeysAndValues", constructor.params(),
+				unloaded);
+	}
+
 }
