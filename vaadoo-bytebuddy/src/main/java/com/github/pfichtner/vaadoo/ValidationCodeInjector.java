@@ -54,6 +54,7 @@ import java.util.function.Function;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.NullValueException;
+import com.github.pfichtner.vaadoo.fragments.impl.Template;
 
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -448,8 +449,9 @@ public class ValidationCodeInjector {
 					.represents(jakarta.validation.constraints.Pattern.class)) {
 				EnumerationDescription[] flags = annotationDescription.getValue("flags")
 						.resolve(EnumerationDescription[].class);
-				mask = com.github.pfichtner.vaadoo.fragments.impl.Template.bitwiseOr(java.util.stream.Stream.of(flags)
-						.map(EnumerationDescription::getValue).map(jakarta.validation.constraints.Pattern.Flag::valueOf)
+				mask = Template.bitwiseOr(java.util.stream.Stream.of(flags) //
+						.map(EnumerationDescription::getValue) //
+						.map(jakarta.validation.constraints.Pattern.Flag::valueOf) //
 						.toArray(jakarta.validation.constraints.Pattern.Flag[]::new));
 			}
 			masks.put(wrapper, mask);

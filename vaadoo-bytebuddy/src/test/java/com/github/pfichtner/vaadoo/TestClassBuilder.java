@@ -132,9 +132,13 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 
 		@Override
 		public String toString() {
-			return "TestClassBuilder.AnnotationDefinition(annotation=" + annotation + ", values={"
-					+ values.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).sorted().collect(joining(", "))
-					+ "})";
+			return format("TestClassBuilder.AnnotationDefinition(annotation=%s, values={%s})", annotation,
+					annoValues());
+		}
+
+		private String annoValues() {
+			return values.entrySet().stream().map(e -> format("%s=%s", e.getKey(), e.getValue())).sorted()
+					.collect(joining(", "));
 		}
 
 		public static AnnotationDefinition of(Class<? extends Annotation> annotation) {
