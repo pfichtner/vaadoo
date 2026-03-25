@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -40,6 +41,7 @@ import com.github.pfichtner.vaadoo.testclasses.ClassWithNotNullAttribute;
 import com.github.pfichtner.vaadoo.testclasses.EmptyClass;
 import com.github.pfichtner.vaadoo.testclasses.TwoConstructorsValueObject;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithAttribute;
+import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithGenericTypeAnnotatedAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRegexAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableRegexAttribute;
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableSizeAttribute;
@@ -171,6 +173,16 @@ class JMoleculesVaadooPluginTests {
 					.hasCauseInstanceOf(IllegalArgumentException.class)
 					.hasRootCauseMessage("must have at most 10 characters");
 		});
+	}
+
+	@Test
+	void genericTypeAnnotations() throws Exception {
+		var transformed = transformer.transform(ValueObjectWithGenericTypeAnnotatedAttribute.class);
+		var listArgConstructor = transformed.getDeclaredConstructor(List.class);
+
+		assertThatThrownBy(() -> listArgConstructor.newInstance(List.of(1, 2, 3, -1, 4, 5, 6, 7, 8, 9, 10)))
+				.hasCauseInstanceOf(IllegalArgumentException.class)
+				.hasRootCauseMessage("positiveIntsList[3] must be greater than 0");
 	}
 
 	static List<Arguments> customExampleSource() throws Exception {
