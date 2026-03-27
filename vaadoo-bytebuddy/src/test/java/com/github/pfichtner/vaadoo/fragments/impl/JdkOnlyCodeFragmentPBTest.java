@@ -68,6 +68,8 @@ class JdkOnlyCodeFragmentPBTest {
 	@Value
 	private static class Fixture {
 
+		private static final Class<? extends Exception> NULL_EXCEPTION_TYPE = NullValueException.class;
+
 		Jsr380CodeFragment sut;
 		Annotation anno;
 
@@ -87,7 +89,7 @@ class JdkOnlyCodeFragmentPBTest {
 
 		public void nullPointerExceptionIf(boolean b, Object v, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertException(b, NullValueException.class, v, type);
+				assertException(b, NULL_EXCEPTION_TYPE, v, type);
 			}
 		}
 
