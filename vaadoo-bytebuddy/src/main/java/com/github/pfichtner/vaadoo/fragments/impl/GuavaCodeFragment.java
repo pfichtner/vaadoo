@@ -453,37 +453,37 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Digits anno, byte value) {
-	    String str = Byte.toString(value);
-	    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+		String str = Byte.toString(value);
+		int length = value < 0 ? str.length() - 1 : str.length();
 		checkArgument(length <= anno.integer(), anno.message());
 	}
 
 	@Override
 	public void check(Digits anno, short value) {
-	    String str = Short.toString(value);
-	    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+		String str = Short.toString(value);
+		int length = value < 0 ? str.length() - 1 : str.length();
 		checkArgument(length <= anno.integer(), anno.message());
 	}
 
 	@Override
 	public void check(Digits anno, int value) {
-	    String str = Integer.toString(value);
-	    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+		String str = Integer.toString(value);
+		int length = value < 0 ? str.length() - 1 : str.length();
 		checkArgument(length <= anno.integer(), anno.message());
 	}
 
 	@Override
 	public void check(Digits anno, long value) {
-	    String str = Long.toString(value);
-	    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+		String str = Long.toString(value);
+		int length = value < 0 ? str.length() - 1 : str.length();
 		checkArgument(length <= anno.integer(), anno.message());
 	}
 
 	@Override
 	public void check(Digits anno, Byte value) {
 		if (value != null) {
-		    String str = value.toString();
-		    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+			String str = value.toString();
+			int length = value < 0 ? str.length() - 1 : str.length();
 			checkArgument(length <= anno.integer(), anno.message());
 		}
 	}
@@ -491,8 +491,8 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Short value) {
 		if (value != null) {
-		    String str = value.toString();
-		    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+			String str = value.toString();
+			int length = value < 0 ? str.length() - 1 : str.length();
 			checkArgument(length <= anno.integer(), anno.message());
 		}
 	}
@@ -500,8 +500,8 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Integer value) {
 		if (value != null) {
-		    String str = value.toString();
-		    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+			String str = value.toString();
+			int length = value < 0 ? str.length() - 1 : str.length();
 			checkArgument(length <= anno.integer(), anno.message());
 		}
 	}
@@ -509,8 +509,8 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Long value) {
 		if (value != null) {
-		    String str = value.toString();
-		    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+			String str = value.toString();
+			int length = value < 0 ? str.length() - 1 : str.length();
 			checkArgument(length <= anno.integer(), anno.message());
 		}
 	}
@@ -518,8 +518,8 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, BigInteger value) {
 		if (value != null) {
-		    String str = value.toString();
-		    int length = (str.charAt(0) == '-') ? str.length() - 1 : str.length();
+			String str = value.toString();
+			int length = value.signum() < 0 ? str.length() - 1 : str.length();
 			checkArgument(length <= anno.integer(), anno.message());
 		}
 	}
