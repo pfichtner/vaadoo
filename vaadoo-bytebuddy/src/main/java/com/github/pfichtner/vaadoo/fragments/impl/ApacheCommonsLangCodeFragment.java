@@ -513,7 +513,7 @@ public class ApacheCommonsLangCodeFragment implements Jsr380CodeFragment {
 	public void check(Digits anno, BigDecimal value) {
 		if (value != null) {
 			int integerPartLength = value.precision() - value.scale();
-			int fractionPartLength = value.scale() < 0 ? 0 : value.scale();
+			int fractionPartLength = max(0, value.scale());
 			isTrue(integerPartLength <= anno.integer() && fractionPartLength <= anno.fraction(), anno.message());
 		}
 	}
@@ -524,7 +524,7 @@ public class ApacheCommonsLangCodeFragment implements Jsr380CodeFragment {
 			try {
 				BigDecimal bigNum = new BigDecimal(value.toString());
 				int integerPartLength = bigNum.precision() - bigNum.scale();
-				int fractionPartLength = bigNum.scale() < 0 ? 0 : bigNum.scale();
+				int fractionPartLength = max(0, bigNum.scale());
 				isTrue(integerPartLength <= anno.integer() && fractionPartLength <= anno.fraction(), anno.message());
 			} catch (NumberFormatException e) {
 				// ignore
