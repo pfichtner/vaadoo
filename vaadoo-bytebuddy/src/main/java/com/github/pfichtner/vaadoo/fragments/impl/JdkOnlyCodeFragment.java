@@ -3,6 +3,7 @@ package com.github.pfichtner.vaadoo.fragments.impl;
 import static com.github.pfichtner.vaadoo.fragments.impl.Template.bitwiseOr;
 import static java.lang.Math.abs;
 import static java.lang.Math.log10;
+import static java.lang.Math.max;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.compile;
 
@@ -559,7 +560,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Digits anno, byte value) {
-		int length = (value == 0) ? 1 : (int) log10(abs(value)) + 1;
+		int length = max(1, (int) log10(abs(value)) + 1);
 		if (length > anno.integer()) {
 			throw new IllegalArgumentException(anno.message());
 		}
@@ -567,7 +568,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Digits anno, short value) {
-		int length = (value == 0) ? 1 : (int) log10(abs(value)) + 1;
+		int length = max(1, (int) log10(abs(value)) + 1);
 		if (length > anno.integer()) {
 			throw new IllegalArgumentException(anno.message());
 		}
@@ -575,8 +576,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Digits anno, int value) {
-		long absValue = (value == Integer.MIN_VALUE) ? ((long) Integer.MAX_VALUE) + 1L : abs((long) value);
-		int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
+		int length = value == Integer.MIN_VALUE ? 10 : max(1, (int) log10(abs(value)) + 1);
 		if (length > anno.integer()) {
 			throw new IllegalArgumentException(anno.message());
 		}
@@ -584,8 +584,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Digits anno, long value) {
-		long absValue = (value == Long.MIN_VALUE) ? -(value + 1) : abs(value);
-		int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
+		int length = value == Long.MIN_VALUE ? 19 : max(1, (int) log10(abs(value)) + 1);
 		if (length > anno.integer()) {
 			throw new IllegalArgumentException(anno.message());
 		}
@@ -594,7 +593,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Byte value) {
 		if (value != null) {
-			int length = (value == 0) ? 1 : (int) log10(abs(value)) + 1;
+			int length = max(1, (int) log10(abs(value)) + 1);
 			if (length > anno.integer()) {
 				throw new IllegalArgumentException(anno.message());
 			}
@@ -604,7 +603,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Short value) {
 		if (value != null) {
-			int length = (value == 0) ? 1 : (int) log10(abs(value)) + 1;
+			int length = max(1, (int) log10(abs(value)) + 1);
 			if (length > anno.integer()) {
 				throw new IllegalArgumentException(anno.message());
 			}
@@ -614,8 +613,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Integer value) {
 		if (value != null) {
-			long absValue = (value == Integer.MIN_VALUE) ? ((long) Integer.MAX_VALUE) + 1L : abs((long) value);
-			int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
+			int length = value == Integer.MIN_VALUE ? 10 : max(1, (int) log10(abs(value)) + 1);
 			if (length > anno.integer()) {
 				throw new IllegalArgumentException(anno.message());
 			}
@@ -625,8 +623,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 	@Override
 	public void check(Digits anno, Long value) {
 		if (value != null) {
-			long absValue = (value == Long.MIN_VALUE) ? -(value + 1) : abs(value);
-			int length = (value == 0) ? 1 : (int) log10(absValue) + 1;
+			int length = value == Long.MIN_VALUE ? 19 : max(1, (int) log10(abs(value)) + 1);
 			if (length > anno.integer()) {
 				throw new IllegalArgumentException(anno.message());
 			}
