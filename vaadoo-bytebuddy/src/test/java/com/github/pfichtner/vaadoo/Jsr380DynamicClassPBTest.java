@@ -84,6 +84,7 @@ import com.github.pfichtner.vaadoo.TestClassBuilder.DefaultParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.ParameterDefinition;
 import com.github.pfichtner.vaadoo.TestClassBuilder.TypeDefinition;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.ApacheCommonsLangCodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragmentIAEMixin;
 
@@ -405,6 +406,30 @@ class Jsr380DynamicClassPBTest {
 		settings.allowMultipleVerifyCallsForThisMethod();
 		withProjectRoot(projectRoot, () -> approver
 				.approveTransformed("Class implementing ValueObject: [Guava, IAE instead of NPE]", params));
+	}
+
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
+	void implementsValueObjectWeavingInApacheCommonsLangCode(
+			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
+		var projectRoot = configure(useFragmentClass(ApacheCommonsLangCodeFragment.class), keepJsr380Annotations());
+		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		ApprovalSettings settings = settings();
+		settings.allowMultipleVerifyCallsForThisClass();
+		settings.allowMultipleVerifyCallsForThisMethod();
+		withProjectRoot(projectRoot,
+				() -> approver.approveTransformed("Class implementing ValueObject: [ApacheCommonsLang]", params));
+	}
+
+	@Property(seed = FIXED_SEED, shrinking = OFF, tries = 10)
+	void implementsValueObjectWeavingInApacheCommonsLangCodeWithRemovedAnnos(
+			@ForAll("constructorParameters") List<ParameterDefinition> params) throws Exception {
+		var projectRoot = configure(useFragmentClass(ApacheCommonsLangCodeFragment.class));
+		var approver = new Approver(new Transformer().projectRoot(projectRoot));
+		ApprovalSettings settings = settings();
+		settings.allowMultipleVerifyCallsForThisClass();
+		settings.allowMultipleVerifyCallsForThisMethod();
+		withProjectRoot(projectRoot, () -> approver.approveTransformed(
+				"Class implementing ValueObject: [ApacheCommonsLang, removing JSR380 annotations]", params));
 	}
 
 	private static void withProjectRoot(File projectRoot, ThrowingRunnable runnable) throws Exception {

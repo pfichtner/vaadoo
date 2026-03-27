@@ -159,6 +159,7 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 - **Which bytecode implementation should be weaved in**
   - e.g. *plain-java* (default)
   - or an implementation using Google Guava's `Preconditions`
+  - or an implementation using Apache Commons Lang3's `Validate`
   - or any other compatible class
 
 - **Which classes (types) should be enhanced** by the plugin (default: all)

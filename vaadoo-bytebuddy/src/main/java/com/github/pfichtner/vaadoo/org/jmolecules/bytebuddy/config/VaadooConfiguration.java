@@ -20,6 +20,7 @@ import static java.util.Collections.emptyList;
 import java.util.List;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.ApacheCommonsLangCodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.GuavaCodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.JdkOnlyCodeFragment;
 
@@ -36,7 +37,8 @@ public interface VaadooConfiguration {
 	@Getter
 	public static enum KnownFragmentClass {
 		JDK_ONLY(JdkOnlyCodeFragment.class), //
-		GUAVA(GuavaCodeFragment.class) //
+		GUAVA(GuavaCodeFragment.class), //
+		COMMONS_LANG3(ApacheCommonsLangCodeFragment.class) //
 		;
 
 		private final Class<? extends Jsr380CodeFragment> fragmentClass;

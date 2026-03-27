@@ -1,0 +1,39 @@
+Story:
+Class implementing ValueObject: [ApacheCommonsLang]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class [Ljava.lang.Float;, genericType=null, genericTypeAnnotations=[]), annotations=[])
+
+
+Source:
+Analysing type com.example.Generated_1508038582
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1508038582
+implements ValueObject {
+    public Generated_1508038582(Float[] floatArray) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_1508038582
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1508038582
+implements ValueObject {
+    public Generated_1508038582(Float[] floatArray) {
+    }
+}
+
