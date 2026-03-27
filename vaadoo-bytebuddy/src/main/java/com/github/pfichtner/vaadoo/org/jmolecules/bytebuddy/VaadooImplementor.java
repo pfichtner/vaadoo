@@ -20,6 +20,7 @@ import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.findRepeatableAnnotationContainers;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
+import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.CachedVaadooConfiguration.cachedConfiguration;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isAbstract;
 import static java.util.Collections.emptyList;
@@ -33,15 +34,22 @@ import static java.util.stream.Stream.empty;
 import static net.bytebuddy.implementation.MethodCall.invoke;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_FRAMES;
 import static net.bytebuddy.jar.asm.ClassWriter.COMPUTE_MAXS;
+import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
+import static net.bytebuddy.jar.asm.Opcodes.ARRAYLENGTH;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.CHECKCAST;
 import static net.bytebuddy.jar.asm.Opcodes.GOTO;
+import static net.bytebuddy.jar.asm.Opcodes.IALOAD;
+import static net.bytebuddy.jar.asm.Opcodes.ICONST_0;
 import static net.bytebuddy.jar.asm.Opcodes.IFNE;
 import static net.bytebuddy.jar.asm.Opcodes.IFNULL;
+import static net.bytebuddy.jar.asm.Opcodes.IF_ICMPGE;
+import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
+import static net.bytebuddy.jar.asm.Opcodes.ISTORE;
 import static net.bytebuddy.jar.asm.Opcodes.RETURN;
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -66,7 +74,6 @@ import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.Template;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
-import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.CachedVaadooConfiguration;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
 import jakarta.validation.constraints.Pattern;
@@ -98,7 +105,7 @@ class VaadooImplementor {
 	private final VaadooConfiguration configuration;
 
 	public VaadooImplementor(VaadooConfiguration configuration) {
-		this.configuration = new CachedVaadooConfiguration(configuration);
+		this.configuration = cachedConfiguration(configuration);
 	}
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
@@ -468,16 +475,16 @@ class VaadooImplementor {
 
 				// Load the array
 				mv.visitVarInsn(ALOAD, containerParam.offset());
-				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.ARRAYLENGTH);
+				mv.visitInsn(ARRAYLENGTH);
 
 				// Store length in a local variable
 				int lengthVar = containerParam.offset() + 1;
-				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ISTORE, lengthVar);
+				mv.visitVarInsn(ISTORE, lengthVar);
 
 				// Initialize index in a local variable
 				int indexVar = lengthVar + 1;
-				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.ICONST_0);
-				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ISTORE, indexVar);
+				mv.visitInsn(ICONST_0);
+				mv.visitVarInsn(ISTORE, indexVar);
 
 				Label loopStart = new Label();
 				Label loopEnd = new Label();
@@ -485,21 +492,21 @@ class VaadooImplementor {
 				mv.visitLabel(loopStart);
 
 				// Loop condition: if index >= length then goto end
-				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, indexVar);
-				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, lengthVar);
-				mv.visitJumpInsn(net.bytebuddy.jar.asm.Opcodes.IF_ICMPGE, loopEnd);
+				mv.visitVarInsn(ILOAD, indexVar);
+				mv.visitVarInsn(ILOAD, lengthVar);
+				mv.visitJumpInsn(IF_ICMPGE, loopEnd);
 
 				// Load element from array: array[index]
 				mv.visitVarInsn(ALOAD, containerParam.offset());
-				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, indexVar);
+				mv.visitVarInsn(ILOAD, indexVar);
 
 				int elementVar = indexVar + 1;
 				if (elementType.isPrimitive()) {
 					Type primitiveType = Type.getType(elementType.getDescriptor());
-					mv.visitInsn(primitiveType.getOpcode(net.bytebuddy.jar.asm.Opcodes.IALOAD));
-					mv.visitVarInsn(primitiveType.getOpcode(net.bytebuddy.jar.asm.Opcodes.ISTORE), elementVar);
+					mv.visitInsn(primitiveType.getOpcode(IALOAD));
+					mv.visitVarInsn(primitiveType.getOpcode(ISTORE), elementVar);
 				} else {
-					mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.AALOAD);
+					mv.visitInsn(AALOAD);
 					mv.visitVarInsn(ASTORE, elementVar);
 				}
 
@@ -552,7 +559,8 @@ class VaadooImplementor {
 				if (index == 0) {
 					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;", true);
 				} else {
-					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;", true);
+					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;",
+							true);
 				}
 
 				// Cast to the actual element type if it's not Object
@@ -596,8 +604,8 @@ class VaadooImplementor {
 
 				// Initialize index in a local variable
 				int indexVar = iteratorVar + 1;
-				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.ICONST_0);
-				mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ISTORE, indexVar);
+				mv.visitInsn(ICONST_0);
+				mv.visitVarInsn(ISTORE, indexVar);
 
 				// Store element in a local variable (after index)
 				int elementVar = indexVar + 1;
@@ -651,8 +659,7 @@ class VaadooImplementor {
 				}
 				String name = containerParam.name() + suffix;
 
-				Map<String, Integer> cumulativePlaceholders = new HashMap<>(
-						containerParam.placeholderValues());
+				Map<String, Integer> cumulativePlaceholders = new HashMap<>(containerParam.placeholderValues());
 				cumulativePlaceholders.putAll(placeholderValues);
 
 				SyntheticElementParameter elementParam = new SyntheticElementParameter(name, elementVar, elementType,

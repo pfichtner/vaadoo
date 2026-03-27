@@ -26,6 +26,10 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class CachedVaadooConfiguration implements VaadooConfiguration {
 
+	public static CachedVaadooConfiguration cachedConfiguration(VaadooConfiguration delegate) {
+		return new CachedVaadooConfiguration(delegate);
+	}
+
 	boolean customAnnotationsEnabled;
 	boolean regexOptimizationEnabled;
 	boolean removeJsr380Annotations;
@@ -35,7 +39,7 @@ public class CachedVaadooConfiguration implements VaadooConfiguration {
 	String nullValueExceptionTypeInternalName;
 	List<Class<? extends Jsr380CodeFragment>> codeFragmentMixins;
 
-	public CachedVaadooConfiguration(VaadooConfiguration delegate) {
+	private CachedVaadooConfiguration(VaadooConfiguration delegate) {
 		this.customAnnotationsEnabled = delegate.customAnnotationsEnabled();
 		this.regexOptimizationEnabled = delegate.regexOptimizationEnabled();
 		this.removeJsr380Annotations = delegate.removeJsr380Annotations();
