@@ -189,7 +189,8 @@ class Jsr380DynamicClassPBTest {
 						.collect(groupingBy(d -> d.annotation().getName(), mapping(Function.identity(), toList())));
 				List<AnnotationDefinition> finalList = new ArrayList<>();
 				for (Map.Entry<String, List<AnnotationDefinition>> e : groupedByName.entrySet()) {
-					List<AnnotationDefinition> defs = e.getValue();
+					// dedupe by annotation + values
+					List<AnnotationDefinition> defs = e.getValue().stream().distinct().collect(toList());
 					boolean allowMultiple = defs.stream()
 							.anyMatch(d -> d.annotation().isAnnotationPresent(Repeatable.class));
 					if (allowMultiple) {

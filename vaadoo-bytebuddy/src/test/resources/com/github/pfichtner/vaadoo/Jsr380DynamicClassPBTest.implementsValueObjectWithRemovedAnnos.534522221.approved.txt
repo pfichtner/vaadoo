@@ -1,16 +1,16 @@
 Story:
-Class implementing ValueObject: [JDK, keeping JSR380 annotations]
+Class implementing ValueObject: [JDK, removing JSR380 annotations]
 
 params annotations
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.OffsetDateTime, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotNull, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.util.Calendar, genericType=null, genericTypeAnnotations=[]), annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.chrono.MinguoDate, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.chrono.MinguoDate, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.Instant, genericType=null, genericTypeAnnotations=[]), annotations=[])
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=short, genericType=null, genericTypeAnnotations=[]), annotations=[])
 
 
 Source:
-Analysing type com.example.Generated_786058621
+Analysing type com.example.Generated_534522221
 /*
  * Decompiled with CFR.
  */
@@ -25,39 +25,36 @@ import java.time.chrono.MinguoDate;
 import java.util.Calendar;
 import org.jmolecules.ddd.types.ValueObject;
 
-public class Generated_786058621
+public class Generated_534522221
 implements ValueObject {
-    public Generated_786058621(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
+    public Generated_534522221(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MinguoDate minguoDate, Instant instant, short s) {
     }
 }
 
 
 
 Transformed:
-Analysing type com.example.Generated_786058621
+Analysing type com.example.Generated_534522221
 /*
  * Decompiled with CFR.
  */
 package com.example;
 
-import com.example.Generated_786058621;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
+import com.example.Generated_534522221;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.chrono.MinguoDate;
 import java.util.Calendar;
 import org.jmolecules.ddd.types.ValueObject;
 
-public class Generated_786058621
+public class Generated_534522221
 implements ValueObject {
-    public Generated_786058621(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future.List(value={@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}), @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={})}) MinguoDate minguoDate, Instant instant, short s) {
-        Generated_786058621.validate(offsetDateTime, calendar, minguoDate, instant, s);
+    public Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
+        Generated_534522221.validate(offsetDateTime, calendar, minguoDate, instant, s);
         this(offsetDateTime, calendar, minguoDate, instant, s, null);
     }
 
-    private /* synthetic */ Generated_786058621(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s, auxiliary.[AUX1_1 AUX1_1] {
+    private /* synthetic */ Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
@@ -65,13 +62,10 @@ implements ValueObject {
             throw new IllegalArgumentException("offsetDateTime must be a future date");
         }
         if (offsetDateTime == null) {
-            throw new NullPointerException("offsetDateTime must not be null");
+            throw new IllegalArgumentException("offsetDateTime must not be null");
         }
         if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
             throw new IllegalArgumentException("offsetDateTime must be a date in the present or in the future");
-        }
-        if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
-            throw new IllegalArgumentException("minguoDate must be a future date");
         }
         if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
             throw new IllegalArgumentException("minguoDate must be a future date");
