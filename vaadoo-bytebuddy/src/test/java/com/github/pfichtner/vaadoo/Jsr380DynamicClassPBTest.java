@@ -73,6 +73,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.approvaltests.ApprovalSettings;
@@ -181,24 +182,28 @@ class Jsr380DynamicClassPBTest {
 					: Arbitraries.of(repeatableAnnos).list().ofMaxSize(5);
 
 			return repeatableGen.flatMap(rep -> nonRepeatableGen.map(nonRep -> {
+				// 1. Combine
 				List<AnnotationDefinition> combined = new ArrayList<>(rep);
 				combined.addAll(nonRep);
-				// Ensure non-repeatable annotations are not duplicated — dedupe by annotation
-				// name
-				Map<String, List<AnnotationDefinition>> groupedByName = combined.stream()
-						.collect(groupingBy(d -> d.annotation().getName(), mapping(Function.identity(), toList())));
+
+				// 2. Deduplicate globally (preserves first occurrence order)
+				// 3. Group while preserving order
+				Map<String, List<AnnotationDefinition>> grouped = combined.stream().distinct()
+						.collect(groupingBy(d -> d.annotation().getName(), LinkedHashMap::new, toList()));
+
+				// 4. Build final list
 				List<AnnotationDefinition> finalList = new ArrayList<>();
-				for (Map.Entry<String, List<AnnotationDefinition>> e : groupedByName.entrySet()) {
-					// dedupe by annotation + values
-					List<AnnotationDefinition> defs = e.getValue().stream().distinct().collect(toList());
+				for (List<AnnotationDefinition> defs : grouped.values()) {
 					boolean allowMultiple = defs.stream()
 							.anyMatch(d -> d.annotation().isAnnotationPresent(Repeatable.class));
+
 					if (allowMultiple) {
-						finalList.addAll(defs);
-					} else if (!defs.isEmpty()) {
-						finalList.add(defs.get(0));
+						finalList.addAll(defs); // keep order
+					} else {
+						finalList.add(defs.get(0)); // first occurrence wins
 					}
 				}
+
 				return DefaultParameterDefinition.of(type, finalList);
 			}));
 		});

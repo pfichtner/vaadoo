@@ -3,12 +3,12 @@ Class implementing ValueObject: [Guava, IAE instead of NPE]
 
 params annotations
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class [Ljava.lang.Object;, genericType=null, genericTypeAnnotations=[]), annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.chrono.MinguoDate, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.chrono.MinguoDate, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.YearMonth, genericType=null, genericTypeAnnotations=[]), annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.ZonedDateTime, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.ZonedDateTime, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Past, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Future, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.chrono.MinguoDate, genericType=null, genericTypeAnnotations=[]), annotations=[])
--: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.OffsetDateTime, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.PastOrPresent, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
--: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.util.LinkedList, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Size, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotEmpty, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.time.OffsetDateTime, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Null, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.PastOrPresent, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.FutureOrPresent, values={})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.util.LinkedList, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.NotEmpty, values={}), TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Size, values={})])
 -: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=short, genericType=null, genericTypeAnnotations=[]), annotations=[])
 
 
@@ -35,7 +35,7 @@ import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_950819241
 implements ValueObject {
-    public Generated_950819241(Object[] objectArray, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) MinguoDate minguoDate, YearMonth yearMonth, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) ZonedDateTime zonedDateTime, MinguoDate minguoDate2, @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) LinkedList linkedList, short s) {
+    public Generated_950819241(Object[] objectArray, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MinguoDate minguoDate, YearMonth yearMonth, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, MinguoDate minguoDate2, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) LinkedList linkedList, short s) {
     }
 }
 
@@ -68,19 +68,19 @@ implements ValueObject {
     }
 
     private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date");
         Preconditions.checkArgument(minguoDate == null, "minguoDate must be null");
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date");
         Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), "zonedDateTime must be a past date");
-        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), "zonedDateTime must be a future date");
         Preconditions.checkArgument(zonedDateTime == null, "zonedDateTime must be null");
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present");
+        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), "zonedDateTime must be a future date");
         Preconditions.checkArgument(offsetDateTime == null, "offsetDateTime must be null");
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present");
         Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a date in the present or in the future");
+        Preconditions.checkArgument(linkedList != null, "linkedList must not be empty");
+        Preconditions.checkArgument(linkedList.size() > 0, "linkedList must not be empty");
         Preconditions.checkArgument(linkedList != null, "size of linkedList must be between 0 and 2147483647");
         int n = linkedList.size();
         Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, "size of linkedList must be between 0 and 2147483647");
-        Preconditions.checkArgument(linkedList != null, "linkedList must not be empty");
-        Preconditions.checkArgument(linkedList.size() > 0, "linkedList must not be empty");
     }
 }
 
