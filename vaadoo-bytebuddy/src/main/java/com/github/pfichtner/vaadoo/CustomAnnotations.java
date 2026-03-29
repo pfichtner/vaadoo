@@ -17,6 +17,7 @@ package com.github.pfichtner.vaadoo;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACONST_NULL;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
@@ -33,7 +34,10 @@ import static net.bytebuddy.jar.asm.Type.getObjectType;
 import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
+import java.util.Arrays;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 
@@ -49,6 +53,7 @@ import net.bytebuddy.description.type.TypeDescription.ForLoadedType;
 import net.bytebuddy.description.type.TypeList;
 import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
+import net.bytebuddy.jar.asm.Type;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class CustomAnnotations {
@@ -92,13 +97,32 @@ public final class CustomAnnotations {
 		}
 	}
 
+	private static final Pattern annoMethodPattern = Pattern.compile("anno\\.(\\w+)\\(\\)");
+
 	private static Object getMessage(Parameter parameter, TypeDescription annotation, Object message) {
 		Object defaultMessage = defaultMessage(annotation);
 		if (message != null && message.equals(defaultMessage)) {
 			Function<String, String> rbResolver = Resources::message;
 			Function<String, String> paramNameResolver = k -> k.equals(ValidationCodeInjector.NAME) ? parameter.name()
 					: k;
-			message = NamedPlaceholders.replace((String) defaultMessage, rbResolver.andThen(paramNameResolver));
+
+			Function<String, String> annotationValueResolver = k -> {
+				Matcher matcher = annoMethodPattern.matcher(k);
+				Object annotationValue = null;
+				if (matcher.matches()) {
+					Type objectType = Type.getObjectType(annotation.getInternalName());
+					annotationValue = parameter.annotationValue(objectType, matcher.group(1));
+				}
+				return annotationValue == null //
+						? k //
+						: annotationValue.getClass().isArray() //
+								? Arrays.stream((Object[]) annotationValue).map(Object::toString)
+										.collect(joining(", ", "[", "]")) //
+								: annotationValue.toString();
+			};
+
+			message = NamedPlaceholders.replace((String) defaultMessage,
+					rbResolver.andThen(annotationValueResolver).andThen(paramNameResolver));
 		}
 		return message == null ? format("%s not valid", parameter.name()) : message;
 	}

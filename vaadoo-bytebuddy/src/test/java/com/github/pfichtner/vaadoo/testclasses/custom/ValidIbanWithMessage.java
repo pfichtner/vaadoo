@@ -11,4 +11,7 @@ import jakarta.validation.Constraint;
 public @interface ValidIbanWithMessage {
 
 	String message() default "{jakarta.validation.constraints.Iban2.message}";
+
+	String[] allowedCountryCodes() default { "DE", "AT", "CH" };
+
 }
