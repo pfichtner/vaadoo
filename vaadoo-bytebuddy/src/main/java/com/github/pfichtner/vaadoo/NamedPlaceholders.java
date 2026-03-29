@@ -136,11 +136,11 @@ public final class NamedPlaceholders {
 			}
 		}
 
-		private String stripQuotes(String str) {
-			str = str.trim();
-			return str.startsWith("'") && str.endsWith("'") //
-					? str.substring(1, str.length() - 1) //
-					: str;
+		private String stripQuotes(String value) {
+			value = value.trim();
+			return value.startsWith("'") && value.endsWith("'") //
+					? value.substring(1, value.length() - 1) //
+					: value;
 		}
 	}
 
