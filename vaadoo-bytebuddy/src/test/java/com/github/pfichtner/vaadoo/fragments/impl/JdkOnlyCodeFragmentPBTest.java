@@ -431,7 +431,7 @@ class JdkOnlyCodeFragmentPBTest {
 		digitsInt2Fraction0.illegalArgumentExceptionIf(value < -99 || value > 99, value, longTypes);
 	}
 
-	@Property
+	@Example
 	void zero_behaviour() {
 		positive_and_negative_behaviour_zero(byteTypes);
 		positive_and_negative_behaviour_zero(shortTypes);
