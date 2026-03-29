@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
@@ -150,8 +152,14 @@ public class ValidationCodeInjector {
 					private final Function<String, String> rbResolver = Resources::message;
 					private final Function<String, String> paramNameResolver = k -> k.equals(NAME) ? targetParam.name()
 							: k;
+					private final Pattern ANNO_METHOD = Pattern.compile("anno\\.(\\w+)\\(\\)");
+
 					private final Function<String, Object> annotationValueResolver = k -> {
-						Object annotationValue = targetParam.annotationValue(currentAnnotationType, k);
+						Matcher matcher = ANNO_METHOD.matcher(k);
+						Object annotationValue = null;
+						if (matcher.matches()) {
+							annotationValue = targetParam.annotationValue(currentAnnotationType, matcher.group(1));
+						}
 						return annotationValue == null ? k : annotationValue;
 					};
 					final Function<String, Object> resolver = rbResolver.andThen(paramNameResolver)
