@@ -27,13 +27,18 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static net.bytebuddy.jar.asm.Opcodes.AASTORE;
+import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ANEWARRAY;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
+import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
+import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
+import static net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL;
+import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Opcodes.SIPUSH;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
 import static net.bytebuddy.jar.asm.Type.INT_TYPE;
@@ -345,10 +350,9 @@ public class ValidationCodeInjector {
 					private void injectDynamicMessage(String text, Map<String, Integer> placeholders) {
 						// Simple implementation using StringBuilder:
 						// new StringBuilder().append("part1").append(var).append("part2").toString()
-						mv.visitTypeInsn(net.bytebuddy.jar.asm.Opcodes.NEW, "java/lang/StringBuilder");
-						mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.DUP);
-						mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL, "java/lang/StringBuilder",
-								"<init>", "()V", false);
+						mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+						mv.visitInsn(DUP);
+						mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
 
 						int lastPos = 0;
 						while (lastPos < text.length()) {
@@ -375,28 +379,28 @@ public class ValidationCodeInjector {
 								lastPos = end + 1;
 							}
 						}
-						mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
-								"toString", "()Ljava/lang/String;", false);
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;",
+								false);
 					}
 
 					private void appendString(String s) {
 						mv.visitLdcInsn(s);
-						mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
-								"append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
+								"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
 					}
 
 					private void appendVariable(String placeholder, int varIndex) {
 						if ("index".equals(placeholder)) {
-							mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ILOAD, varIndex);
-							mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
-									"append", "(I)Ljava/lang/StringBuilder;", false);
+							mv.visitVarInsn(ILOAD, varIndex);
+							mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
+									"(I)Ljava/lang/StringBuilder;", false);
 						} else if ("key".equals(placeholder)) {
 							// it's a Map.Entry
-							mv.visitVarInsn(net.bytebuddy.jar.asm.Opcodes.ALOAD, varIndex);
-							mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE, "java/util/Map$Entry",
-									"getKey", "()Ljava/lang/Object;", true);
-							mv.visitMethodInsn(net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder",
-									"append", "(Ljava/lang/Object;)Ljava/lang/StringBuilder;", false);
+							mv.visitVarInsn(ALOAD, varIndex);
+							mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;",
+									true);
+							mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
+									"(Ljava/lang/Object;)Ljava/lang/StringBuilder;", false);
 						}
 					}
 
