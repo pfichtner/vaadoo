@@ -338,10 +338,19 @@ public class ValidationCodeInjector {
 						}
 					}
 
+					// optimized for runtime (no string concats)
 					private boolean hasPlaceholder(String text, Set<String> keys) {
+						int textLen = text.length();
 						for (String key : keys) {
-							if (text.contains("{" + key + "}")) {
-								return true;
+							int keyLen = key.length();
+							int idx = 0;
+							while ((idx = text.indexOf(key, idx)) != -1) {
+								int end = idx + keyLen;
+								if (idx > 0 && end < textLen //
+										&& text.charAt(idx - 1) == '{' && text.charAt(end) == '}') {
+									return true;
+								}
+								idx++;
 							}
 						}
 						return false;
