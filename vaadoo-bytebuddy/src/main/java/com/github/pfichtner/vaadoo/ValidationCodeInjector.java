@@ -64,6 +64,7 @@ import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.NullValueException;
 import com.github.pfichtner.vaadoo.fragments.impl.Template;
 
+import jakarta.validation.constraints.Pattern.Flag;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
@@ -87,6 +88,19 @@ public class ValidationCodeInjector {
 	private static final boolean TARGET_METHOD_IS_STATIC = true;
 
 	private static final String nullValueExceptionInternalName = Type.getInternalName(NullValueException.class);
+
+	private static final String templateInternalName = Type.getInternalName(Template.class);
+	private static final String bitwiseOrName = "bitwiseOr";
+	private static final String bitwiseOrDesc = bitwiseOrDescriptor(templateInternalName, bitwiseOrName);
+
+	private static String bitwiseOrDescriptor(String internalName, String methodName) {
+		try {
+			return Type.getMethodDescriptor(Class.forName(Type.getObjectType(internalName).getClassName())
+					.getDeclaredMethod(methodName, Flag[].class));
+		} catch (NoSuchMethodException | ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	@ToString
 	static final class ValidationCallCodeInjectorClassVisitor extends ClassVisitor {
@@ -240,11 +254,8 @@ public class ValidationCodeInjector {
 							patternFlagAccess = true;
 							return;
 						}
-						if (patternFlagAccess && opcode == INVOKESTATIC
-								&& owner.equals("com/github/pfichtner/vaadoo/fragments/impl/Template")
-								&& name.equals("bitwiseOr")
-								&& descriptor.equals("([Ljakarta/validation/constraints/Pattern$Flag;)I")
-								&& !isInterface) {
+						if (patternFlagAccess && opcode == INVOKESTATIC && owner.equals(templateInternalName)
+								&& name.equals(bitwiseOrName) && descriptor.equals(bitwiseOrDesc) && !isInterface) {
 							super.visitLdcInsn(precomputedMasks.get(targetParam));
 							patternFlagAccess = false;
 							isFirstParamLoad = false;
