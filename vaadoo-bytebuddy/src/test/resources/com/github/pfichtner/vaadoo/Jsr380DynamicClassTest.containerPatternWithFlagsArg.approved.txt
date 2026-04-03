@@ -62,7 +62,7 @@ implements ValueObject {
             while (iterator.hasNext()) {
                 String string = (String)iterator.next();
                 if (string != null && !Generated.getCachedPattern("\\d*", 2).matcher(string).matches()) {
-                    throw new IllegalArgumentException("list[" + n + "] must match \"\\d*\"");
+                    throw new IllegalArgumentException(String.format("list[" + n + "] must match \"\\d*\" but was %s", string));
                 }
                 ++n;
             }

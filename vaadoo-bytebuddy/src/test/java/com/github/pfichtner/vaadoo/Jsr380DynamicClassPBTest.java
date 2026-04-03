@@ -73,7 +73,6 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.approvaltests.ApprovalSettings;
@@ -282,6 +281,10 @@ class Jsr380DynamicClassPBTest {
 		return t -> mapper.apply(t).endsWith(expectedMessage);
 	}
 
+	static Predicate<Throwable> contains(Function<Throwable, String> mapper, String expectedMessage) {
+		return t -> mapper.apply(t).contains(expectedMessage);
+	}
+
 	static Object[] args(List<ParameterDefinition> params) {
 		return params.stream() //
 				.map(ParameterDefinition::typeDefinition) //
@@ -323,22 +326,22 @@ class Jsr380DynamicClassPBTest {
 	private static final String FIXED_SEED = "-1787866974758305853";
 
 	static final List<Predicate<Throwable>> oks = List.of( //
-			isNPE().and(endsWith(Throwable::getMessage, "must not be null")), //
+			isNPE().and(contains(Throwable::getMessage, "must not be null but was ")), //
 			isIAE().and(endsWith(Throwable::getMessage, "must not be null")), //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be empty")), //
 			isNPE().and(endsWith(Throwable::getMessage, "must not be blank")), //
-			isIAE().and(endsWith(Throwable::getMessage, "must be null")), //
+			isIAE().and(contains(Throwable::getMessage, "must be null but was ")), //
 			isIAE().and(endsWith(Throwable::getMessage, "must not be empty")), //
 			isIAE().and(endsWith(Throwable::getMessage, "must not be blank")), //
-			isIAE().and(endsWith(Throwable::getMessage, "must be greater than 0")), //
-			isIAE().and(endsWith(Throwable::getMessage, "must be less than 0")), //
+			isIAE().and(contains(Throwable::getMessage, "must be greater than 0 but was ")), //
+			isIAE().and(contains(Throwable::getMessage, "must be less than 0 but was ")), //
 			isIAE().and(endsWith(Throwable::getMessage, "must be true")), //
 			isIAE().and(endsWith(Throwable::getMessage, "must be false")), //
-			isIAE().and(
-					endsWith(Throwable::getMessage, "numeric value out of bounds (<0 digits>.<0 digits> expected)")), //
-			isIAE().and(endsWith(Throwable::getMessage, "must be a future date")), //
-			isIAE().and(endsWith(Throwable::getMessage, "must be a date in the present or in the future")), //
-			isIAE().and(endsWith(Throwable::getMessage, "must be a past date")) //
+			isIAE().and(contains(Throwable::getMessage,
+					"numeric value out of bounds (<0 digits>.<0 digits> expected) but was ")), //
+			isIAE().and(contains(Throwable::getMessage, "must be a future date but was ")), //
+			isIAE().and(contains(Throwable::getMessage, "must be a date in the present or in the future but was ")), //
+			isIAE().and(contains(Throwable::getMessage, "must be a past date but was ")) //
 	);
 
 	static Predicate<Throwable> isIAE() {

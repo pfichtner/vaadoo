@@ -22,6 +22,7 @@ import static com.github.pfichtner.vaadoo.AsmUtil.isLoadOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isReturnOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isStoreOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.sizeOf;
+import static com.github.pfichtner.vaadoo.FormatMessageInjector.injectFormatMessage;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
@@ -328,10 +329,20 @@ public class ValidationCodeInjector {
 						if (value instanceof String) {
 							String replaced = NamedPlaceholders.replace((String) value, resolver);
 							Map<String, Integer> placeholders = targetParam.placeholderValues();
-							if (placeholders.isEmpty() || !hasPlaceholder(replaced, placeholders.keySet())) {
+							boolean hasNamedPlaceholders = !placeholders.isEmpty()
+									&& hasPlaceholder(replaced, placeholders.keySet());
+							boolean hasFormatPlaceholder = replaced.contains("%s");
+							if (!hasNamedPlaceholders && !hasFormatPlaceholder) {
 								super.visitLdcInsn(replaced);
 							} else {
-								injectDynamicMessage(replaced, placeholders);
+								if (hasNamedPlaceholders) {
+									injectDynamicMessage(replaced, placeholders);
+								} else {
+									super.visitLdcInsn(replaced);
+								}
+								if (hasFormatPlaceholder) {
+									injectFormatMessage(mv, targetParam);
+								}
 							}
 						} else {
 							super.visitLdcInsn(value);

@@ -59,16 +59,16 @@ implements ValueObject {
 
     private static void validate(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
         if (monthDay != null && !monthDay.isAfter(MonthDay.now())) {
-            throw new IllegalArgumentException("monthDay must be a future date");
+            throw new IllegalArgumentException(String.format("monthDay must be a future date but was %s", monthDay));
         }
         if (monthDay2 != null && !monthDay2.isBefore(MonthDay.now())) {
-            throw new IllegalArgumentException("monthDay1 must be a past date");
+            throw new IllegalArgumentException(String.format("monthDay1 must be a past date but was %s", monthDay2));
         }
         if (zonedDateTime != null && !zonedDateTime.isAfter(ZonedDateTime.now())) {
-            throw new IllegalArgumentException("zonedDateTime must be a future date");
+            throw new IllegalArgumentException(String.format("zonedDateTime must be a future date but was %s", zonedDateTime));
         }
         if (n <= 0) {
-            throw new IllegalArgumentException("int must be greater than 0");
+            throw new IllegalArgumentException(String.format("int must be greater than 0 but was %s", n));
         }
     }
 }

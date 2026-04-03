@@ -68,16 +68,16 @@ implements ValueObject {
             throw new NullPointerException("linkedHashMap must not be null");
         }
         if (linkedHashMap != null) {
-            throw new IllegalArgumentException("linkedHashMap must be null");
+            throw new IllegalArgumentException(String.format("linkedHashMap must be null but was %s", linkedHashMap));
         }
         if (linkedHashMap != null && (linkedHashMap.size() < 0 || linkedHashMap.size() > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException("size of linkedHashMap must be between 0 and 2147483647");
+            throw new IllegalArgumentException(String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
         }
         if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException("minguoDate must be a past date");
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
         }
         if (minguoDate != null) {
-            throw new IllegalArgumentException("minguoDate must be null");
+            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
         }
         if (minguoDate == null) {
             throw new NullPointerException("minguoDate must not be null");

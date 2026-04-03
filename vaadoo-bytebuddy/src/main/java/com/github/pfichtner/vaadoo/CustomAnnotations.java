@@ -15,6 +15,7 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static com.github.pfichtner.vaadoo.FormatMessageInjector.injectFormatMessage;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
@@ -89,6 +90,7 @@ public final class CustomAnnotations {
 			mv.visitInsn(DUP);
 			var message = parameter.annotationValue(getObjectType(annotation.getInternalName()), "message");
 			mv.visitLdcInsn(getMessage(parameter, annotation, message));
+			injectFormatMessage(mv, parameter);
 			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/IllegalArgumentException", "<init>", "(Ljava/lang/String;)V",
 					false);
 			mv.visitInsn(ATHROW);
@@ -138,11 +140,14 @@ public final class CustomAnnotations {
 				format("Expect %s to have 2 generic types but found %s", validatorClass, typeArguments));
 	}
 
-	private static Object defaultMessage(TypeDescription type) {
-		MethodList<InDefinedShape> list = type.getDeclaredMethods() //
-				.filter(named("message")) //
-				.filter(m -> m.getParameters().isEmpty());
-		return list.isEmpty() ? null : requireNonNull(list.getOnly().getDefaultValue()).resolve();
+	private static InDefinedShape defaultMessageMethod(TypeDescription annotation) {
+		MethodList<InDefinedShape> messageMethod = annotation.getDeclaredMethods().filter(named("message"));
+		return messageMethod.size() == 1 ? requireNonNull(messageMethod.getOnly()) : null;
+	}
+
+	private static Object defaultMessage(TypeDescription annotation) {
+		InDefinedShape messageMethod = defaultMessageMethod(annotation);
+		return messageMethod == null ? null : messageMethod.getDefaultValue().resolve();
 	}
 
 }

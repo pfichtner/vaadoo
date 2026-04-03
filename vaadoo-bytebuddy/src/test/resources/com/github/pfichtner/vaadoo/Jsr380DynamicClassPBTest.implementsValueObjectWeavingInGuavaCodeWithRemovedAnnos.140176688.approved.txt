@@ -57,11 +57,11 @@ implements ValueObject {
     private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
         Preconditions.checkArgument(((Map)Preconditions.checkNotNull(linkedHashMap, "linkedHashMap must not be empty")).size() > 0, "linkedHashMap must not be empty");
         Preconditions.checkNotNull(linkedHashMap, "linkedHashMap must not be null");
-        Preconditions.checkArgument(linkedHashMap == null, "linkedHashMap must be null");
-        int n = ((Map)Preconditions.checkNotNull(linkedHashMap, "size of linkedHashMap must be between 0 and 2147483647")).size();
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, "size of linkedHashMap must be between 0 and 2147483647");
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date");
-        Preconditions.checkArgument(minguoDate == null, "minguoDate must be null");
+        Preconditions.checkArgument(linkedHashMap == null, String.format("linkedHashMap must be null but was %s", linkedHashMap));
+        int n = ((Map)Preconditions.checkNotNull(linkedHashMap, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap))).size();
+        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
+        Preconditions.checkArgument(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate));
         Preconditions.checkNotNull(minguoDate, "minguoDate must not be null");
     }
 }

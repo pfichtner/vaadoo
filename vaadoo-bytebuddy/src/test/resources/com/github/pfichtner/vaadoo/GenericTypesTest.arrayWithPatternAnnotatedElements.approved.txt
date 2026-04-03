@@ -58,7 +58,7 @@ implements ValueObject {
             for (int i = 0; i < n; ++i) {
                 String string = stringArray[i];
                 if (string == null || GenericGenerated.getCachedPattern("\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException("stringArray[" + i + "] must match \"\\d*\"");
+                throw new IllegalArgumentException(String.format("stringArray[" + i + "] must match \"\\d*\" but was %s", string));
             }
         }
     }

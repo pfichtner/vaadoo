@@ -116,8 +116,10 @@ class JMoleculesVaadooPluginTests {
 		var transformed = transformer.transform(ValueObjectWithRegexAttribute.class);
 		var constructor = transformed.getDeclaredConstructor(String.class);
 		constructor.newInstance("42");
-		assertThatException().isThrownBy(() -> constructor.newInstance("4")).satisfies(e -> assertThat(e.getCause())
-				.isInstanceOf(IllegalArgumentException.class).hasMessage(mustMatch("someTwoDigits", "\"\\d\\d\"")));
+		String value = "4";
+		assertThatException().isThrownBy(() -> constructor.newInstance(value))
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
+						.hasMessage(mustMatch("someTwoDigits", "\"\\d\\d\"", value)));
 	}
 
 	@Test
@@ -182,7 +184,7 @@ class JMoleculesVaadooPluginTests {
 
 		assertThatThrownBy(() -> listArgConstructor.newInstance(List.of(1, 2, 3, -1, 4, 5, 6, 7, 8, 9, 10)))
 				.hasCauseInstanceOf(IllegalArgumentException.class)
-				.hasRootCauseMessage("positiveIntsList[3] must be greater than 0");
+				.hasRootCauseMessage("positiveIntsList[3] must be greater than 0 but was -1");
 	}
 
 	static List<Arguments> customExampleSource() throws Exception {
@@ -200,7 +202,7 @@ class JMoleculesVaadooPluginTests {
 						transformed2.getDeclaredConstructor(String.class, String.class), //
 						List.of(validIban, ""), //
 						List.of(invalidIban, ""), //
-						"iban not a valid IBAN (this is a custum message from resourcebundle with [DE, AT, CH])"), //
+						"iban not a valid IBAN (this is a custum message from resourcebundle with [DE, AT, CH]) but was DE02"), //
 				arguments( //
 						transformed2.getDeclaredConstructor(String.class, boolean.class), //
 						List.of(validIban, true), //
@@ -217,8 +219,8 @@ class JMoleculesVaadooPluginTests {
 		return format("%s must not be null", paramName);
 	}
 
-	static String mustMatch(String paramName, String regexp) {
-		return format("%s must match %s", paramName, regexp);
+	static String mustMatch(String paramName, String regexp, String actual) {
+		return format("%s must match %s but was %s", paramName, regexp, actual);
 	}
 
 }

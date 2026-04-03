@@ -52,16 +52,16 @@ implements ValueObject {
 
     private static void validate(HijrahDate hijrahDate, Long l) {
         if (hijrahDate != null) {
-            throw new IllegalArgumentException("hijrahDate must be null");
+            throw new IllegalArgumentException(String.format("hijrahDate must be null but was %s", hijrahDate));
         }
         if (l != null && l > 0L) {
-            throw new IllegalArgumentException("long must be less than or equal to 0");
+            throw new IllegalArgumentException(String.format("long must be less than or equal to 0 but was %s", l));
         }
         if (l != null && l >= 0L) {
-            throw new IllegalArgumentException("long must be less than 0");
+            throw new IllegalArgumentException(String.format("long must be less than 0 but was %s", l));
         }
         if (l != null && new BigDecimal(l).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
-            throw new IllegalArgumentException("long must be less than or equal to 0");
+            throw new IllegalArgumentException(String.format("long must be less than or equal to 0 but was %s", l));
         }
     }
 }

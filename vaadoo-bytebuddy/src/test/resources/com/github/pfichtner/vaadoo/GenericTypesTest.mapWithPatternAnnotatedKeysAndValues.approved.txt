@@ -59,14 +59,14 @@ implements ValueObject {
             for (Map.Entry entry : map.entrySet()) {
                 string = (String)entry.getKey();
                 if (string == null || GenericGenerated.getCachedPattern("K\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException("map[key=" + entry.getKey() + "] must match \"K\\d*\"");
+                throw new IllegalArgumentException(String.format("map[key=" + entry.getKey() + "] must match \"K\\d*\" but was %s", string));
             }
         }
         if (map != null) {
             for (Map.Entry entry : map.entrySet()) {
                 string = (String)entry.getValue();
                 if (string == null || GenericGenerated.getCachedPattern("V\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException("map[value for key=" + entry.getKey() + "] must match \"V\\d*\"");
+                throw new IllegalArgumentException(String.format("map[value for key=" + entry.getKey() + "] must match \"V\\d*\" but was %s", string));
             }
         }
     }

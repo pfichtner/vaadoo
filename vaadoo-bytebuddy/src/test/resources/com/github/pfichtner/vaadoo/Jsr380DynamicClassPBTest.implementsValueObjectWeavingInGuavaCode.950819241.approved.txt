@@ -76,17 +76,17 @@ implements ValueObject {
     }
 
     private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
-        Preconditions.checkArgument(minguoDate == null, "minguoDate must be null");
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date");
-        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), "zonedDateTime must be a past date");
-        Preconditions.checkArgument(zonedDateTime == null, "zonedDateTime must be null");
-        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), "zonedDateTime must be a future date");
-        Preconditions.checkArgument(offsetDateTime == null, "offsetDateTime must be null");
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present");
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a date in the present or in the future");
+        Preconditions.checkArgument(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate));
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
+        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), String.format("zonedDateTime must be a past date but was %s", zonedDateTime));
+        Preconditions.checkArgument(zonedDateTime == null, String.format("zonedDateTime must be null but was %s", zonedDateTime));
+        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), String.format("zonedDateTime must be a future date but was %s", zonedDateTime));
+        Preconditions.checkArgument(offsetDateTime == null, String.format("offsetDateTime must be null but was %s", offsetDateTime));
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime));
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty");
-        int n = ((Collection)Preconditions.checkNotNull(linkedList, "size of linkedList must be between 0 and 2147483647")).size();
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, "size of linkedList must be between 0 and 2147483647");
+        int n = ((Collection)Preconditions.checkNotNull(linkedList, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList))).size();
+        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
     }
 }
 
