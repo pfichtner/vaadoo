@@ -68,28 +68,28 @@ implements ValueObject {
 
     private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
         if (minguoDate != null) {
-            throw new IllegalArgumentException("minguoDate must be null");
+            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
         }
         if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException("minguoDate must be a past date");
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
         }
         if (zonedDateTime != null && !zonedDateTime.isBefore(ZonedDateTime.now())) {
-            throw new IllegalArgumentException("zonedDateTime must be a past date");
+            throw new IllegalArgumentException(String.format("zonedDateTime must be a past date but was %s", zonedDateTime));
         }
         if (zonedDateTime != null) {
-            throw new IllegalArgumentException("zonedDateTime must be null");
+            throw new IllegalArgumentException(String.format("zonedDateTime must be null but was %s", zonedDateTime));
         }
         if (zonedDateTime != null && !zonedDateTime.isAfter(ZonedDateTime.now())) {
-            throw new IllegalArgumentException("zonedDateTime must be a future date");
+            throw new IllegalArgumentException(String.format("zonedDateTime must be a future date but was %s", zonedDateTime));
         }
         if (offsetDateTime != null) {
-            throw new IllegalArgumentException("offsetDateTime must be null");
+            throw new IllegalArgumentException(String.format("offsetDateTime must be null but was %s", offsetDateTime));
         }
         if (offsetDateTime != null && offsetDateTime.isAfter(OffsetDateTime.now())) {
-            throw new IllegalArgumentException("offsetDateTime must be a date in the past or in the present");
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime));
         }
         if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException("offsetDateTime must be a date in the present or in the future");
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         }
         if (linkedList == null) {
             throw new IllegalArgumentException("linkedList must not be empty");
@@ -98,7 +98,7 @@ implements ValueObject {
             throw new IllegalArgumentException("linkedList must not be empty");
         }
         if (linkedList != null && (linkedList.size() < 0 || linkedList.size() > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException("size of linkedList must be between 0 and 2147483647");
+            throw new IllegalArgumentException(String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
         }
     }
 }

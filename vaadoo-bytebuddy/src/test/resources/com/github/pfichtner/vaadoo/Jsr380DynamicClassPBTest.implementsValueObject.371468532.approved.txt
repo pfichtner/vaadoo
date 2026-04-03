@@ -69,22 +69,22 @@ implements ValueObject {
             throw new NullPointerException("minguoDate must not be null");
         }
         if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
-            throw new IllegalArgumentException("minguoDate must be a future date");
+            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));
         }
         if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException("minguoDate must be a past date");
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
         }
         if (japaneseDate != null) {
-            throw new IllegalArgumentException("japaneseDate must be null");
+            throw new IllegalArgumentException(String.format("japaneseDate must be null but was %s", japaneseDate));
         }
         if (japaneseDate != null && !japaneseDate.isAfter(JapaneseDate.now())) {
-            throw new IllegalArgumentException("japaneseDate must be a future date");
+            throw new IllegalArgumentException(String.format("japaneseDate must be a future date but was %s", japaneseDate));
         }
         if (japaneseDate != null && japaneseDate.isBefore(JapaneseDate.now())) {
-            throw new IllegalArgumentException("japaneseDate must be a date in the present or in the future");
+            throw new IllegalArgumentException(String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate));
         }
         if (japaneseDate != null && !japaneseDate.isBefore(JapaneseDate.now())) {
-            throw new IllegalArgumentException("japaneseDate must be a past date");
+            throw new IllegalArgumentException(String.format("japaneseDate must be a past date but was %s", japaneseDate));
         }
     }
 }

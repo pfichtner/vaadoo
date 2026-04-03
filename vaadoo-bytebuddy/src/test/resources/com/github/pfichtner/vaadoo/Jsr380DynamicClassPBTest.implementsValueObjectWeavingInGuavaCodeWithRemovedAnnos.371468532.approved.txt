@@ -62,12 +62,12 @@ implements ValueObject {
 
     private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
         Preconditions.checkNotNull(minguoDate, "minguoDate must not be null");
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), "minguoDate must be a future date");
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date");
-        Preconditions.checkArgument(japaneseDate == null, "japaneseDate must be null");
-        Preconditions.checkArgument(japaneseDate == null || japaneseDate.isAfter(JapaneseDate.now()), "japaneseDate must be a future date");
-        Preconditions.checkArgument(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a date in the present or in the future");
-        Preconditions.checkArgument(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a past date");
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate));
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
+        Preconditions.checkArgument(japaneseDate == null, String.format("japaneseDate must be null but was %s", japaneseDate));
+        Preconditions.checkArgument(japaneseDate == null || japaneseDate.isAfter(JapaneseDate.now()), String.format("japaneseDate must be a future date but was %s", japaneseDate));
+        Preconditions.checkArgument(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate));
+        Preconditions.checkArgument(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a past date but was %s", japaneseDate));
     }
 }
 

@@ -184,7 +184,7 @@ class JMoleculesVaadooPluginTests {
 
 		assertThatThrownBy(() -> listArgConstructor.newInstance(List.of(1, 2, 3, -1, 4, 5, 6, 7, 8, 9, 10)))
 				.hasCauseInstanceOf(IllegalArgumentException.class)
-				.hasRootCauseMessage("positiveIntsList[3] must be greater than 0");
+				.hasRootCauseMessage("positiveIntsList[3] must be greater than 0 but was -1");
 	}
 
 	static List<Arguments> customExampleSource() throws Exception {

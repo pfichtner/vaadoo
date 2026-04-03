@@ -62,16 +62,16 @@ implements ValueObject {
 
     private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
         if (offsetDateTime != null && !offsetDateTime.isAfter(OffsetDateTime.now())) {
-            throw new IllegalArgumentException("offsetDateTime must be a future date");
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
         }
         if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException("offsetDateTime must be a date in the present or in the future");
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         }
         if (offsetDateTime == null) {
             throw new NullPointerException("offsetDateTime must not be null");
         }
         if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
-            throw new IllegalArgumentException("minguoDate must be a future date");
+            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));
         }
     }
 }

@@ -67,12 +67,12 @@ implements ValueObject {
 
     private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
         Validate.notNull(minguoDate, "minguoDate must not be null", new Object[0]);
-        Validate.isTrue(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), "minguoDate must be a future date", new Object[0]);
-        Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date", new Object[0]);
-        Validate.isTrue(japaneseDate == null, "japaneseDate must be null", new Object[0]);
-        Validate.isTrue(japaneseDate == null || japaneseDate.isAfter(JapaneseDate.now()), "japaneseDate must be a future date", new Object[0]);
-        Validate.isTrue(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a date in the present or in the future", new Object[0]);
-        Validate.isTrue(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a past date", new Object[0]);
+        Validate.isTrue(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate), new Object[0]);
+        Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
+        Validate.isTrue(japaneseDate == null, String.format("japaneseDate must be null but was %s", japaneseDate), new Object[0]);
+        Validate.isTrue(japaneseDate == null || japaneseDate.isAfter(JapaneseDate.now()), String.format("japaneseDate must be a future date but was %s", japaneseDate), new Object[0]);
+        Validate.isTrue(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate), new Object[0]);
+        Validate.isTrue(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a past date but was %s", japaneseDate), new Object[0]);
     }
 }
 

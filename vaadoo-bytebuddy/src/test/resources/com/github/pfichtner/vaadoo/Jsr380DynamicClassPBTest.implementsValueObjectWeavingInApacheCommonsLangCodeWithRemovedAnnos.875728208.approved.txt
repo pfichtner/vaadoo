@@ -75,27 +75,27 @@ implements ValueObject {
     }
 
     private static void validate(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList) {
-        Validate.isTrue(s >= 0, "short must be greater than or equal to 0", new Object[0]);
-        Validate.isTrue(n == null || n >= 0, "integer must be greater than or equal to 0", new Object[0]);
+        Validate.isTrue(s >= 0, String.format("short must be greater than or equal to 0 but was %s", s), new Object[0]);
+        Validate.isTrue(n == null || n >= 0, String.format("integer must be greater than or equal to 0 but was %s", n), new Object[0]);
         Validate.isTrue(n == null || (long)n.intValue() >= 0L, String.format("integer must be greater than or equal to 0 but was %s", n), new Object[0]);
-        Validate.isTrue(s2 < 0, "short1 must be less than 0", new Object[0]);
+        Validate.isTrue(s2 < 0, String.format("short1 must be less than 0 but was %s", s2), new Object[0]);
         Validate.isTrue((long)s2 <= 0L, String.format("short1 must be less than or equal to 0  but was %s", s2), new Object[0]);
-        Validate.isTrue(s2 <= 0, "short1 must be less than or equal to 0", new Object[0]);
-        Validate.isTrue(offsetDateTime == null || offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a past date", new Object[0]);
-        Validate.isTrue(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present", new Object[0]);
-        Validate.isTrue(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a future date", new Object[0]);
-        int n2 = Validate.notNull(objectArray, "size of objectArray must be between 0 and 2147483647", new Object[0]).length;
-        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, "size of objectArray must be between 0 and 2147483647");
-        n2 = Validate.notNull(map, "size of map must be between 0 and 2147483647", new Object[0]).size();
-        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, "size of map must be between 0 and 2147483647");
-        Validate.isTrue(longArray == null, "longArray must be null", new Object[0]);
-        n2 = ((Object[])Validate.notNull(longArray, "size of longArray must be between 0 and 2147483647", new Object[0])).length;
-        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, "size of longArray must be between 0 and 2147483647");
+        Validate.isTrue(s2 <= 0, String.format("short1 must be less than or equal to 0 but was %s", s2), new Object[0]);
+        Validate.isTrue(offsetDateTime == null || offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a past date but was %s", offsetDateTime), new Object[0]);
+        Validate.isTrue(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime), new Object[0]);
+        Validate.isTrue(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a future date but was %s", offsetDateTime), new Object[0]);
+        int n2 = Validate.notNull(objectArray, String.format("size of objectArray must be between 0 and 2147483647 but was %s", new Object[]{objectArray}), new Object[0]).length;
+        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, String.format("size of objectArray must be between 0 and 2147483647 but was %s", new Object[]{objectArray}));
+        n2 = Validate.notNull(map, String.format("size of map must be between 0 and 2147483647 but was %s", map), new Object[0]).size();
+        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, String.format("size of map must be between 0 and 2147483647 but was %s", map));
+        Validate.isTrue(longArray == null, String.format("longArray must be null but was %s", new Object[]{longArray}), new Object[0]);
+        n2 = ((Object[])Validate.notNull(longArray, String.format("size of longArray must be between 0 and 2147483647 but was %s", new Object[]{longArray}), new Object[0])).length;
+        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, String.format("size of longArray must be between 0 and 2147483647 but was %s", new Object[]{longArray}));
         Validate.notEmpty(list, "list must not be empty", new Object[0]);
-        Validate.isTrue(list == null, "list must be null", new Object[0]);
-        n2 = ((Collection)Validate.notNull(list, "size of list must be between 0 and 2147483647", new Object[0])).size();
-        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, "size of list must be between 0 and 2147483647");
-        Validate.isTrue(linkedList == null, "linkedList must be null", new Object[0]);
+        Validate.isTrue(list == null, String.format("list must be null but was %s", list), new Object[0]);
+        n2 = ((Collection)Validate.notNull(list, String.format("size of list must be between 0 and 2147483647 but was %s", list), new Object[0])).size();
+        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, String.format("size of list must be between 0 and 2147483647 but was %s", list));
+        Validate.isTrue(linkedList == null, String.format("linkedList must be null but was %s", linkedList), new Object[0]);
         Validate.notEmpty(linkedList, "linkedList must not be empty", new Object[0]);
     }
 }
