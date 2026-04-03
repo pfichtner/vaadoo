@@ -86,7 +86,7 @@ implements ValueObject {
             throw new IllegalArgumentException("short1 must be less than 0");
         }
         if ((long)s2 > 0L) {
-            throw new IllegalArgumentException("short1 must be less than or equal to 0");
+            throw new IllegalArgumentException(String.format("short1 must be less than or equal to 0  but was %s", s2));
         }
         if (s2 > 0) {
             throw new IllegalArgumentException("short1 must be less than or equal to 0");

@@ -75,7 +75,7 @@ implements ValueObject {
         Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of doubleArray must be between 0 and 2147483647");
         Preconditions.checkArgument(doubleArray == null, "doubleArray must be null");
         Preconditions.checkArgument(new BigDecimal(by).compareTo(new BigDecimal("0")) >= (1 != 0 ? 0 : 1), "byte must be greater than or equal to 0");
-        Preconditions.checkArgument((long)by <= 0L, "byte must be less than or equal to 0");
+        Preconditions.checkArgument((long)by <= 0L, String.format("byte must be less than or equal to 0  but was %s", by));
         Preconditions.checkArgument(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a past date");
         Preconditions.checkArgument(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), "japaneseDate must be a date in the present or in the future");
         Preconditions.checkNotNull(japaneseDate, "japaneseDate must not be null");
