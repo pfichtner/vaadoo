@@ -87,6 +87,11 @@ public final class FormatMessageInjector {
 			mv.visitVarInsn(DLOAD, varIndex);
 			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
 			break;
+		case Type.ARRAY:
+			mv.visitVarInsn(ALOAD, varIndex);
+			mv.visitMethodInsn(INVOKESTATIC, "java/util/Arrays", "deepToString",
+					"([Ljava/lang/Object;)Ljava/lang/String;", false);
+			break;
 		default:
 			mv.visitVarInsn(ALOAD, varIndex);
 			break;

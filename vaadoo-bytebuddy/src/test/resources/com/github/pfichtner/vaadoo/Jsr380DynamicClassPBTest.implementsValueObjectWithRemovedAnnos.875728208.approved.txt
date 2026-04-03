@@ -57,6 +57,7 @@ package com.example;
 import com.example.Generated_875728208;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -101,16 +102,16 @@ implements ValueObject {
             throw new IllegalArgumentException(String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
         }
         if (objectArray != null && (objectArray.length < 0 || objectArray.length > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of objectArray must be between 0 and 2147483647 but was %s", new Object[]{objectArray}));
+            throw new IllegalArgumentException(String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)));
         }
         if (map != null && (map.size() < 0 || map.size() > Integer.MAX_VALUE)) {
             throw new IllegalArgumentException(String.format("size of map must be between 0 and 2147483647 but was %s", map));
         }
         if (longArray != null) {
-            throw new IllegalArgumentException(String.format("longArray must be null but was %s", new Object[]{longArray}));
+            throw new IllegalArgumentException(String.format("longArray must be null but was %s", Arrays.deepToString(longArray)));
         }
         if (longArray != null && (longArray.length < 0 || longArray.length > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of longArray must be between 0 and 2147483647 but was %s", new Object[]{longArray}));
+            throw new IllegalArgumentException(String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(longArray)));
         }
         if (list == null) {
             throw new IllegalArgumentException("list must not be empty");

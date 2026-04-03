@@ -64,6 +64,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.chrono.JapaneseDate;
+import java.util.Arrays;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_1916655774
@@ -81,9 +82,9 @@ implements ValueObject {
         Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         Preconditions.checkArgument(n == null || new BigDecimal(n).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), String.format("integer must be less than or equal to 0 but was %s", n));
         Preconditions.checkArgument(bigDecimal == null || bigDecimal.signum() >= 0, String.format("bigDecimal must be greater than or equal to 0 but was %s", bigDecimal));
-        int n2 = ((Object[])Preconditions.checkNotNull(doubleArray, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", new Object[]{doubleArray}))).length;
-        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", new Object[]{doubleArray}));
-        Preconditions.checkArgument(doubleArray == null, String.format("doubleArray must be null but was %s", new Object[]{doubleArray}));
+        int n2 = ((Object[])Preconditions.checkNotNull(doubleArray, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)))).length;
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)));
+        Preconditions.checkArgument(doubleArray == null, String.format("doubleArray must be null but was %s", Arrays.deepToString(doubleArray)));
         Preconditions.checkArgument(new BigDecimal(by).compareTo(new BigDecimal("0")) >= (1 != 0 ? 0 : 1), String.format("byte must be greater than or equal to 0 but was %s", by));
         Preconditions.checkArgument((long)by <= 0L, String.format("byte must be less than or equal to 0  but was %s", by));
         Preconditions.checkArgument(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a past date but was %s", japaneseDate));
