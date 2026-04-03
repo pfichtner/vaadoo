@@ -116,8 +116,10 @@ class JMoleculesVaadooPluginTests {
 		var transformed = transformer.transform(ValueObjectWithRegexAttribute.class);
 		var constructor = transformed.getDeclaredConstructor(String.class);
 		constructor.newInstance("42");
-		assertThatException().isThrownBy(() -> constructor.newInstance("4")).satisfies(e -> assertThat(e.getCause())
-				.isInstanceOf(IllegalArgumentException.class).hasMessage(mustMatch("someTwoDigits", "\"\\d\\d\"")));
+		String value = "4";
+		assertThatException().isThrownBy(() -> constructor.newInstance(value))
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
+						.hasMessage(mustMatch("someTwoDigits", "\"\\d\\d\"", value)));
 	}
 
 	@Test
@@ -217,8 +219,8 @@ class JMoleculesVaadooPluginTests {
 		return format("%s must not be null", paramName);
 	}
 
-	static String mustMatch(String paramName, String regexp) {
-		return format("%s must match %s", paramName, regexp);
+	static String mustMatch(String paramName, String regexp, String actual) {
+		return format("%s must match %s but was %s", paramName, regexp, actual);
 	}
 
 }
