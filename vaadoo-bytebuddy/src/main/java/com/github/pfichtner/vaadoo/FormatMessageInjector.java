@@ -39,11 +39,15 @@ public final class FormatMessageInjector {
 	}
 
 	public static void injectFormatMessage(MethodVisitor mv, Parameter parameter) {
+		injectFormatMessage(mv, Type.getType(parameter.type().asErasure().getDescriptor()), parameter.offset());
+	}
+
+	public static void injectFormatMessage(MethodVisitor mv, Type type, int varIndex) {
 		mv.visitInsn(ICONST_1);
 		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 		mv.visitInsn(DUP);
 		mv.visitInsn(ICONST_0);
-		loadParameterValue(mv, Type.getType(parameter.type().asErasure().getDescriptor()), parameter.offset());
+		loadParameterValue(mv, type, varIndex);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "format",
 				"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;", false);
