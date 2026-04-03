@@ -31,13 +31,18 @@ import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ANEWARRAY;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
+import static net.bytebuddy.jar.asm.Opcodes.DLOAD;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
+import static net.bytebuddy.jar.asm.Opcodes.FLOAD;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
+import static net.bytebuddy.jar.asm.Opcodes.ICONST_0;
+import static net.bytebuddy.jar.asm.Opcodes.ICONST_1;
 import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL;
+import static net.bytebuddy.jar.asm.Opcodes.LLOAD;
 import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Opcodes.SIPUSH;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
@@ -328,10 +333,20 @@ public class ValidationCodeInjector {
 						if (value instanceof String) {
 							String replaced = NamedPlaceholders.replace((String) value, resolver);
 							Map<String, Integer> placeholders = targetParam.placeholderValues();
-							if (placeholders.isEmpty() || !hasPlaceholder(replaced, placeholders.keySet())) {
+							boolean hasNamedPlaceholders = !placeholders.isEmpty()
+									&& hasPlaceholder(replaced, placeholders.keySet());
+							boolean hasFormatPlaceholder = replaced.contains("%s");
+							if (!hasNamedPlaceholders && !hasFormatPlaceholder) {
 								super.visitLdcInsn(replaced);
 							} else {
-								injectDynamicMessage(replaced, placeholders);
+								if (hasNamedPlaceholders) {
+									injectDynamicMessage(replaced, placeholders);
+								} else {
+									super.visitLdcInsn(replaced);
+								}
+								if (hasFormatPlaceholder) {
+									injectFormatMessage();
+								}
 							}
 						} else {
 							super.visitLdcInsn(value);
@@ -390,6 +405,65 @@ public class ValidationCodeInjector {
 						}
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;",
 								false);
+					}
+
+					private void injectFormatMessage() {
+						mv.visitInsn(ICONST_1);
+						mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+						mv.visitInsn(DUP);
+						mv.visitInsn(ICONST_0);
+						loadTargetParamValue();
+						mv.visitInsn(AASTORE);
+						mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "format",
+								"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;", false);
+					}
+
+					private void loadTargetParamValue() {
+						Type paramType = Type.getType(targetParam.type().getDescriptor());
+						int varIndex = targetParam.offset();
+						switch (paramType.getSort()) {
+						case Type.BOOLEAN:
+							mv.visitVarInsn(ILOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf",
+									"(Z)Ljava/lang/Boolean;", false);
+							break;
+						case Type.BYTE:
+							mv.visitVarInsn(ILOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;", false);
+							break;
+						case Type.CHAR:
+							mv.visitVarInsn(ILOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Character", "valueOf",
+									"(C)Ljava/lang/Character;", false);
+							break;
+						case Type.SHORT:
+							mv.visitVarInsn(ILOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "valueOf",
+									"(S)Ljava/lang/Short;", false);
+							break;
+						case Type.INT:
+							mv.visitVarInsn(ILOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf",
+									"(I)Ljava/lang/Integer;", false);
+							break;
+						case Type.LONG:
+							mv.visitVarInsn(LLOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", false);
+							break;
+						case Type.FLOAT:
+							mv.visitVarInsn(FLOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Float", "valueOf",
+									"(F)Ljava/lang/Float;", false);
+							break;
+						case Type.DOUBLE:
+							mv.visitVarInsn(DLOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf",
+									"(D)Ljava/lang/Double;", false);
+							break;
+						default:
+							mv.visitVarInsn(ALOAD, varIndex);
+							break;
+						}
 					}
 
 					private void appendString(String s) {
