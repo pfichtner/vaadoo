@@ -9,7 +9,7 @@ Validating automatically domain objects: It's magic
 
 ## Getting Started
 
-Vaadoo is available on **Maven Central**. The current release is an **alpha version (0.0.1-beta-1)**:
+Vaadoo is available on **Maven Central**. The current release is an **beta version (0.0.1-beta-2)**:
 
 ### Maven Build Plugin Configuration
 
@@ -17,7 +17,7 @@ Vaadoo is available on **Maven Central**. The current release is an **alpha vers
 <dependency>
     <groupId>io.github.pfichtner</groupId>
     <artifactId>vaadoo-bytebuddy</artifactId>
-    <version>0.0.1-beta-1</version>
+    <version>0.0.1-beta-2</version>
 </dependency>
 ```
 
