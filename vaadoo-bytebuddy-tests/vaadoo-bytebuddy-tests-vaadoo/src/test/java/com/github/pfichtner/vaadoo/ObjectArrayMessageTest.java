@@ -17,8 +17,6 @@ package com.github.pfichtner.vaadoo;
 
 import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 
-import java.util.Arrays;
-
 import org.junit.jupiter.api.Test;
 
 import example.vaadoo.ObjectArrayValueObject;
@@ -27,9 +25,8 @@ class ObjectArrayMessageTest {
 
 	@Test
 	void correctObjectArrayToString() {
-		Object[] values = new Object[] { "a", "b", "c" };
-		assertThatRuntimeException().isThrownBy(() -> new ObjectArrayValueObject(values))
-				.withMessage("values must be null but was " + Arrays.toString(values));
+		assertThatRuntimeException().isThrownBy(() -> new ObjectArrayValueObject(new Object[] { "a", null, "c" }))
+				.withMessage("values must be null but was [a, null, c]");
 	}
 
 }
