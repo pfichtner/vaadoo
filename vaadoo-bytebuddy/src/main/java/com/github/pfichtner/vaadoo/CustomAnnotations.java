@@ -15,27 +15,19 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static com.github.pfichtner.vaadoo.FormatMessageInjector.injectFormatMessage;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
-import static net.bytebuddy.jar.asm.Opcodes.AASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.ACONST_NULL;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
-import static net.bytebuddy.jar.asm.Opcodes.ANEWARRAY;
 import static net.bytebuddy.jar.asm.Opcodes.ATHROW;
-import static net.bytebuddy.jar.asm.Opcodes.DLOAD;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
-import static net.bytebuddy.jar.asm.Opcodes.FLOAD;
 import static net.bytebuddy.jar.asm.Opcodes.F_APPEND;
-import static net.bytebuddy.jar.asm.Opcodes.ICONST_0;
-import static net.bytebuddy.jar.asm.Opcodes.ICONST_1;
 import static net.bytebuddy.jar.asm.Opcodes.IFNE;
-import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
-import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL;
-import static net.bytebuddy.jar.asm.Opcodes.LLOAD;
 import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
 import static net.bytebuddy.jar.asm.Type.getMethodDescriptor;
@@ -98,14 +90,7 @@ public final class CustomAnnotations {
 			mv.visitInsn(DUP);
 			var message = parameter.annotationValue(getObjectType(annotation.getInternalName()), "message");
 			mv.visitLdcInsn(getMessage(parameter, annotation, message));
-			mv.visitInsn(ICONST_1);
-			mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
-			mv.visitInsn(DUP);
-			mv.visitInsn(ICONST_0);
-			loadParameterValue(mv, parameter);
-			mv.visitInsn(AASTORE);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "format",
-					"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;", false);
+			injectFormatMessage(mv, parameter);
 			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/IllegalArgumentException", "<init>", "(Ljava/lang/String;)V",
 					false);
 			mv.visitInsn(ATHROW);
@@ -115,48 +100,6 @@ public final class CustomAnnotations {
 	}
 
 	private static final Pattern annoMethodPattern = Pattern.compile("anno\\.(\\w+)\\(\\)");
-
-	private static void loadParameterValue(MethodVisitor mv, Parameter parameter) {
-		Type paramType = Type.getType(parameter.type().getDescriptor());
-		int varIndex = parameter.offset();
-		switch (paramType.getSort()) {
-		case Type.BOOLEAN:
-			mv.visitVarInsn(ILOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;", false);
-			break;
-		case Type.BYTE:
-			mv.visitVarInsn(ILOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Byte", "valueOf", "(B)Ljava/lang/Byte;", false);
-			break;
-		case Type.CHAR:
-			mv.visitVarInsn(ILOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Character", "valueOf", "(C)Ljava/lang/Character;", false);
-			break;
-		case Type.SHORT:
-			mv.visitVarInsn(ILOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Short", "valueOf", "(S)Ljava/lang/Short;", false);
-			break;
-		case Type.INT:
-			mv.visitVarInsn(ILOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false);
-			break;
-		case Type.LONG:
-			mv.visitVarInsn(LLOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Long", "valueOf", "(J)Ljava/lang/Long;", false);
-			break;
-		case Type.FLOAT:
-			mv.visitVarInsn(FLOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", false);
-			break;
-		case Type.DOUBLE:
-			mv.visitVarInsn(DLOAD, varIndex);
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
-			break;
-		default:
-			mv.visitVarInsn(ALOAD, varIndex);
-			break;
-		}
-	}
 
 	private static Object getMessage(Parameter parameter, TypeDescription annotation, Object message) {
 		Object defaultMessage = defaultMessage(annotation);
