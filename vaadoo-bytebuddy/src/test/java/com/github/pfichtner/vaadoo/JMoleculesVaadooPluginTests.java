@@ -202,7 +202,7 @@ class JMoleculesVaadooPluginTests {
 						transformed2.getDeclaredConstructor(String.class, String.class), //
 						List.of(validIban, ""), //
 						List.of(invalidIban, ""), //
-						"iban not a valid IBAN (this is a custum message from resourcebundle with [DE, AT, CH])"), //
+						"iban not a valid IBAN (this is a custum message from resourcebundle with [DE, AT, CH]) but was DE02"), //
 				arguments( //
 						transformed2.getDeclaredConstructor(String.class, boolean.class), //
 						List.of(validIban, true), //
