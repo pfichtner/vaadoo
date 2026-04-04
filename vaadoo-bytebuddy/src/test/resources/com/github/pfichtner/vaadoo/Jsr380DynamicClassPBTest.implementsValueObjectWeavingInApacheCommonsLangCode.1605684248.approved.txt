@@ -59,10 +59,10 @@ implements ValueObject {
     }
 
     private static void validate(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
-        Validate.isTrue(monthDay == null || monthDay.isAfter(MonthDay.now()), String.format("monthDay must be a future date but was %s", monthDay), new Object[0]);
-        Validate.isTrue(monthDay2 == null || monthDay2.isBefore(MonthDay.now()), String.format("monthDay1 must be a past date but was %s", monthDay2), new Object[0]);
-        Validate.isTrue(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), String.format("zonedDateTime must be a future date but was %s", zonedDateTime), new Object[0]);
-        Validate.isTrue(n > 0, String.format("int must be greater than 0 but was %s", n), new Object[0]);
+        Validate.isTrue(monthDay == null || monthDay.isAfter(MonthDay.now()), "monthDay must be a future date but was %s", monthDay);
+        Validate.isTrue(monthDay2 == null || monthDay2.isBefore(MonthDay.now()), "monthDay1 must be a past date but was %s", monthDay2);
+        Validate.isTrue(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), "zonedDateTime must be a future date but was %s", zonedDateTime);
+        Validate.isTrue(n > 0, "int must be greater than 0 but was %s", new Object[]{n});
     }
 }
 

@@ -31,6 +31,7 @@ Analysing type com.example.Generated_170777430
 package com.example;
 
 import com.example.Generated_170777430;
+import java.util.Arrays;
 import org.apache.commons.lang3.Validate;
 import org.jmolecules.ddd.types.ValueObject;
 
@@ -45,7 +46,7 @@ implements ValueObject {
     }
 
     private static void validate(Object[] objectArray) {
-        Validate.notEmpty(objectArray, "objectArray must not be empty", new Object[0]);
+        Validate.notEmpty(objectArray, "objectArray must not be empty", Arrays.deepToString(objectArray));
     }
 }
 

@@ -33,6 +33,7 @@ package com.example;
 
 import com.example.GenericGenerated;
 import jakarta.validation.constraints.Min;
+import java.util.Arrays;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class GenericGenerated
@@ -47,14 +48,14 @@ implements ValueObject {
 
     private static void validate(int[] nArray) {
         if (nArray == null) {
-            throw new IllegalArgumentException("intArray must not be null");
+            throw new IllegalArgumentException(String.format("intArray must not be null", Arrays.deepToString(nArray)));
         }
         if (nArray != null) {
             int n = nArray.length;
             for (int i = 0; i < n; ++i) {
                 int n2 = nArray[i];
                 if ((long)n2 >= 1L) continue;
-                throw new IllegalArgumentException(String.format("intArray[" + i + "] must be greater than or equal to 1 but was %s", n2));
+                throw new IllegalArgumentException(String.format("intArray[" + i + "] must be greater than or equal to 1 but was %s", n2, i));
             }
         }
     }

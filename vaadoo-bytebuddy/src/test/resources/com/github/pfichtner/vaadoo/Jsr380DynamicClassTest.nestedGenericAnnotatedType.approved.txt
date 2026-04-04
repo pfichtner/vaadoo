@@ -49,7 +49,7 @@ implements ValueObject {
 
     private static void validate(List list) {
         if (list == null) {
-            throw new IllegalArgumentException("nested must not be null");
+            throw new IllegalArgumentException(String.format("nested must not be null", list));
         }
         if (list != null) {
             Iterator iterator = list.iterator();
@@ -57,7 +57,7 @@ implements ValueObject {
             while (iterator.hasNext()) {
                 List list2 = (List)iterator.next();
                 if (list2 == null) {
-                    throw new IllegalArgumentException("nested[" + n + "] must not be null");
+                    throw new IllegalArgumentException(String.format("nested[" + n + "] must not be null", list2, n));
                 }
                 ++n;
             }

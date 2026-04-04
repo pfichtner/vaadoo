@@ -56,10 +56,10 @@ implements ValueObject {
     }
 
     private static void validate(HijrahDate hijrahDate, Long l) {
-        Validate.isTrue(hijrahDate == null, String.format("hijrahDate must be null but was %s", hijrahDate), new Object[0]);
-        Validate.isTrue(l == null || l <= 0L, String.format("long must be less than or equal to 0 but was %s", l), new Object[0]);
-        Validate.isTrue(l == null || l < 0L, String.format("long must be less than 0 but was %s", l), new Object[0]);
-        Validate.isTrue(l == null || new BigDecimal(l).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), String.format("long must be less than or equal to 0 but was %s", l), new Object[0]);
+        Validate.isTrue(hijrahDate == null, "hijrahDate must be null but was %s", hijrahDate);
+        Validate.isTrue(l == null || l <= 0L, "long must be less than or equal to 0 but was %s", new Object[]{l});
+        Validate.isTrue(l == null || l < 0L, "long must be less than 0 but was %s", new Object[]{l});
+        Validate.isTrue(l == null || new BigDecimal(l).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), "long must be less than or equal to 0 but was %s", new Object[]{l});
     }
 }
 

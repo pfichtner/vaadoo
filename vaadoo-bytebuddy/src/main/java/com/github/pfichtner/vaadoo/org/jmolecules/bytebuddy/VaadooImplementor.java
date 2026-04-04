@@ -413,8 +413,10 @@ class VaadooImplementor {
 		}
 
 		private static boolean equals(TypeDescription[] descriptions, Class<?>[] classes) {
-			return classes.length == descriptions.length && range(0, classes.length) //
-					.allMatch(i -> descriptions[i].isAssignableTo(classes[i]));
+			return classes.length == descriptions.length + 1 //
+					&& classes[classes.length - 1] == Object[].class //
+					&& range(0, descriptions.length) //
+							.allMatch(i -> descriptions[i].isAssignableTo(classes[i]));
 		}
 
 		private static boolean isCodeFragmentMethod(Method method) {

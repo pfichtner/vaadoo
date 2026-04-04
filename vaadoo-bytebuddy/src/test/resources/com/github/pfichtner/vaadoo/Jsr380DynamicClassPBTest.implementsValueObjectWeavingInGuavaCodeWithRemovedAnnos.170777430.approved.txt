@@ -32,6 +32,7 @@ package com.example;
 
 import com.example.Generated_170777430;
 import com.google.common.base.Preconditions;
+import java.util.Arrays;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated_170777430
@@ -45,7 +46,7 @@ implements ValueObject {
     }
 
     private static void validate(Object[] objectArray) {
-        Preconditions.checkArgument(Preconditions.checkNotNull(objectArray, "objectArray must not be empty").length > 0, "objectArray must not be empty");
+        Preconditions.checkArgument(Preconditions.checkNotNull(objectArray, "objectArray must not be empty").length > 0, "objectArray must not be empty", new Object[]{Arrays.deepToString(objectArray)});
     }
 }
 

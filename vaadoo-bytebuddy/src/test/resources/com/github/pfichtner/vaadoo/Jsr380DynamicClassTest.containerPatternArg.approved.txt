@@ -54,7 +54,7 @@ implements ValueObject {
 
     private static void validate(List list) {
         if (list == null) {
-            throw new IllegalArgumentException("list must not be null");
+            throw new IllegalArgumentException(String.format("list must not be null", list));
         }
         if (list != null) {
             Iterator iterator = list.iterator();
@@ -62,7 +62,7 @@ implements ValueObject {
             while (iterator.hasNext()) {
                 String string = (String)iterator.next();
                 if (string != null && !Generated.getCachedPattern("\\d*", 0).matcher(string).matches()) {
-                    throw new IllegalArgumentException(String.format("list[" + n + "] must match \"\\d*\" but was %s", string));
+                    throw new IllegalArgumentException(String.format("list[" + n + "] must match \"\\d*\" but was %s", string, n));
                 }
                 ++n;
             }

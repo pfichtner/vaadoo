@@ -51,7 +51,7 @@ implements ValueObject {
 
     private static void validate_1(Object object) {
         if (object == null) {
-            throw new IllegalArgumentException("object must not be null");
+            throw new IllegalArgumentException(String.format("object must not be null", object));
         }
     }
 }

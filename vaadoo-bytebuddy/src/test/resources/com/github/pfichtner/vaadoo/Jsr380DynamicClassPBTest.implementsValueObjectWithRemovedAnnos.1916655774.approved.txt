@@ -68,10 +68,10 @@ implements ValueObject {
 
     private static void validate(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {
         if (objectArray == null) {
-            throw new IllegalArgumentException("objectArray must not be empty");
+            throw new IllegalArgumentException(String.format("objectArray must not be empty", Arrays.deepToString(objectArray)));
         }
         if (objectArray.length == 0) {
-            throw new IllegalArgumentException("objectArray must not be empty");
+            throw new IllegalArgumentException(String.format("objectArray must not be empty", Arrays.deepToString(objectArray)));
         }
         if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
             throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
@@ -101,7 +101,7 @@ implements ValueObject {
             throw new IllegalArgumentException(String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate));
         }
         if (japaneseDate == null) {
-            throw new IllegalArgumentException("japaneseDate must not be null");
+            throw new IllegalArgumentException(String.format("japaneseDate must not be null", japaneseDate));
         }
     }
 }

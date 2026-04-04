@@ -59,13 +59,13 @@ implements ValueObject {
 
     private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
         if (linkedHashMap == null) {
-            throw new NullPointerException("linkedHashMap must not be empty");
+            throw new NullPointerException(String.format("linkedHashMap must not be empty", linkedHashMap));
         }
         if (linkedHashMap.size() == 0) {
-            throw new IllegalArgumentException("linkedHashMap must not be empty");
+            throw new IllegalArgumentException(String.format("linkedHashMap must not be empty", linkedHashMap));
         }
         if (linkedHashMap == null) {
-            throw new NullPointerException("linkedHashMap must not be null");
+            throw new NullPointerException(String.format("linkedHashMap must not be null", linkedHashMap));
         }
         if (linkedHashMap != null) {
             throw new IllegalArgumentException(String.format("linkedHashMap must be null but was %s", linkedHashMap));
@@ -80,7 +80,7 @@ implements ValueObject {
             throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
         }
         if (minguoDate == null) {
-            throw new NullPointerException("minguoDate must not be null");
+            throw new NullPointerException(String.format("minguoDate must not be null", minguoDate));
         }
     }
 }

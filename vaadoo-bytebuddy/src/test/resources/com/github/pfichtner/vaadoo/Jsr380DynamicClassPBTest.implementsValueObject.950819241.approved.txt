@@ -99,10 +99,10 @@ implements ValueObject {
             throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         }
         if (linkedList == null) {
-            throw new NullPointerException("linkedList must not be empty");
+            throw new NullPointerException(String.format("linkedList must not be empty", linkedList));
         }
         if (linkedList.size() == 0) {
-            throw new IllegalArgumentException("linkedList must not be empty");
+            throw new IllegalArgumentException(String.format("linkedList must not be empty", linkedList));
         }
         if (linkedList != null && (linkedList.size() < 0 || linkedList.size() > Integer.MAX_VALUE)) {
             throw new IllegalArgumentException(String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));

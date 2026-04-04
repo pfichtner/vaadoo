@@ -53,7 +53,7 @@ public final class FormatMessageInjector {
 				"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;", false);
 	}
 
-	private static void loadParameterValue(MethodVisitor mv, Type paramType, int varIndex) {
+	public static void loadParameterValue(MethodVisitor mv, Type paramType, int varIndex) {
 		switch (paramType.getSort()) {
 		case Type.BOOLEAN:
 			mv.visitVarInsn(ILOAD, varIndex);

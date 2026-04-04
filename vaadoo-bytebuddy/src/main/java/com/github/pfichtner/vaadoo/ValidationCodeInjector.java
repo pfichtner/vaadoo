@@ -22,7 +22,7 @@ import static com.github.pfichtner.vaadoo.AsmUtil.isLoadOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isReturnOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isStoreOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.sizeOf;
-import static com.github.pfichtner.vaadoo.FormatMessageInjector.injectFormatMessage;
+import static com.github.pfichtner.vaadoo.FormatMessageInjector.loadParameterValue;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
@@ -115,6 +115,7 @@ public class ValidationCodeInjector {
 		private final SlotInfo srcSlot;
 		private final SlotInfo tgtSlot;
 		private final SlotInfo offset;
+		private final int argsParameterIndex;
 
 		@Value
 		@RequiredArgsConstructor
@@ -150,10 +151,20 @@ public class ValidationCodeInjector {
 			this.srcSlot = new SlotInfo(isStatic(sourceMethod.getModifiers()), argTypes(sourceMethod));
 			this.tgtSlot = new SlotInfo(TARGET_METHOD_IS_STATIC, getArgumentTypes(signatureOfTargetMethod));
 			this.offset = srcSlot.offsetTo(tgtSlot);
+			this.argsParameterIndex = sourceArgumentIndex(sourceMethod, sourceMethod.getParameterCount() - 1);
 		}
 
 		private static Type[] argTypes(Method method) {
 			return stream(method.getParameterTypes()).map(Type::getType).toArray(Type[]::new);
+		}
+
+		private int sourceArgumentIndex(Method method, int parameterIndex) {
+			int argIndex = srcSlot.firstArg();
+			Type[] argTypes = argTypes(method);
+			for (int i = 0; i < parameterIndex; i++) {
+				argIndex += argTypes[i].getSize();
+			}
+			return argIndex;
 		}
 
 		@Override
@@ -224,6 +235,10 @@ public class ValidationCodeInjector {
 								// argument access
 								if (opcodeIsLoad && var == srcSlot.firstArg()) {
 									isFirstParamLoad = true;
+									return;
+								}
+								if (opcodeIsLoad && var == argsParameterIndex) {
+									writePlaceholderArgsArray();
 									return;
 								}
 								var = remapArg(var);
@@ -301,6 +316,38 @@ public class ValidationCodeInjector {
 						}
 					}
 
+					private void writePlaceholderArgsArray() {
+						Map<String, Integer> placeholders = targetParam.placeholderValues();
+						mv.visitLdcInsn(placeholders.size() + 1);
+						mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+
+						mv.visitInsn(DUP);
+						mv.visitLdcInsn(0);
+						loadParameterValue(mv, Type.getType(targetParam.type().asErasure().getDescriptor()),
+								targetParam.offset());
+						mv.visitInsn(AASTORE);
+
+						int idx = 1;
+						for (Map.Entry<String, Integer> entry : placeholders.entrySet()) {
+							mv.visitInsn(DUP);
+							mv.visitLdcInsn(idx++);
+							loadPlaceholderValue(entry.getKey(), entry.getValue());
+							mv.visitInsn(AASTORE);
+						}
+					}
+
+					private void loadPlaceholderValue(String placeholder, int varIndex) {
+						switch (placeholder) {
+						case "index":
+							mv.visitVarInsn(ILOAD, varIndex);
+							mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;",
+									false);
+							return;
+						default:
+							mv.visitVarInsn(ALOAD, varIndex);
+						}
+					}
+
 					private Object annotationsLdcInsnValue(Parameter parameter, String owner, String name,
 							Type returnType) {
 						String stringValue = String.valueOf(valueFromClass(parameter, owner, name));
@@ -342,18 +389,10 @@ public class ValidationCodeInjector {
 							Map<String, Integer> placeholders = targetParam.placeholderValues();
 							boolean hasNamedPlaceholders = !placeholders.isEmpty()
 									&& hasPlaceholder(replaced, placeholders.keySet());
-							boolean hasFormatPlaceholder = replaced.contains("%s");
-							if (!hasNamedPlaceholders && !hasFormatPlaceholder) {
+							if (!hasNamedPlaceholders) {
 								super.visitLdcInsn(replaced);
 							} else {
-								if (hasNamedPlaceholders) {
-									injectDynamicMessage(replaced, placeholders);
-								} else {
-									super.visitLdcInsn(replaced);
-								}
-								if (hasFormatPlaceholder) {
-									injectFormatMessage(mv, targetParam);
-								}
+								injectDynamicMessage(replaced, placeholders);
 							}
 						} else {
 							super.visitLdcInsn(value);

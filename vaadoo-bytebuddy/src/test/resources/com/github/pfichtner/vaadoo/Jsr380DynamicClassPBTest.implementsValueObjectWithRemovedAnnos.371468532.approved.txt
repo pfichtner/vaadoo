@@ -61,7 +61,7 @@ implements ValueObject {
 
     private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
         if (minguoDate == null) {
-            throw new IllegalArgumentException("minguoDate must not be null");
+            throw new IllegalArgumentException(String.format("minguoDate must not be null", minguoDate));
         }
         if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
             throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));

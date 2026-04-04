@@ -68,19 +68,19 @@ implements ValueObject {
     }
 
     private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
-        Preconditions.checkArgument(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate));
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
-        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), String.format("zonedDateTime must be a past date but was %s", zonedDateTime));
-        Preconditions.checkArgument(zonedDateTime == null, String.format("zonedDateTime must be null but was %s", zonedDateTime));
-        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), String.format("zonedDateTime must be a future date but was %s", zonedDateTime));
-        Preconditions.checkArgument(offsetDateTime == null, String.format("offsetDateTime must be null but was %s", offsetDateTime));
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime));
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
-        Preconditions.checkArgument(linkedList != null, "linkedList must not be empty");
-        Preconditions.checkArgument(linkedList.size() > 0, "linkedList must not be empty");
-        Preconditions.checkArgument(linkedList != null, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        Preconditions.checkArgument(minguoDate == null, "minguoDate must be null but was %s", new Object[]{minguoDate});
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), "minguoDate must be a past date but was %s", new Object[]{minguoDate});
+        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), "zonedDateTime must be a past date but was %s", new Object[]{zonedDateTime});
+        Preconditions.checkArgument(zonedDateTime == null, "zonedDateTime must be null but was %s", new Object[]{zonedDateTime});
+        Preconditions.checkArgument(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), "zonedDateTime must be a future date but was %s", new Object[]{zonedDateTime});
+        Preconditions.checkArgument(offsetDateTime == null, "offsetDateTime must be null but was %s", new Object[]{offsetDateTime});
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present but was %s", new Object[]{offsetDateTime});
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a date in the present or in the future but was %s", new Object[]{offsetDateTime});
+        Preconditions.checkArgument(linkedList != null, "linkedList must not be empty", new Object[]{linkedList});
+        Preconditions.checkArgument(linkedList.size() > 0, "linkedList must not be empty", new Object[]{linkedList});
+        Preconditions.checkArgument(linkedList != null, "size of linkedList must be between 0 and 2147483647 but was %s", new Object[]{linkedList});
         int n = linkedList.size();
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, "size of linkedList must be between 0 and 2147483647 but was %s", new Object[]{linkedList});
     }
 }
 

@@ -68,7 +68,7 @@ implements ValueObject {
             throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         }
         if (offsetDateTime == null) {
-            throw new NullPointerException("offsetDateTime must not be null");
+            throw new NullPointerException(String.format("offsetDateTime must not be null", offsetDateTime));
         }
         if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
             throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));

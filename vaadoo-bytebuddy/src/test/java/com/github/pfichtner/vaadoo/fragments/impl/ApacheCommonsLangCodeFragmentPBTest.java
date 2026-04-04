@@ -109,10 +109,10 @@ class ApacheCommonsLangCodeFragmentPBTest {
 
 		private void accept(Object value, Class<?> param1Type) {
 			Method method = only(Arrays.stream(sut.getClass().getMethods()).filter(m -> m.getName().equals("check"))
-					.filter(m -> m.getParameterTypes().length == 2 && m.getParameterTypes()[0].isInstance(anno)
+					.filter(m -> m.getParameterTypes().length == 3 && m.getParameterTypes()[0].isInstance(anno)
 							&& m.getParameterTypes()[1].isAssignableFrom(param1Type)));
 			try {
-				method.invoke(sut, anno, convert(param1Type, value));
+				method.invoke(sut, anno, convert(param1Type, value), new Object[0]);
 			} catch (IllegalAccessException | IllegalArgumentException e) {
 				throw new RuntimeException(e);
 			} catch (InvocationTargetException e) {

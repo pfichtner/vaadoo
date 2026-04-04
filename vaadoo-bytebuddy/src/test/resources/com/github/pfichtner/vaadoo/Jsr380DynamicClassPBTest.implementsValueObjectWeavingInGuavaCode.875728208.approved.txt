@@ -87,28 +87,28 @@ implements ValueObject {
     }
 
     private static void validate(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList) {
-        Preconditions.checkArgument(s >= 0, String.format("short must be greater than or equal to 0 but was %s", s));
-        Preconditions.checkArgument(n == null || n >= 0, String.format("integer must be greater than or equal to 0 but was %s", n));
-        Preconditions.checkArgument(n == null || (long)n.intValue() >= 0L, String.format("integer must be greater than or equal to 0 but was %s", n));
-        Preconditions.checkArgument(s2 < 0, String.format("short1 must be less than 0 but was %s", s2));
-        Preconditions.checkArgument((long)s2 <= 0L, String.format("short1 must be less than or equal to 0  but was %s", s2));
-        Preconditions.checkArgument(s2 <= 0, String.format("short1 must be less than or equal to 0 but was %s", s2));
-        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a past date but was %s", offsetDateTime));
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime));
-        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
-        int n2 = Preconditions.checkNotNull(objectArray, String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray))).length;
-        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)));
-        n2 = Preconditions.checkNotNull(map, String.format("size of map must be between 0 and 2147483647 but was %s", map)).size();
-        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, String.format("size of map must be between 0 and 2147483647 but was %s", map));
-        Preconditions.checkArgument(longArray == null, String.format("longArray must be null but was %s", Arrays.deepToString(longArray)));
-        n2 = ((Object[])Preconditions.checkNotNull(longArray, String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(longArray)))).length;
-        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(longArray)));
-        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(list, "list must not be empty")).size() > 0, "list must not be empty");
-        Preconditions.checkArgument(list == null, String.format("list must be null but was %s", list));
-        n2 = ((Collection)Preconditions.checkNotNull(list, String.format("size of list must be between 0 and 2147483647 but was %s", list))).size();
-        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, String.format("size of list must be between 0 and 2147483647 but was %s", list));
-        Preconditions.checkArgument(linkedList == null, String.format("linkedList must be null but was %s", linkedList));
-        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty");
+        Preconditions.checkArgument(s >= 0, "short must be greater than or equal to 0 but was %s", new Object[]{s});
+        Preconditions.checkArgument(n == null || n >= 0, "integer must be greater than or equal to 0 but was %s", new Object[]{n});
+        Preconditions.checkArgument(n == null || (long)n.intValue() >= 0L, "integer must be greater than or equal to 0 but was %s", new Object[]{n});
+        Preconditions.checkArgument(s2 < 0, "short1 must be less than 0 but was %s", new Object[]{s2});
+        Preconditions.checkArgument((long)s2 <= 0L, "short1 must be less than or equal to 0  but was %s", new Object[]{s2});
+        Preconditions.checkArgument(s2 <= 0, "short1 must be less than or equal to 0 but was %s", new Object[]{s2});
+        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isBefore(OffsetDateTime.now()), "offsetDateTime must be a past date but was %s", new Object[]{offsetDateTime});
+        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a date in the past or in the present but was %s", new Object[]{offsetDateTime});
+        Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), "offsetDateTime must be a future date but was %s", new Object[]{offsetDateTime});
+        int n2 = Preconditions.checkNotNull(objectArray, "size of objectArray must be between 0 and 2147483647 but was %s").length;
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of objectArray must be between 0 and 2147483647 but was %s", new Object[]{Arrays.deepToString(objectArray)});
+        n2 = Preconditions.checkNotNull(map, "size of map must be between 0 and 2147483647 but was %s").size();
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of map must be between 0 and 2147483647 but was %s", new Object[]{map});
+        Preconditions.checkArgument(longArray == null, "longArray must be null but was %s", new Object[]{Arrays.deepToString(longArray)});
+        n2 = ((Object[])Preconditions.checkNotNull(longArray, "size of longArray must be between 0 and 2147483647 but was %s")).length;
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of longArray must be between 0 and 2147483647 but was %s", new Object[]{Arrays.deepToString(longArray)});
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(list, "list must not be empty")).size() > 0, "list must not be empty", new Object[]{list});
+        Preconditions.checkArgument(list == null, "list must be null but was %s", new Object[]{list});
+        n2 = ((Collection)Preconditions.checkNotNull(list, "size of list must be between 0 and 2147483647 but was %s")).size();
+        Preconditions.checkArgument(n2 >= 0 && n2 <= Integer.MAX_VALUE, "size of list must be between 0 and 2147483647 but was %s", new Object[]{list});
+        Preconditions.checkArgument(linkedList == null, "linkedList must be null but was %s", new Object[]{linkedList});
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty", new Object[]{linkedList});
     }
 }
 

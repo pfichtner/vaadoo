@@ -33,6 +33,7 @@ package com.example;
 
 import com.example.GenericGenerated;
 import jakarta.validation.constraints.Pattern;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jmolecules.ddd.types.ValueObject;
@@ -51,14 +52,14 @@ implements ValueObject {
 
     private static void validate(String[] stringArray) {
         if (stringArray == null) {
-            throw new IllegalArgumentException("stringArray must not be null");
+            throw new IllegalArgumentException(String.format("stringArray must not be null", Arrays.deepToString(stringArray)));
         }
         if (stringArray != null) {
             int n = stringArray.length;
             for (int i = 0; i < n; ++i) {
                 String string = stringArray[i];
                 if (string == null || GenericGenerated.getCachedPattern("\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException(String.format("stringArray[" + i + "] must match \"\\d*\" but was %s", string));
+                throw new IllegalArgumentException(String.format("stringArray[" + i + "] must match \"\\d*\" but was %s", string, i));
             }
         }
     }

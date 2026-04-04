@@ -53,20 +53,20 @@ implements ValueObject {
     private static void validate(Map map) {
         String string;
         if (map == null) {
-            throw new IllegalArgumentException("map must not be null");
+            throw new IllegalArgumentException(String.format("map must not be null", map));
         }
         if (map != null) {
             for (Map.Entry entry : map.entrySet()) {
                 string = (String)entry.getKey();
                 if (string == null || GenericGenerated.getCachedPattern("K\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException(String.format("map[key=" + entry.getKey() + "] must match \"K\\d*\" but was %s", string));
+                throw new IllegalArgumentException(String.format("map[key=" + entry.getKey() + "] must match \"K\\d*\" but was %s", string, entry));
             }
         }
         if (map != null) {
             for (Map.Entry entry : map.entrySet()) {
                 string = (String)entry.getValue();
                 if (string == null || GenericGenerated.getCachedPattern("V\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException(String.format("map[value for key=" + entry.getKey() + "] must match \"V\\d*\" but was %s", string));
+                throw new IllegalArgumentException(String.format("map[value for key=" + entry.getKey() + "] must match \"V\\d*\" but was %s", string, entry));
             }
         }
     }

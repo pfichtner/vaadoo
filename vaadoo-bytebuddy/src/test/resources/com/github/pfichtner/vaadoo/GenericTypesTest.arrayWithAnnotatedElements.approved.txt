@@ -33,6 +33,7 @@ package com.example;
 
 import com.example.GenericGenerated;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Arrays;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class GenericGenerated
@@ -47,17 +48,17 @@ implements ValueObject {
 
     private static void validate(String[] stringArray) {
         if (stringArray == null) {
-            throw new IllegalArgumentException("stringArray must not be null");
+            throw new IllegalArgumentException(String.format("stringArray must not be null", Arrays.deepToString(stringArray)));
         }
         if (stringArray != null) {
             int n = stringArray.length;
             for (int i = 0; i < n; ++i) {
                 String string = stringArray[i];
                 if (string == null) {
-                    throw new IllegalArgumentException("stringArray[" + i + "] must not be blank");
+                    throw new IllegalArgumentException(String.format("stringArray[" + i + "] must not be blank", string, i));
                 }
                 if (string.toString().trim().length() != 0) continue;
-                throw new IllegalArgumentException("stringArray[" + i + "] must not be blank");
+                throw new IllegalArgumentException(String.format("stringArray[" + i + "] must not be blank", string, i));
             }
         }
     }
