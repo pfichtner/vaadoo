@@ -18,76 +18,77 @@ import jakarta.validation.constraints.Size;
  * checks will throw {@link IllegalArgumentException}s instead of
  * {@link NullPointerException}s.
  */
+@SuppressWarnings("null")
 public abstract class GuavaCodeFragmentIAEMixin implements Jsr380CodeFragment {
 
 	@Override
-	public void check(Null anno, Object ref) {
-		checkArgument(ref == null, anno.message());
+	public void check(Null anno, Object ref, Object[] args) {
+		checkArgument(ref == null, anno.message(), args);
 	}
 
 	@Override
-	public void check(NotNull anno, Object ref) {
-		checkArgument(ref != null, anno.message());
+	public void check(NotNull anno, Object ref, Object[] args) {
+		checkArgument(ref != null, anno.message(), args);
 	}
 
 	@Override
-	public void check(NotBlank anno, CharSequence charSequence) {
-		checkArgument(charSequence != null, anno.message());
-		checkArgument(charSequence.toString().trim().length() > 0, anno.message());
+	public void check(NotBlank anno, CharSequence charSequence, Object[] args) {
+		checkArgument(charSequence != null, anno.message(), args);
+		checkArgument(charSequence.toString().trim().length() > 0, anno.message(), args);
 	}
 
 	// -----------------------------------------------------------------
 
 	@Override
-	public void check(NotEmpty anno, CharSequence charSequence) {
-		checkArgument(charSequence != null, anno.message());
-		checkArgument(charSequence.length() > 0, anno.message());
+	public void check(NotEmpty anno, CharSequence charSequence, Object[] args) {
+		checkArgument(charSequence != null, anno.message(), args);
+		checkArgument(charSequence.length() > 0, anno.message(), args);
 	}
 
-	public void check(NotEmpty anno, Collection<?> collection) {
-		checkArgument(collection != null, anno.message());
-		checkArgument(collection.size() > 0, anno.message());
-	}
-
-	@Override
-	public void check(NotEmpty anno, Map<?, ?> map) {
-		checkArgument(map != null, anno.message());
-		checkArgument(map.size() > 0, anno.message());
+	public void check(NotEmpty anno, Collection<?> collection, Object[] args) {
+		checkArgument(collection != null, anno.message(), args);
+		checkArgument(collection.size() > 0, anno.message(), args);
 	}
 
 	@Override
-	public void check(NotEmpty anno, Object[] objects) {
-		checkArgument(objects != null, anno.message());
-		checkArgument(objects.length > 0, anno.message());
+	public void check(NotEmpty anno, Map<?, ?> map, Object[] args) {
+		checkArgument(map != null, anno.message(), args);
+		checkArgument(map.size() > 0, anno.message(), args);
+	}
+
+	@Override
+	public void check(NotEmpty anno, Object[] objects, Object[] args) {
+		checkArgument(objects != null, anno.message(), args);
+		checkArgument(objects.length > 0, anno.message(), args);
 	}
 
 	// -----------------------------------------------------------------
 
 	@Override
-	public void check(Size anno, CharSequence charSequence) {
-		checkArgument(charSequence != null, anno.message());
+	public void check(Size anno, CharSequence charSequence, Object[] args) {
+		checkArgument(charSequence != null, anno.message(), args);
 		int length = charSequence.length();
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		checkArgument(length >= anno.min() && length <= anno.max(), anno.message(), args);
 	}
 
-	public void check(Size anno, Collection<?> collection) {
-		checkArgument(collection != null, anno.message());
+	public void check(Size anno, Collection<?> collection, Object[] args) {
+		checkArgument(collection != null, anno.message(), args);
 		int length = collection.size();
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		checkArgument(length >= anno.min() && length <= anno.max(), anno.message(), args);
 	}
 
 	@Override
-	public void check(Size anno, Map<?, ?> map) {
-		checkArgument(map != null, anno.message());
+	public void check(Size anno, Map<?, ?> map, Object[] args) {
+		checkArgument(map != null, anno.message(), args);
 		int length = map.size();
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		checkArgument(length >= anno.min() && length <= anno.max(), anno.message(), args);
 	}
 
 	@Override
-	public void check(Size anno, Object[] objects) {
-		checkArgument(objects != null, anno.message());
+	public void check(Size anno, Object[] objects, Object[] args) {
+		checkArgument(objects != null, anno.message(), args);
 		int length = objects.length;
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		checkArgument(length >= anno.min() && length <= anno.max(), anno.message(), args);
 	}
 
 }
