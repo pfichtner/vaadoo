@@ -586,58 +586,48 @@ class VaadooImplementor {
 					Parameter containerParam, AnnotationDescription annotation) {
 				// Load the container and get its iterator
 				mv.visitVarInsn(ALOAD, containerParam.offset());
-				generateIteratorLoopWithValidation(injector, mv, containerParam, annotation, elementType, false);
-			}
-
-			private void generateIteratorLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation, TypeDescription elementType,
-					boolean isMap) {
-				if (isMap) {
-					generateMapLoopWithValidation(injector, mv, containerParam, annotation);
-					return;
-				}
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
-
+				
 				// Store iterator in a local variable
 				int iteratorVar = containerParam.offset() + 1;
 				mv.visitVarInsn(ASTORE, iteratorVar);
-
+				
 				// Initialize index in a local variable
 				int indexVar = iteratorVar + 1;
 				mv.visitInsn(ICONST_0);
 				mv.visitVarInsn(ISTORE, indexVar);
-
+				
 				// Store element in a local variable (after index)
 				int elementVar = indexVar + 1;
-
+				
 				Label loopStart = new Label();
 				Label loopTest = new Label();
-
+				
 				// Jump to loop condition
 				mv.visitJumpInsn(GOTO, loopTest);
-
+				
 				// Loop body label
 				mv.visitLabel(loopStart);
-
+				
 				// Load iterator and get next element
 				mv.visitVarInsn(ALOAD, iteratorVar);
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
-
+				
 				// Cast to the actual element type if it's not Object
 				if (!elementType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
 					mv.visitTypeInsn(CHECKCAST, elementType.asErasure().getInternalName());
 				}
-
+				
 				// Store element in local variable
 				mv.visitVarInsn(ASTORE, elementVar);
-
+				
 				// Call the fragment method using the injector
 				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
 						Map.of("index", indexVar));
-
+				
 				// increment index
 				mv.visitIincInsn(indexVar, 1);
-
+				
 				// Loop condition: check if hasNext()
 				mv.visitLabel(loopTest);
 				mv.visitVarInsn(ALOAD, iteratorVar);
