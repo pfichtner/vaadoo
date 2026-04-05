@@ -11,6 +11,11 @@ Validating automatically domain objects: It's magic
 
 Vaadoo is available on **Maven Central**. The current release is an **beta version (0.0.1-beta-2)**:
 
+## Java Requirements
+
+- Build (plugin): Java 11+ (due to Byte Buddy)
+- Bytecode-based enhancement works across Java language levels; runtime requires Java 8+
+
 ### Maven Build Plugin Configuration
 
 ```xml
