@@ -50,7 +50,7 @@ To enable build-time class transformation using Byte Buddy, add the following to
 ### Gradle Build Plugin Configuration
 
 ```groovy
-implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.1-alpha-2'
+implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.1'
 
 plugins {
     id 'java'
