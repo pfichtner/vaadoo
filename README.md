@@ -9,7 +9,7 @@ Validating automatically domain objects: It's magic
 
 ## Getting Started
 
-Vaadoo is available on **Maven Central**. The current release is an **beta version (0.0.1-beta-2)**:
+Vaadoo is available on **Maven Central**. The current release is **0.0.1**:
 
 ## Java Requirements
 
@@ -22,7 +22,7 @@ Vaadoo is available on **Maven Central**. The current release is an **beta versi
 <dependency>
     <groupId>io.github.pfichtner</groupId>
     <artifactId>vaadoo-bytebuddy</artifactId>
-    <version>0.0.1-beta-2</version>
+    <version>0.0.1</version>
 </dependency>
 ```
 
