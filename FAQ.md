@@ -20,6 +20,7 @@ no runtime validation framework is needed
 
 Vaadoo validates each parameter independently via annotations. Cross-parameter rules must be expressed explicitly in the constructor.
 
+```java
 class Booking {
 
     Booking(@NotNull @PastOrPresent Date startDate,
@@ -30,6 +31,7 @@ class Booking {
         }
     }
 }
+```
 
 ### ❓ But then I can’t debug the validation code?
 
