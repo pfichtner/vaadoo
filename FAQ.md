@@ -32,7 +32,7 @@ class Booking {
 
 ### ❓ But then I can’t debug the validation code?
 
-You don’t debug a framework—you debug normal Java code. Vaadoo generates plain constructor checks, so failures appear directly in the stack trace and can be stepped through in any debugger.
+Vaadoo generates bytecode, not source code. That means you debug your original constructor as usual—the injected validation runs inside it, and failures appear directly in the stack trace.
 
 For complex validation logic, you can extract it into a dedicated ConstraintValidator or domain service and test it independently like any other business rule.
 
