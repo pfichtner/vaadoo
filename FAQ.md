@@ -30,6 +30,16 @@ class Booking {
 }
 ```
 
+### ❓ I don’t trust that it does what I expect!
+
+You shouldn’t rely on assumptions—Vaadoo does not replace tests.
+
+Even though annotations are present and validation is injected at build time, correctness of your domain logic is still your responsibility.
+
+Vaadoo ensures that declared constraints are consistently enforced, but it does not guarantee that your business rules are complete or correct.
+
+It removes boilerplate validation code, not the need for testing.
+
 ### ❓ But then I can’t debug the validation code?
 
 Vaadoo generates bytecode, not source code. That means you debug your original constructor as usual—the injected validation runs inside it, and failures appear directly in the stack trace.
