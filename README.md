@@ -15,7 +15,7 @@ record User(@NotBlank String name, @Min(18) int age) {}
 
 ```java
 new User("", 10); 
-// → Exception in thread "main" java.lang.IllegalArgumentException: name must not be blank
+// → java.lang.IllegalArgumentException: name must not be blank
 ```
 
 Vaadoo uses Byte Buddy to generate the validation logic at compile time and injects it into the constructor.
