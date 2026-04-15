@@ -5,10 +5,39 @@
 [![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml)
 
 # Vaadoo
-Validating automatically domain objects: It's magic
+Compile-time validation for domain objects using annotations—no reflection, no runtime dependencies.
+
+## ✨ Quick Example
+
+```java
+record User(@NotBlank String name, @Min(18) int age) {}
+```
+
+```java
+new User("", 10); 
+// → Exception in thread "main" java.lang.IllegalArgumentException: name must not be blank
+```
+
+Vaadoo uses Byte Buddy to generate the validation logic at compile time and injects it into the constructor.
+No reflection. No runtime validator needed.
+
+### What happens under the hood
+
+This is roughly the bytecode Vaadoo injects into the constructor:
+
+```java
+// what Vaadoo generates
+if (name == null || name.trim().length() == 0) {
+    throw new IllegalArgumentException("name must not be blank");
+}
+if (age < 18) {
+    throw new IllegalArgumentException(String.format("age must be >= 18 but was %s", age));
+}
+```
 
 ## Getting Started
 
+Add the dependency and enable bytecode transformation:
 Vaadoo is available on **Maven Central**. The current release is **0.0.1**:
 
 ## Java Requirements
@@ -105,7 +134,7 @@ class MyDomainObject {
 }
 ```
 
-Vaadoo solves this by generating validation code at compile time. The checks Vaadoo adds match exactly the ones you would have written manually, but without the boilerplate or risk of mistakes. The checks are woven directly into the bytecode, and all JSR 380 runtime dependencies gets eliminated. Your domain objects become fully self-validating and safe. 
+Vaadoo solves this by generating validation code at compile time. The checks Vaadoo adds match exactly the ones you would have written manually, but without the boilerplate or risk of mistakes. The checks are woven directly into the bytecode, and all JSR 380 runtime dependencies are eliminated. Your domain objects become fully self-validating and safe. 
 
 **Plain java class**
 ```java
@@ -133,7 +162,13 @@ record MyDomainObject(@NotEmpty String name, @Min(0) int age) {}
 }
 ```
 
-## Why are only constructors supported? Please add support for methods as well! 
+## When to use Vaadoo
+- you model rich domain objects (DDD, value objects)
+- you want to declare validation rules instead of writing boilerplate checks
+- you want validation without runtime dependencies
+- you care about performance
+
+## Why are only constructors supported? Please add support for methods (e.g. setters) as well! 
 
 The intention is to support creating domain classes (value types/entities) and get rid of boilerplate code there. 
 You don't want to have methods like ...
@@ -187,7 +222,7 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 
 ## Drawbacks
 - no runtime internationalization (i18n) since messages are copied during compile-time into the bytecode
-- no central point to change validation logic, e.g. if the regexp for mail address validation changes the classes have to been recompiled
+- no central point to change validation logic, e.g. if the regexp for mail address validation changes the classes have to be recompiled
 - increased class sizes since the code gets copied into each class instead of having a central point that contains the code
 
 ## Pitfalls
