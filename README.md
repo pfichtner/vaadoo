@@ -276,3 +276,6 @@ Vaadoo can be configured using a file named **`vaadoo.config`** in the project's
 - https://yavi.ik.am/
 - https://hibernate.org/validator/
 - https://bval.apache.org/
+
+## FAQ
+See the full FAQ here: [FAQ.md](./FAQ.md)
