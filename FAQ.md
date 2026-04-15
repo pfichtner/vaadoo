@@ -23,7 +23,7 @@ Vaadoo validates each parameter independently via annotations. Cross-parameter r
 ```java
 class Booking {
 
-    Booking(@NotNull @PastOrPresent Date startDate,
+    Booking(@NotNull @@FutureOrPresent Date startDate,
             @NotNull @Future Date endDate) {
 
         if (!startDate.before(endDate)) {
