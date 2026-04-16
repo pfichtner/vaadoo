@@ -6,15 +6,17 @@ No. Vaadoo is independent and does not require Lombok. It operates at the byteco
 
 ### ❓ How is Vaadoo different from Hibernate Validator?
 
-Hibernate Validator is a runtime validation framework that uses reflection and a validation engine.
+Hibernate Validator is a runtime validation framework.
 
-Vaadoo injects validation logic directly into constructors at build time using Byte Buddy, removing the need for runtime validation infrastructure.
+Validation is not automatic—it only happens if something explicitly triggers it (e.g. via a framework). If validation is not invoked, invalid objects can still be created.
 
-As a result:
+Vaadoo, using Byte Buddy, injects validation logic directly into constructors at build time.
 
-validation happens immediately during object construction
-no reflection is required
-no runtime validation framework is needed
+This means:
+- validation runs automatically during object creation
+- domain objects are always valid by construction
+- no runtime validation framework is required
+- no reflection is used
 
 ### ❓ What if parameters depend on each other (e.g. start/end dates)?
 
