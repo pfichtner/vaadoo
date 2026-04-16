@@ -5,7 +5,10 @@
 [![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml)
 
 # Vaadoo
-Compile-time validation for Java domain objects using Bean Validation annotations—turned into bytecode without reflection or runtime dependencies. Write annotations, get always-enforced domain invariants at object creation.
+Vaadoo is a build-time bytecode transformation tool that turns Bean Validation annotations into real constructor checks.
+
+Instead of validating objects after creation or delegating validation to a runtime framework, Vaadoo injects validation logic into constructors during build-time bytecode transformation. This ensures that domain invariants are enforced when objects are created at runtime.
+
 No runtime validator. No reflection. No boilerplate.
 
 ## ✨ Quick Example
@@ -14,9 +17,17 @@ No runtime validator. No reflection. No boilerplate.
 record User(@NotBlank String name, @Min(18) int age) {}
 ```
 
+### What actually happens
+During the build, Vaadoo:
+1. reads the annotations (e.g. @NotBlank, @Min)
+2. generates equivalent validation code
+3. injects it into the constructor bytecode
+
+So your runtime code behaves like:
+
 ```java
 new User("", 10); 
-// → java.lang.IllegalArgumentException: name must not be blank
+// → throws IllegalArgumentException immediately: "name must not be blank"
 ```
 
 Vaadoo uses Byte Buddy to generate the validation logic at compile time and injects it into the constructor.
@@ -35,6 +46,19 @@ if (age < 18) {
     throw new IllegalArgumentException(String.format("age must be >= 18 but was %s", age));
 }
 ```
+
+### The key idea
+- ❌ Not runtime validation (like Hibernate Validator)
+- ❌ Not source code generation (like Lombok)
+- ❌ Not reflection-based processing
+- ✅ It is compile-time bytecode weaving of validation logic
+
+### What this means in practice
+- Validation always runs when an object is created
+- Invalid objects cannot exist in your domain model
+- No validation framework is needed at runtime
+- No reflection is used
+- No separate validation step is required
 
 ## Getting Started
 
