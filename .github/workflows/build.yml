@@ -33,3 +33,9 @@ jobs:
         CENTRAL_OSSRH_PASSWORD: ${{ secrets.CENTRAL_OSSRH_PASSWORD }}
       run: ./mvnw -B test
 #     run: ./mvnw -B deploy -s settings.xml
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
