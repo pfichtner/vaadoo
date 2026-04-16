@@ -3,7 +3,6 @@ package com.github.pfichtner.vaadoo.fragments.impl;
 import static java.math.RoundingMode.UNNECESSARY;
 import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
-import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -548,12 +547,16 @@ class JdkOnlyCodeFragmentPBTest {
 
 	@Provide
 	Arbitrary<String> blankStrings() {
-		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f').ofMinLength(0).ofMaxLength(20);
+		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f', '\u1680').ofMinLength(0).ofMaxLength(20)
+				.filter(s -> s.chars().allMatch(Character::isWhitespace));
 	}
 
 	@Provide
 	Arbitrary<String> nonBlankStrings() {
-		return Arbitraries.strings().ofMinLength(0).ofMaxLength(20).filter(not(s -> s.trim().isEmpty()));
+		Arbitrary<String> normal = Arbitraries.strings().ofMinLength(0).ofMaxLength(20)
+				.filter(s -> s.chars().anyMatch(c -> !Character.isWhitespace(c)));
+		Arbitrary<String> edgeCases = Arbitraries.of("-", "\u2007", "\u00A0", "x\u1680 ", "a ", "  b");
+		return Arbitraries.oneOf(normal, edgeCases);
 	}
 
 	@Provide

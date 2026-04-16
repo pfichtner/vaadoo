@@ -74,10 +74,7 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		if (charSequence == null) {
 			throw new NullValueException(anno.message());
 		}
-		// since there is no #isEmpty on CharSequence and we handle CharSequence s in
-		// #notEmpty we use "length() == 0" here too to be consistent, even if we could
-		// use String#isEmpty here
-		if (charSequence.toString().trim().length() == 0) {
+		if (charSequence.chars().allMatch(c -> Character.isWhitespace((char) c))) {
 			throw new IllegalArgumentException(anno.message());
 		}
 	}

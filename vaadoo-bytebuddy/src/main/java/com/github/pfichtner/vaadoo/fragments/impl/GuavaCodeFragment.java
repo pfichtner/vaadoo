@@ -69,7 +69,9 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(NotBlank anno, CharSequence charSequence) {
-		checkArgument(checkNotNull(charSequence, anno.message()).toString().trim().length() > 0, anno.message());
+		checkArgument(
+				checkNotNull(charSequence, anno.message()).chars().anyMatch(c -> !Character.isWhitespace((char) c)),
+				anno.message());
 	}
 
 	@Override
