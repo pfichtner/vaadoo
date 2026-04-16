@@ -5,7 +5,8 @@
 [![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml)
 
 # Vaadoo
-Compile-time validation for domain objects using annotations—no reflection, no runtime dependencies.
+Compile-time validation for Java domain objects using Bean Validation annotations—turned into bytecode without reflection or runtime dependencies. Write annotations, get always-enforced domain invariants at object creation.
+No runtime validator. No reflection. No boilerplate.
 
 ## ✨ Quick Example
 
