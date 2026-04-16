@@ -58,10 +58,10 @@ import net.jqwik.api.Provide;
 import net.jqwik.time.api.Dates;
 
 /**
- * Property-based tests for {@link GuavaCodeFragment} covering the
- * same behavior exercised in the example unit tests. These tests focus on
- * generating a wide variety of valid values and also specific invalid value
- * generators for the negative cases.
+ * Property-based tests for {@link GuavaCodeFragment} covering the same behavior
+ * exercised in the example unit tests. These tests focus on generating a wide
+ * variety of valid values and also specific invalid value generators for the
+ * negative cases.
  */
 class GuavaCodeFragmentPBTest {
 
@@ -548,12 +548,16 @@ class GuavaCodeFragmentPBTest {
 
 	@Provide
 	Arbitrary<String> blankStrings() {
-		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f').ofMinLength(0).ofMaxLength(20);
+		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f', '\u1680').ofMinLength(0).ofMaxLength(20)
+				.filter(s -> s.chars().allMatch(Character::isWhitespace));
 	}
 
 	@Provide
 	Arbitrary<String> nonBlankStrings() {
-		return Arbitraries.strings().ofMinLength(0).ofMaxLength(20).filter(not(s -> s.trim().isEmpty()));
+		Arbitrary<String> normal = Arbitraries.strings().ofMinLength(0).ofMaxLength(20)
+				.filter(s -> s.chars().anyMatch(c -> !Character.isWhitespace(c)));
+		Arbitrary<String> edgeCases = Arbitraries.of("-", "\u2007", "\u00A0", "x\u1680 ", "a ", "  b");
+		return Arbitraries.oneOf(normal, edgeCases);
 	}
 
 	@Provide

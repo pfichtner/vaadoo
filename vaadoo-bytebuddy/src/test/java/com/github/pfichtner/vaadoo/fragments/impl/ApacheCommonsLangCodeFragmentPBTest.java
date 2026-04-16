@@ -548,12 +548,16 @@ class ApacheCommonsLangCodeFragmentPBTest {
 
 	@Provide
 	Arbitrary<String> blankStrings() {
-		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f').ofMinLength(0).ofMaxLength(20);
+		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f', '\u1680').ofMinLength(0).ofMaxLength(20)
+				.filter(s -> s.chars().allMatch(Character::isWhitespace));
 	}
 
 	@Provide
 	Arbitrary<String> nonBlankStrings() {
-		return Arbitraries.strings().ofMinLength(0).ofMaxLength(20).filter(not(s -> s.trim().isEmpty()));
+		Arbitrary<String> normal = Arbitraries.strings().ofMinLength(0).ofMaxLength(20)
+				.filter(s -> s.chars().anyMatch(c -> !Character.isWhitespace(c)));
+		Arbitrary<String> edgeCases = Arbitraries.of("-", "\u2007", "\u00A0", "x\u1680 ", "a ", "  b");
+		return Arbitraries.oneOf(normal, edgeCases);
 	}
 
 	@Provide
