@@ -37,8 +37,8 @@ import net.bytebuddy.dynamic.DynamicType.Unloaded;
 
 class TypeAnnotationRemovalTest {
 
-	private File projectRoot;
-	private Transformer transformer;
+	File projectRoot;
+	Transformer transformer;
 
 	@BeforeEach
 	void setup() throws IOException {
