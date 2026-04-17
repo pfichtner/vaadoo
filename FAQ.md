@@ -62,6 +62,20 @@ Once the build is complete:
 
 The resulting bytecode is self-contained.
 
+### ❓ Does Vaadoo violate Clean Architecture or Ports & Adapters?
+
+No.
+It enforces invariants inside the domain and avoids runtime frameworks like Hibernate Validator. The only trade-offs are annotation coupling and build-time weaving.
+
+Note: A strict purist might object due to annotation usage and build-time bytecode transformation via Byte Buddy, but core principles (dependency rule, domain integrity) are preserved.
+
+### ❓ Does Vaadoo violate DDD principles?
+
+No.
+Vaadoo enforces invariants inside domain objects at construction time and encourages rich value objects instead of primitives.
+
+The only trade-offs are annotation coupling and build-time weaving.
+
 ### ❓ What exceptions does Vaadoo throw?
 
 By default, Vaadoo throws:
