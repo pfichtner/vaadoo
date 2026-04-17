@@ -9,6 +9,7 @@ import static java.nio.file.Files.walk;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.joining;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,14 +59,15 @@ class TypeAnnotationRemovalTest {
 	void removesNormalAnnotation() throws Exception {
 		configure(Map.entry("vaadoo.removeJsr380Annotations", true));
 
-		var param = DefaultParameterDefinition.of(String.class, AnnotationDefinition.of(NotBlank.class));
+		var anno = NotBlank.class;
+		var param = DefaultParameterDefinition.of(String.class, AnnotationDefinition.of(anno));
 		var generatedClass = a(testClass("com.example.NormalAnno").thatImplementsValueObject()
 				.withConstructor(ConstructorDefinition.of(param)));
 
 		Unloaded<?> transformedClass = transformer.transform(generatedClass);
 		String decompiled = Decompiler.decompile(transformedClass.getBytes());
 
-		assertThat(decompiled).doesNotContain(NotBlank.class.getSimpleName());
+		assertThat(decompiled).doesNotContain(anno.getSimpleName());
 	}
 
 	@Test
@@ -71,7 +75,8 @@ class TypeAnnotationRemovalTest {
 		configure(Map.entry("vaadoo.removeJsr380Annotations", true));
 
 		// List<@NotBlank String>
-		var typeDef = TypeDefinition.of(List.class, String.class, AnnotationDefinition.of(NotBlank.class));
+		var anno = NotBlank.class;
+		var typeDef = TypeDefinition.of(List.class, String.class, AnnotationDefinition.of(anno));
 		var param = DefaultParameterDefinition.of(typeDef);
 		var generatedClass = a(testClass("com.example.TypeUseAnno").thatImplementsValueObject()
 				.withConstructor(ConstructorDefinition.of(param)));
@@ -79,7 +84,7 @@ class TypeAnnotationRemovalTest {
 		Unloaded<?> transformedClass = transformer.transform(generatedClass);
 		String decompiled = Decompiler.decompile(transformedClass.getBytes());
 
-		assertThat(decompiled).doesNotContain(NotBlank.class.getSimpleName());
+		assertThat(decompiled).doesNotContain(anno.getSimpleName());
 	}
 
 	@Test
@@ -87,8 +92,10 @@ class TypeAnnotationRemovalTest {
 		configure(Map.entry("vaadoo.removeJsr380Annotations", true));
 
 		// Map<@NotBlank String, @NotNull Integer>
-		var typeDef = TypeDefinition.of(Map.class, List.of(String.class, Integer.class), List
-				.of(List.of(AnnotationDefinition.of(NotBlank.class)), List.of(AnnotationDefinition.of(NotNull.class))));
+		var anno1 = NotNull.class;
+		var anno2 = NotBlank.class;
+		var typeDef = TypeDefinition.of(Map.class, List.of(String.class, Integer.class),
+				List.of(List.of(AnnotationDefinition.of(anno2)), List.of(AnnotationDefinition.of(anno1))));
 
 		var param = DefaultParameterDefinition.of(typeDef);
 		var generatedClass = a(testClass("com.example.MultiTypeUseAnno").thatImplementsValueObject()
@@ -97,8 +104,10 @@ class TypeAnnotationRemovalTest {
 		Unloaded<?> transformedClass = transformer.transform(generatedClass);
 		String decompiled = Decompiler.decompile(transformedClass.getBytes());
 
-		assertThat(decompiled).doesNotContain(NotBlank.class.getSimpleName());
-		assertThat(decompiled).doesNotContain(NotNull.class.getSimpleName());
+		assertSoftly(s -> {
+			s.assertThat(decompiled).doesNotContain(anno1.getSimpleName());
+			s.assertThat(decompiled).doesNotContain(anno2.getSimpleName());
+		});
 	}
 
 	@SafeVarargs
