@@ -132,7 +132,7 @@ class VaadooImplementor {
 					}
 
 					if (configuration.removeJsr380Annotations()) {
-						type = type.mapBuilder(t -> wrap(t, ConstructorAnnotationRemover::new));
+						type = type.mapBuilder(t -> wrap(t, cv -> new ConstructorAnnotationRemover(cv, configuration)));
 					}
 				}
 			}

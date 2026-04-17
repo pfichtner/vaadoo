@@ -33,18 +33,18 @@ Analysing type com.example.Generated
 package com.example;
 
 import com.example.Generated;
-import jakarta.validation.constraints.Pattern;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated
 implements ValueObject {
     private static final /* synthetic */ Map regexpCache;
 
-    public Generated(List<@Pattern(flags={Pattern.Flag.CASE_INSENSITIVE}, groups={}, message="{jakarta.validation.constraints.Pattern.message}", payload={}, regexp="\d*") String> list) {
+    public Generated(List<String> list) {
         Generated.validate(list);
         this(list, null);
     }
@@ -73,9 +73,9 @@ implements ValueObject {
         regexpCache = new ConcurrentHashMap();
     }
 
-    private static /* synthetic */ java.util.regex.Pattern getCachedPattern(String string, int n) {
+    private static /* synthetic */ Pattern getCachedPattern(String string, int n) {
         String string2 = string + "\u0000" + n;
-        return regexpCache.computeIfAbsent(string2, object -> java.util.regex.Pattern.compile(string, n));
+        return regexpCache.computeIfAbsent(string2, object -> Pattern.compile(string, n));
     }
 }
 

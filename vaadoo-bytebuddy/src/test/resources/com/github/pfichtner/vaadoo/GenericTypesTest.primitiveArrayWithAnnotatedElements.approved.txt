@@ -32,12 +32,11 @@ Analysing type com.example.GenericGenerated
 package com.example;
 
 import com.example.GenericGenerated;
-import jakarta.validation.constraints.Min;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class GenericGenerated
 implements ValueObject {
-    public GenericGenerated(@Min(groups={}, message="{jakarta.validation.constraints.Min.message}", payload={}, value=1L) int[] nArray) {
+    public GenericGenerated(int[] nArray) {
         GenericGenerated.validate(nArray);
         this(nArray, null);
     }

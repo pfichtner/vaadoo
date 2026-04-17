@@ -33,14 +33,12 @@ Analysing type com.example.GenericGenerated
 package com.example;
 
 import com.example.GenericGenerated;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class GenericGenerated
 implements ValueObject {
-    public GenericGenerated(Map<@NotBlank(groups={}, message="{jakarta.validation.constraints.NotBlank.message}", payload={}) String, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) Integer> map) {
+    public GenericGenerated(Map<String, Integer> map) {
         GenericGenerated.validate(map);
         this(map, null);
     }
