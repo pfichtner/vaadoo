@@ -74,9 +74,12 @@ public class JdkOnlyCodeFragment implements Jsr380CodeFragment {
 		if (charSequence == null) {
 			throw new NullValueException(anno.message());
 		}
-		if (charSequence.chars().allMatch(c -> Character.isWhitespace((char) c))) {
-			throw new IllegalArgumentException(anno.message());
+		for (int i = 0; i < charSequence.length(); i++) {
+			if (!Character.isWhitespace(charSequence.charAt(i))) {
+				return;
+			}
 		}
+		throw new IllegalArgumentException(anno.message());
 	}
 
 	@Override
