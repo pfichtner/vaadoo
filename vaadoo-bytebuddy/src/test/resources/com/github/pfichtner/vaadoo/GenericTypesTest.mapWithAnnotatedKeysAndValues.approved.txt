@@ -35,6 +35,7 @@ package com.example;
 import com.example.GenericGenerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.Iterator;
 import java.util.Map;
 import org.jmolecules.ddd.types.ValueObject;
 
@@ -49,24 +50,27 @@ implements ValueObject {
     }
 
     private static void validate(Map map) {
-        Object object;
         if (map == null) {
             throw new IllegalArgumentException("map must not be null");
         }
         if (map != null) {
-            for (Map.Entry entry : map.entrySet()) {
-                object = (String)entry.getKey();
-                if (object == null) {
+            Iterator iterator = map.entrySet().iterator();
+            if (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry)iterator.next();
+                String string = (String)entry.getKey();
+                if (string == null) {
                     throw new IllegalArgumentException("map[key=" + entry.getKey() + "] must not be blank");
                 }
-                if (object.toString().trim().length() != 0) continue;
+                for (int i = 0; i < string.length(); ++i) {
+                    if (Character.isWhitespace(string.charAt(i))) continue;
+                }
                 throw new IllegalArgumentException("map[key=" + entry.getKey() + "] must not be blank");
             }
         }
         if (map != null) {
             for (Map.Entry entry : map.entrySet()) {
-                object = (Integer)entry.getValue();
-                if (object != null) continue;
+                Integer n = (Integer)entry.getValue();
+                if (n != null) continue;
                 throw new IllegalArgumentException("map[value for key=" + entry.getKey() + "] must not be null");
             }
         }
