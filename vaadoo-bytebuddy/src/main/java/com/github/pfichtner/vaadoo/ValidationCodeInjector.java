@@ -34,6 +34,7 @@ import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
+import static net.bytebuddy.jar.asm.Opcodes.GOTO;
 import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
@@ -115,6 +116,7 @@ public class ValidationCodeInjector {
 		private final SlotInfo srcSlot;
 		private final SlotInfo tgtSlot;
 		private final SlotInfo offset;
+		private final int localsOffset;
 
 		@Value
 		@RequiredArgsConstructor
@@ -139,7 +141,8 @@ public class ValidationCodeInjector {
 		}
 
 		private ValidationCallCodeInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
-				String signatureOfTargetMethod, Parameter parameter, Map<Parameter, Integer> precomputedMasks) {
+				String signatureOfTargetMethod, Parameter parameter, Map<Parameter, Integer> precomputedMasks,
+				int localsOffset) {
 			super(ASM9);
 			this.sourceMethodOwner = Type.getType(sourceMethod.getDeclaringClass()).getInternalName();
 			this.sourceMethodName = sourceMethod.getName();
@@ -150,6 +153,7 @@ public class ValidationCodeInjector {
 			this.srcSlot = new SlotInfo(isStatic(sourceMethod.getModifiers()), argTypes(sourceMethod));
 			this.tgtSlot = new SlotInfo(TARGET_METHOD_IS_STATIC, getArgumentTypes(signatureOfTargetMethod));
 			this.offset = srcSlot.offsetTo(tgtSlot);
+			this.localsOffset = localsOffset;
 		}
 
 		private static Type[] argTypes(Method method) {
@@ -187,6 +191,18 @@ public class ValidationCodeInjector {
 
 					private boolean patternFlagAccess;
 
+					private final Label endLabel = new Label();
+
+					@Override
+					public void visitCode() {
+						super.visitCode();
+					}
+
+					@Override
+					public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
+						// drop frames, we use COMPUTE_FRAMES
+					}
+
 					@Override
 					public void visitLineNumber(int line, Label start) {
 						// ignore
@@ -208,12 +224,12 @@ public class ValidationCodeInjector {
 
 					@Override
 					public void visitMaxs(int maxStack, int maxLocals) {
-						// ignore
+						mv.visitLabel(endLabel);
 					}
 
 					@Override
 					public void visitVarInsn(int opcode, int var) {
-						assert var > 0 : "this not expected to get accesed";
+						assert var >= 0 : "negative var index";
 						boolean opcodeIsLoad = isLoadOpcode(opcode);
 						boolean opcodeIsStore = isStoreOpcode(opcode);
 
@@ -237,7 +253,7 @@ public class ValidationCodeInjector {
 					}
 
 					private int remapLocal(int varIndex) {
-						return varIndex - offset.firstLocal();
+						return varIndex - offset.firstLocal() + localsOffset;
 					}
 
 					@Override
@@ -330,7 +346,9 @@ public class ValidationCodeInjector {
 
 					@Override
 					public void visitInsn(int opcode) {
-						if (!isReturnOpcode(opcode)) {
+						if (isReturnOpcode(opcode)) {
+							super.visitJumpInsn(GOTO, endLabel);
+						} else {
 							super.visitInsn(opcode);
 						}
 					}
@@ -458,6 +476,7 @@ public class ValidationCodeInjector {
 	private final String signatureOfTargetMethod;
 	private final Map<Parameter, Integer> precomputedMasks;
 	private final String nullValueExceptionType;
+	private int localsOffset;
 
 	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> fragmentClass, String signatureOfTargetMethod,
 			Map<Parameter, Integer> precomputedMasks, String nullValueExceptionType) {
@@ -468,13 +487,20 @@ public class ValidationCodeInjector {
 	}
 
 	public ValidationCodeInjector useFragmentClass(Class<? extends Jsr380CodeFragment> declaringClass) {
-		return new ValidationCodeInjector(declaringClass, this.signatureOfTargetMethod, this.precomputedMasks,
-				nullValueExceptionType);
+		ValidationCodeInjector injector = new ValidationCodeInjector(declaringClass, this.signatureOfTargetMethod,
+				this.precomputedMasks, nullValueExceptionType);
+		injector.localsOffset = this.localsOffset;
+		return injector;
+	}
+
+	public ValidationCodeInjector withLocalsOffset(int localsOffset) {
+		this.localsOffset = localsOffset;
+		return this;
 	}
 
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
 		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
-				signatureOfTargetMethod, parameter, precomputedMasks);
+				signatureOfTargetMethod, parameter, precomputedMasks, localsOffset);
 		ClassVisitor remapper = new ClassRemapper(classVisitor,
 				new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
 		classReader(fragmentClass).accept(remapper, 0);
@@ -501,7 +527,7 @@ public class ValidationCodeInjector {
 
 			// Create a new injector with the updated masks and use it to inject
 			ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
-					signatureOfTargetMethod, wrapper, masks);
+					signatureOfTargetMethod, wrapper, masks, localsOffset);
 			ClassVisitor remapper = new ClassRemapper(classVisitor,
 					new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
 			classReader(fragmentClass).accept(remapper, 0);

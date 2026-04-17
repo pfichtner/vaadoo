@@ -196,7 +196,7 @@ class VaadooImplementor {
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
 		private interface InjectionTask {
-			void apply(ValidationCodeInjector injector, MethodVisitor mv);
+			void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize);
 		}
 
 		@Value(staticConstructor = "of")
@@ -206,7 +206,7 @@ class VaadooImplementor {
 			AnnotationDescription annotationDescription;
 
 			@Override
-			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
+			public void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize) {
 				try {
 					@SuppressWarnings("unchecked")
 					Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
@@ -224,7 +224,7 @@ class VaadooImplementor {
 			TypeDescription annotation;
 
 			@Override
-			public void apply(ValidationCodeInjector __, MethodVisitor mv) {
+			public void apply(ValidationCodeInjector __, MethodVisitor mv, int argsSize) {
 				addCustomAnnotations(mv, parameter, annotation);
 			}
 		}
@@ -374,10 +374,12 @@ class VaadooImplementor {
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
+			int argsSize = com.github.pfichtner.vaadoo.AsmUtil.sizeOf(parameters.types());
 			ValidationCodeInjector injector = new ValidationCodeInjector(configuration.jsr380CodeFragmentClass(),
-					methodDescriptor, preComputedPatternFlags, configuration.nullValueExceptionTypeInternalName());
+					methodDescriptor, preComputedPatternFlags, configuration.nullValueExceptionTypeInternalName())
+							.withLocalsOffset(4);
 			for (InjectionTask task : injectionTasks) {
-				task.apply(injector, mv);
+				task.apply(injector, mv, argsSize);
 			}
 			mv.visitInsn(RETURN);
 			return Size.ZERO;
@@ -438,9 +440,9 @@ class VaadooImplementor {
 			}
 
 			@Override
-			public void apply(ValidationCodeInjector injector, MethodVisitor mv) {
+			public void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize) {
 				try {
-					generateIterationWithValidation(injector, mv, parameter, annotation);
+					generateIterationWithValidation(injector, mv, parameter, annotation, argsSize);
 				} catch (Exception e) {
 					throw new RuntimeException(format("Error injecting generic type %s for %s", elementType, parameter),
 							e);
@@ -448,7 +450,7 @@ class VaadooImplementor {
 			}
 
 			private void generateIterationWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation) {
+					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
 				Label ifNullLabel = new Label();
 
 				// Generate: if (parameter != null)
@@ -457,19 +459,19 @@ class VaadooImplementor {
 
 				TypeDescription containerType = containerParam.type();
 				if (containerType.isArray()) {
-					generateArrayLoopWithValidation(injector, mv, containerParam, annotation);
+					generateArrayLoopWithValidation(injector, mv, containerParam, annotation, argsSize);
 				} else if (containerType.isAssignableTo(Map.class)) {
-					generateMapLoopWithValidation(injector, mv, containerParam, annotation);
+					generateMapLoopWithValidation(injector, mv, containerParam, annotation, argsSize);
 				} else {
 					// Assume Iterable (Collection, List, Set)
-					generateForEachLoopWithValidation(injector, mv, containerParam, annotation);
+					generateForEachLoopWithValidation(injector, mv, containerParam, annotation, argsSize);
 				}
 
 				mv.visitLabel(ifNullLabel);
 			}
 
 			private void generateArrayLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation) {
+					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
 				TypeDescription containerType = containerParam.type();
 				TypeDescription elementType = containerType.getComponentType();
 
@@ -478,7 +480,7 @@ class VaadooImplementor {
 				mv.visitInsn(ARRAYLENGTH);
 
 				// Store length in a local variable
-				int lengthVar = containerParam.offset() + 1;
+				int lengthVar = argsSize;
 				mv.visitVarInsn(ISTORE, lengthVar);
 
 				// Initialize index in a local variable
@@ -522,7 +524,7 @@ class VaadooImplementor {
 			}
 
 			private void generateMapLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation) {
+					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
 				// Load the map
 				mv.visitVarInsn(ALOAD, containerParam.offset());
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "entrySet", "()Ljava/util/Set;", true);
@@ -530,7 +532,7 @@ class VaadooImplementor {
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
 
 				// Store iterator in a local variable
-				int iteratorVar = containerParam.offset() + 1;
+				int iteratorVar = argsSize;
 				mv.visitVarInsn(ASTORE, iteratorVar);
 
 				// Store entry in a local variable
@@ -583,13 +585,13 @@ class VaadooImplementor {
 			}
 
 			private void generateForEachLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation) {
+					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
 				// Load the container and get its iterator
 				mv.visitVarInsn(ALOAD, containerParam.offset());
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
 				
 				// Store iterator in a local variable
-				int iteratorVar = containerParam.offset() + 1;
+				int iteratorVar = argsSize;
 				mv.visitVarInsn(ASTORE, iteratorVar);
 				
 				// Initialize index in a local variable
