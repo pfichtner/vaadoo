@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Map;
 
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.google.common.base.CharMatcher;
 
 import jakarta.validation.constraints.AssertFalse;
 import jakarta.validation.constraints.AssertTrue;
@@ -69,13 +70,8 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(NotBlank anno, CharSequence charSequence) {
-		CharSequence nonNullCharSequence = checkNotNull(charSequence, anno.message());
-		for (int i = 0; i < nonNullCharSequence.length(); i++) {
-			if (!Character.isWhitespace(nonNullCharSequence.charAt(i))) {
-				return;
-			}
-		}
-		checkArgument(false, anno.message());
+		checkArgument(CharMatcher.forPredicate(Character::isWhitespace).negate()
+				.matchesAnyOf(checkNotNull(charSequence, anno.message())), anno.message());
 	}
 
 	@Override
