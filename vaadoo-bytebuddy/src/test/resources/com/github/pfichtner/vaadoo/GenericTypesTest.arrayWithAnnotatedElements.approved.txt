@@ -46,20 +46,21 @@ implements ValueObject {
     }
 
     private static void validate(String[] stringArray) {
-        int n;
-        int n2;
         if (stringArray == null) {
             throw new IllegalArgumentException("stringArray must not be null");
         }
-        if (stringArray != null && (n2 = 0) < (n = stringArray.length)) {
-            String string = stringArray[n2];
-            if (string == null) {
-                throw new IllegalArgumentException("stringArray[" + n2 + "] must not be blank");
+        if (stringArray != null) {
+            int n = stringArray.length;
+            block0: for (int i = 0; i < n; ++i) {
+                String string = stringArray[i];
+                if (string == null) {
+                    throw new IllegalArgumentException("stringArray[" + i + "] must not be blank");
+                }
+                for (int j = 0; j < string.length(); ++j) {
+                    if (!Character.isWhitespace(string.charAt(j))) continue block0;
+                }
+                throw new IllegalArgumentException("stringArray[" + i + "] must not be blank");
             }
-            for (n = 0; n < string.length(); ++n) {
-                if (Character.isWhitespace(string.charAt(n))) continue;
-            }
-            throw new IllegalArgumentException("stringArray[" + n2 + "] must not be blank");
         }
     }
 }
