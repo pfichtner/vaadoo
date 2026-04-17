@@ -18,15 +18,40 @@ package com.github.pfichtner.vaadoo;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 
+import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
+
 import net.bytebuddy.jar.asm.AnnotationVisitor;
 import net.bytebuddy.jar.asm.ClassVisitor;
+import net.bytebuddy.jar.asm.FieldVisitor;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
+import net.bytebuddy.jar.asm.TypePath;
 
 public class ConstructorAnnotationRemover extends ClassVisitor {
 
-	public ConstructorAnnotationRemover(ClassVisitor cv) {
+	private final VaadooConfiguration configuration;
+
+	public ConstructorAnnotationRemover(ClassVisitor cv, VaadooConfiguration configuration) {
 		super(ASM9, cv);
+		this.configuration = configuration;
+	}
+
+	@Override
+	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+		FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
+		return new FieldVisitor(api, fv) {
+			@Override
+			public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+				return shouldPurge(descriptor) ? null : super.visitAnnotation(descriptor, visible);
+			}
+
+			@Override
+			public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor,
+					boolean visible) {
+				return shouldPurge(descriptor) ? null
+						: super.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+			}
+		};
 	}
 
 	@Override
@@ -43,19 +68,27 @@ public class ConstructorAnnotationRemover extends ClassVisitor {
 				}
 
 				@Override
+				public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor,
+						boolean visible) {
+					return shouldPurge(descriptor) ? null
+							: super.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+				}
+
+				@Override
 				public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
 					// TODO We should remove annotations that are annotated by Constraint (custom
 					// validator) as well
 					return shouldPurge(descriptor) ? null
 							: super.visitParameterAnnotation(parameter, descriptor, visible);
 				}
-
-				private boolean shouldPurge(String descriptor) {
-					return isStandardJr380Anno(Type.getType(descriptor));
-				}
 			};
 		}
 
 		return mv;
 	}
+
+	private boolean shouldPurge(String descriptor) {
+		return configuration.removeJsr380Annotations() && isStandardJr380Anno(Type.getType(descriptor));
+	}
+
 }

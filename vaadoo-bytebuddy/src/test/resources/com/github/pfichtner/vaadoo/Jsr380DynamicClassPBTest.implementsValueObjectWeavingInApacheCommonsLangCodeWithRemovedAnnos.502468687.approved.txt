@@ -1,0 +1,53 @@
+Story:
+Class implementing ValueObject: [ApacheCommonsLang, removing JSR380 annotations]
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class [Ljava.lang.Object;, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface jakarta.validation.constraints.Size, values={})])
+
+
+Source:
+Analysing type com.example.Generated_502468687
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import jakarta.validation.constraints.Size;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_502468687
+implements ValueObject {
+    public Generated_502468687(@Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Object[] objectArray) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_502468687
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_502468687;
+import java.util.Arrays;
+import org.apache.commons.lang3.Validate;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_502468687
+implements ValueObject {
+    public Generated_502468687(Object[] objectArray) {
+        Generated_502468687.validate(objectArray);
+        this(objectArray, null);
+    }
+
+    private /* synthetic */ Generated_502468687(Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate(Object[] objectArray) {
+        int n = Validate.notNull(objectArray, String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)), new Object[0]).length;
+        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n, String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)));
+    }
+}
+
