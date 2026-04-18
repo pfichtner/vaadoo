@@ -1,11 +1,5 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
-import static com.github.pfichtner.vaadoo.fragments.impl.Util.booleanTypes;
-import static com.github.pfichtner.vaadoo.fragments.impl.Util.byteTypes;
-import static com.github.pfichtner.vaadoo.fragments.impl.Util.intTypes;
-import static com.github.pfichtner.vaadoo.fragments.impl.Util.longTypes;
-import static com.github.pfichtner.vaadoo.fragments.impl.Util.shortTypes;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;

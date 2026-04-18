@@ -96,18 +96,6 @@ class Util {
 
 	}
 
-	static Class<?>[] booleanTypes = new Class<?>[] { boolean.class, Boolean.class };
-	static Class<?>[] numberTypes = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class,
-			Short.class, Integer.class, Long.class, BigInteger.class, BigDecimal.class };
-
-	static Class<?>[] byteTypes = new Class<?>[] { byte.class, Byte.class };
-	static Class<?>[] shortTypes = new Class<?>[] { short.class, Short.class };
-	static Class<?>[] intTypes = new Class<?>[] { int.class, Integer.class };
-	static Class<?>[] longTypes = new Class<?>[] { long.class, Long.class };
-
-	static String[] emptyStringArray = new String[0];
-	static Object[] emptyObjectArray = new Object[0];
-
 	static <T> T only(Stream<T> stream) {
 		return stream.reduce((_ign1, _ign2) -> {
 			throw new IllegalStateException("multiple elements");

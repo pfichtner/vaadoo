@@ -21,6 +21,18 @@ import net.jqwik.time.api.Dates;
 @SuppressWarnings("null")
 class ConstraintArbitraries {
 
+	static final Class<?>[] booleanTypes = new Class<?>[] { boolean.class, Boolean.class };
+	static final Class<?>[] numberTypes = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class,
+			Short.class, Integer.class, Long.class, BigInteger.class, BigDecimal.class };
+
+	static final Class<?>[] byteTypes = new Class<?>[] { byte.class, Byte.class };
+	static final Class<?>[] shortTypes = new Class<?>[] { short.class, Short.class };
+	static final Class<?>[] intTypes = new Class<?>[] { int.class, Integer.class };
+	static final Class<?>[] longTypes = new Class<?>[] { long.class, Long.class };
+
+	static final String[] emptyStringArray = new String[0];
+	static final Object[] emptyObjectArray = new Object[0];
+
 	@Provide
 	public Arbitrary<String> nonNullStrings() {
 		return Arbitraries.strings().ofMinLength(0).ofMaxLength(20);
