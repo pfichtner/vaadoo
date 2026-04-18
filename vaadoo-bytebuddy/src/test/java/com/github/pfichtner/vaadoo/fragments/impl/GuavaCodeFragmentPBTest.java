@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.Util.Fixture;
-import com.github.pfichtner.vaadoo.fragments.impl.Util.FixtureFactory;
 
 import jakarta.validation.constraints.AssertFalse;
 import jakarta.validation.constraints.AssertTrue;
@@ -41,33 +41,33 @@ import net.jqwik.api.Property;
  */
 class GuavaCodeFragmentPBTest extends ConstraintArbitraries {
 
-	FixtureFactory fixtureFactory = new FixtureFactory(new GuavaCodeFragment(), NullPointerException.class);
+	Jsr380CodeFragment sut = new GuavaCodeFragment();
 
-	Fixture notEmpty = fixtureFactory.create(NotEmpty.class);
+	Fixture notEmpty = Fixture.of(sut, NotEmpty.class);
 
-	Fixture notNull = fixtureFactory.create(NotNull.class);
-	Fixture notBlank = fixtureFactory.create(NotBlank.class);
-	Fixture pattern = fixtureFactory.create(Pattern.class, Map.of("regexp", "\\d{2}"));
+	Fixture notNull = Fixture.of(sut, NotNull.class);
+	Fixture notBlank = Fixture.of(sut, NotBlank.class);
+	Fixture pattern = Fixture.of(sut, Pattern.class, Map.of("regexp", "\\d{2}"));
 
-	Fixture size2To4 = fixtureFactory.create(Size.class, Map.of("min", 2, "max", 4));
-	Fixture digitsInt2Fraction0 = fixtureFactory.create(Digits.class, Map.of("integer", 2, "fraction", 0));
-	Fixture min0 = fixtureFactory.create(Min.class, Map.of("value", 0L));
-	Fixture max100 = fixtureFactory.create(Max.class, Map.of("value", 100L));
-	Fixture decimalMin2 = fixtureFactory.create(DecimalMin.class, Map.of("value", "2"));
-	Fixture decimalMax5 = fixtureFactory.create(DecimalMax.class, Map.of("value", "5"));
+	Fixture size2To4 = Fixture.of(sut, Size.class, Map.of("min", 2, "max", 4));
+	Fixture digitsInt2Fraction0 = Fixture.of(sut, Digits.class, Map.of("integer", 2, "fraction", 0));
+	Fixture min0 = Fixture.of(sut, Min.class, Map.of("value", 0L));
+	Fixture max100 = Fixture.of(sut, Max.class, Map.of("value", 100L));
+	Fixture decimalMin2 = Fixture.of(sut, DecimalMin.class, Map.of("value", "2"));
+	Fixture decimalMax5 = Fixture.of(sut, DecimalMax.class, Map.of("value", "5"));
 
-	Fixture assertTrue = fixtureFactory.create(AssertTrue.class);
-	Fixture assertFalse = fixtureFactory.create(AssertFalse.class);
+	Fixture assertTrue = Fixture.of(sut, AssertTrue.class);
+	Fixture assertFalse = Fixture.of(sut, AssertFalse.class);
 
-	Fixture positive = fixtureFactory.create(Positive.class);
-	Fixture positiveOrZero = fixtureFactory.create(PositiveOrZero.class);
-	Fixture negative = fixtureFactory.create(Negative.class);
-	Fixture negativeOrZero = fixtureFactory.create(NegativeOrZero.class);
+	Fixture positive = Fixture.of(sut, Positive.class);
+	Fixture positiveOrZero = Fixture.of(sut, PositiveOrZero.class);
+	Fixture negative = Fixture.of(sut, Negative.class);
+	Fixture negativeOrZero = Fixture.of(sut, NegativeOrZero.class);
 
-	Fixture future = fixtureFactory.create(Future.class);
-	Fixture futureOrPresent = fixtureFactory.create(FutureOrPresent.class);
-	Fixture past = fixtureFactory.create(Past.class);
-	Fixture pastOrPresent = fixtureFactory.create(PastOrPresent.class);
+	Fixture future = Fixture.of(sut, Future.class);
+	Fixture futureOrPresent = Fixture.of(sut, FutureOrPresent.class);
+	Fixture past = Fixture.of(sut, Past.class);
+	Fixture pastOrPresent = Fixture.of(sut, PastOrPresent.class);
 
 	// NotNull: generated non-null strings should never fail
 	@Property
@@ -77,7 +77,7 @@ class GuavaCodeFragmentPBTest extends ConstraintArbitraries {
 
 	@Example
 	void notNull_should_throw_on_null() {
-		notNull.nullPointerExceptionIf(true, null, Object.class);
+		notNull.assertException(true, null, NullPointerException.class, Object.class);
 	}
 
 	// NotBlank: non-blank strings should pass

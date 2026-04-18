@@ -17,41 +17,22 @@ import java.util.stream.Stream;
 import com.github.pfichtner.vaadoo.AnnotationFactory;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 class Util {
-
-	@RequiredArgsConstructor
-	public static class FixtureFactory {
-		private final Jsr380CodeFragment sut;
-		private final Class<? extends Exception> nullExceptionType;
-
-		public Fixture create(Class<? extends Annotation> clazz) {
-			return Fixture.of(sut, nullExceptionType, clazz);
-		}
-
-		public Fixture create(Class<? extends Annotation> clazz, Map<String, Object> data) {
-			return Fixture.of(sut, nullExceptionType, clazz, data);
-		}
-
-	}
 
 	@Value
 	public static class Fixture {
 
 		Jsr380CodeFragment sut;
-		Class<? extends Exception> nullExceptionType;
 		Annotation anno;
 
-		public static Fixture of(Jsr380CodeFragment sut, Class<? extends Exception> nullExceptionType,
-				Class<? extends Annotation> clazz) {
-			return of(sut, nullExceptionType, clazz, emptyMap());
+		public static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz) {
+			return of(sut, clazz, emptyMap());
 		}
 
-		public static Fixture of(Jsr380CodeFragment sut, Class<? extends Exception> nullExceptionType,
-				Class<? extends Annotation> clazz, Map<String, Object> data) {
-			return new Fixture(sut, nullExceptionType, AnnotationFactory.make(clazz, data));
+		public static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz, Map<String, Object> data) {
+			return new Fixture(sut, AnnotationFactory.make(clazz, data));
 		}
 
 		public void noException(Object v, Class<?>... types) {
@@ -60,15 +41,13 @@ class Util {
 			}
 		}
 
-		public void nullPointerExceptionIf(boolean b, Object v, Class<?>... types) {
-			for (Class<?> type : types) {
-				assertException(b, nullExceptionType, v, type);
-			}
+		public void illegalArgumentExceptionIf(boolean b, Object v, Class<?>... types) {
+			assertException(b, v, IllegalArgumentException.class, types);
 		}
 
-		public void illegalArgumentExceptionIf(boolean b, Object v, Class<?>... types) {
+		public void assertException(boolean b, Object v, Class<? extends Exception> exceptionType, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertException(b, IllegalArgumentException.class, v, type);
+				assertException(b, exceptionType, v, type);
 			}
 		}
 
