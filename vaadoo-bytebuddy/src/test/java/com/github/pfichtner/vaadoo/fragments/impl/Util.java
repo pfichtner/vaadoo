@@ -35,27 +35,30 @@ class Util {
 			return new Fixture(sut, AnnotationFactory.make(clazz, data));
 		}
 
-		public void noException(Object v, Class<?>... types) {
+		public void noException(Object value, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertThatNoException().isThrownBy(() -> accept(v, type));
+				assertThatNoException().isThrownBy(() -> accept(value, type));
 			}
 		}
 
-		public void illegalArgumentExceptionIf(boolean b, Object v, Class<?>... types) {
-			assertException(b, v, IllegalArgumentException.class, types);
+		public void illegalArgumentExceptionIf(boolean shouldThrow, Object value, Class<?>... types) {
+			assertException(shouldThrow, value, IllegalArgumentException.class, types);
 		}
 
-		public void assertException(boolean b, Object v, Class<? extends Exception> exceptionType, Class<?>... types) {
+		public void assertException(boolean shouldThrow, Object value, Class<? extends Exception> exceptionType,
+				Class<?>... types) {
 			for (Class<?> type : types) {
-				assertException(b, exceptionType, v, type);
+				assertException(shouldThrow, exceptionType, value, type);
 			}
 		}
 
-		private void assertException(boolean b, Class<? extends Exception> exceptionType, Object v, Class<?> type) {
-			if (b) {
-				assertThatExceptionOfType(exceptionType).isThrownBy(() -> accept(v, type)).withMessage("theMessage");
+		private void assertException(boolean shouldThrow, Class<? extends Exception> exceptionType, Object value,
+				Class<?> type) {
+			if (shouldThrow) {
+				assertThatExceptionOfType(exceptionType).isThrownBy(() -> accept(value, type))
+						.withMessage("theMessage");
 			} else {
-				assertThatNoException().isThrownBy(() -> accept(v, type));
+				assertThatNoException().isThrownBy(() -> accept(value, type));
 			}
 		}
 
