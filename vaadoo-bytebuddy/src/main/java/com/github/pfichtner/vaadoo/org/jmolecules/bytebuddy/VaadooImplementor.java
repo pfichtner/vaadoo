@@ -15,6 +15,8 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
+import static com.github.pfichtner.vaadoo.ByteBuddyUtil.sizeOf;
+import static com.github.pfichtner.vaadoo.ByteBuddyUtil.toTypes;
 import static com.github.pfichtner.vaadoo.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.findRepeatableAnnotationContainers;
@@ -248,8 +250,8 @@ class VaadooImplementor {
 			this.fragmentMixinsCodeFragmentMethods = configuration.codeFragmentMixins().stream()
 					.map(m -> fragmentMethods(m)).flatMap(List::stream).collect(toList());
 			this.codeFragmentMethods = fragmentMethods(configuration.jsr380CodeFragmentClass());
-			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, parameters.types().stream()
-					.map(td -> Type.getType(td.asErasure().getDescriptor())).toArray(Type[]::new));
+			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE,
+					toTypes(parameters.types()).toArray(Type[]::new));
 			this.jsr380RepeatableAnnotationContainers = findRepeatableAnnotationContainers();
 			this.injectionTasks = parameters.stream().flatMap(this::tasksFor).collect(toList());
 		}
@@ -374,10 +376,10 @@ class VaadooImplementor {
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			int argsSize = com.github.pfichtner.vaadoo.AsmUtil.sizeOf(parameters.types());
+			int argsSize = sizeOf(parameters.types());
 			ValidationCodeInjector injector = new ValidationCodeInjector(configuration.jsr380CodeFragmentClass(),
 					methodDescriptor, preComputedPatternFlags, configuration.nullValueExceptionTypeInternalName())
-							.withLocalsOffset(4);
+					.withLocalsOffset(4);
 			for (InjectionTask task : injectionTasks) {
 				task.apply(injector, mv, argsSize);
 			}
@@ -589,47 +591,47 @@ class VaadooImplementor {
 				// Load the container and get its iterator
 				mv.visitVarInsn(ALOAD, containerParam.offset());
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
-				
+
 				// Store iterator in a local variable
 				int iteratorVar = argsSize;
 				mv.visitVarInsn(ASTORE, iteratorVar);
-				
+
 				// Initialize index in a local variable
 				int indexVar = iteratorVar + 1;
 				mv.visitInsn(ICONST_0);
 				mv.visitVarInsn(ISTORE, indexVar);
-				
+
 				// Store element in a local variable (after index)
 				int elementVar = indexVar + 1;
-				
+
 				Label loopStart = new Label();
 				Label loopTest = new Label();
-				
+
 				// Jump to loop condition
 				mv.visitJumpInsn(GOTO, loopTest);
-				
+
 				// Loop body label
 				mv.visitLabel(loopStart);
-				
+
 				// Load iterator and get next element
 				mv.visitVarInsn(ALOAD, iteratorVar);
 				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
-				
+
 				// Cast to the actual element type if it's not Object
 				if (!elementType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
 					mv.visitTypeInsn(CHECKCAST, elementType.asErasure().getInternalName());
 				}
-				
+
 				// Store element in local variable
 				mv.visitVarInsn(ASTORE, elementVar);
-				
+
 				// Call the fragment method using the injector
 				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
 						Map.of("index", indexVar));
-				
+
 				// increment index
 				mv.visitIincInsn(indexVar, 1);
-				
+
 				// Loop condition: check if hasNext()
 				mv.visitLabel(loopTest);
 				mv.visitVarInsn(ALOAD, iteratorVar);

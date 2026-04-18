@@ -38,11 +38,9 @@ import static net.bytebuddy.jar.asm.Type.ARRAY;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.stream.Stream;
 
 import lombok.NoArgsConstructor;
-import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.jar.asm.ClassReader;
 import net.bytebuddy.jar.asm.Type;
 
@@ -80,10 +78,6 @@ public final class AsmUtil {
 
 	public static int sizeOf(Stream<Type> types) {
 		return types.mapToInt(Type::getSize).sum();
-	}
-
-	public static int sizeOf(List<TypeDescription> types) {
-		return sizeOf(types.stream().map(td -> Type.getType(td.asErasure().getDescriptor())));
 	}
 
 	public static ClassReader classReader(Class<?> clazz) {
