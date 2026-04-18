@@ -1,32 +1,19 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
-import static java.math.RoundingMode.UNNECESSARY;
-import static java.util.Collections.emptyMap;
-import static java.util.function.Function.identity;
-import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.IntStream.range;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNoException;
+import static com.github.pfichtner.vaadoo.fragments.impl.Util.booleanTypes;
+import static com.github.pfichtner.vaadoo.fragments.impl.Util.byteTypes;
+import static com.github.pfichtner.vaadoo.fragments.impl.Util.intTypes;
+import static com.github.pfichtner.vaadoo.fragments.impl.Util.longTypes;
+import static com.github.pfichtner.vaadoo.fragments.impl.Util.shortTypes;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.pfichtner.vaadoo.AnnotationFactory;
-import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
+import com.github.pfichtner.vaadoo.fragments.impl.Util.Fixture;
+import com.github.pfichtner.vaadoo.fragments.impl.Util.FixtureFactory;
 
 import jakarta.validation.constraints.AssertFalse;
 import jakarta.validation.constraints.AssertTrue;
@@ -48,14 +35,9 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import lombok.Value;
-import net.jqwik.api.Arbitraries;
-import net.jqwik.api.Arbitrary;
 import net.jqwik.api.Example;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
-import net.jqwik.api.Provide;
-import net.jqwik.time.api.Dates;
 
 /**
  * Property-based tests for {@link GuavaCodeFragment} covering the same behavior
@@ -63,164 +45,35 @@ import net.jqwik.time.api.Dates;
  * variety of valid values and also specific invalid value generators for the
  * negative cases.
  */
-class GuavaCodeFragmentPBTest {
+class GuavaCodeFragmentPBTest extends ConstraintArbitraries {
 
-	@Value
-	private static class Fixture {
+	FixtureFactory fixtureFactory = new FixtureFactory(new GuavaCodeFragment(), NullPointerException.class);
 
-		private static final Class<? extends Exception> NULL_EXCEPTION_TYPE = NullPointerException.class;
+	Fixture notEmpty = fixtureFactory.create(NotEmpty.class);
 
-		Jsr380CodeFragment sut;
-		Annotation anno;
+	Fixture notNull = fixtureFactory.create(NotNull.class);
+	Fixture notBlank = fixtureFactory.create(NotBlank.class);
+	Fixture pattern = fixtureFactory.create(Pattern.class, Map.of("regexp", "\\d{2}"));
 
-		private static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz) {
-			return of(sut, clazz, emptyMap());
-		}
+	Fixture size2To4 = fixtureFactory.create(Size.class, Map.of("min", 2, "max", 4));
+	Fixture digitsInt2Fraction0 = fixtureFactory.create(Digits.class, Map.of("integer", 2, "fraction", 0));
+	Fixture min0 = fixtureFactory.create(Min.class, Map.of("value", 0L));
+	Fixture max100 = fixtureFactory.create(Max.class, Map.of("value", 100L));
+	Fixture decimalMin2 = fixtureFactory.create(DecimalMin.class, Map.of("value", "2"));
+	Fixture decimalMax5 = fixtureFactory.create(DecimalMax.class, Map.of("value", "5"));
 
-		private static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz, Map<String, Object> data) {
-			return new Fixture(sut, AnnotationFactory.make(clazz, data));
-		}
+	Fixture assertTrue = fixtureFactory.create(AssertTrue.class);
+	Fixture assertFalse = fixtureFactory.create(AssertFalse.class);
 
-		public void noException(Object v, Class<?>... types) {
-			for (Class<?> type : types) {
-				assertThatNoException().isThrownBy(() -> accept(v, type));
-			}
-		}
+	Fixture positive = fixtureFactory.create(Positive.class);
+	Fixture positiveOrZero = fixtureFactory.create(PositiveOrZero.class);
+	Fixture negative = fixtureFactory.create(Negative.class);
+	Fixture negativeOrZero = fixtureFactory.create(NegativeOrZero.class);
 
-		public void nullPointerExceptionIf(boolean b, Object v, Class<?>... types) {
-			for (Class<?> type : types) {
-				assertException(b, NULL_EXCEPTION_TYPE, v, type);
-			}
-		}
-
-		public void illegalArgumentExceptionIf(boolean b, Object v, Class<?>... types) {
-			for (Class<?> type : types) {
-				assertException(b, IllegalArgumentException.class, v, type);
-			}
-		}
-
-		private void assertException(boolean b, Class<? extends Exception> exceptionType, Object v, Class<?> type) {
-			if (b) {
-				assertThatExceptionOfType(exceptionType).isThrownBy(() -> accept(v, type)).withMessage("theMessage");
-			} else {
-				assertThatNoException().isThrownBy(() -> accept(v, type));
-			}
-		}
-
-		private void accept(Object value, Class<?> param1Type) {
-			Method method = only(Arrays.stream(sut.getClass().getMethods()).filter(m -> m.getName().equals("check"))
-					.filter(m -> m.getParameterTypes().length == 2 && m.getParameterTypes()[0].isInstance(anno)
-							&& m.getParameterTypes()[1].isAssignableFrom(param1Type)));
-			try {
-				method.invoke(sut, anno, convert(param1Type, value));
-			} catch (IllegalAccessException | IllegalArgumentException e) {
-				throw new RuntimeException(e);
-			} catch (InvocationTargetException e) {
-				Throwable cause = e.getCause();
-				throw cause instanceof RuntimeException ? (RuntimeException) cause : new RuntimeException(e);
-			}
-		}
-
-		private static <T> T only(Stream<T> stream) {
-			return stream.reduce((_ign1, _ign2) -> {
-				throw new IllegalStateException("multiple elements");
-			}).orElseThrow(() -> new IllegalStateException("no match"));
-		}
-
-		private static Object convert(Class<?> target, Object value) {
-			if (value == null)
-				return null;
-
-			if (target == String.class)
-				return String.valueOf(value);
-
-			if (target.isPrimitive()) {
-				if (target == byte.class)
-					return ((Number) value).byteValue();
-				if (target == short.class)
-					return ((Number) value).shortValue();
-				if (target == int.class)
-					return ((Number) value).intValue();
-				if (target == long.class)
-					return ((Number) value).longValue();
-				if (target == float.class)
-					return ((Number) value).floatValue();
-				if (target == double.class)
-					return ((Number) value).doubleValue();
-				if (target == char.class)
-					return (char) ((Number) value).intValue();
-				if (target == boolean.class)
-					return value;
-			}
-
-			// wrapper types
-			if (Number.class.isAssignableFrom(target) && value instanceof Number) {
-				Number n = (Number) value;
-				if (target == Byte.class)
-					return n.byteValue();
-				if (target == Short.class)
-					return n.shortValue();
-				if (target == Integer.class)
-					return n.intValue();
-				if (target == Long.class)
-					return n.longValue();
-				if (target == Float.class)
-					return n.floatValue();
-				if (target == Double.class)
-					return n.doubleValue();
-				if (target == BigInteger.class)
-					return BigInteger.valueOf(n.longValue());
-				if (target == BigDecimal.class) {
-					BigDecimal bd = BigDecimal.valueOf(n.doubleValue());
-					return value.getClass() == Integer.class || value.getClass() == Long.class
-							? bd.setScale(0, UNNECESSARY)
-							: bd;
-				}
-			}
-
-			return target.cast(value);
-		}
-	}
-
-	GuavaCodeFragment sut = new GuavaCodeFragment();
-
-	Class<?>[] booleanTypes = new Class<?>[] { boolean.class, Boolean.class };
-	Class<?>[] numberTypes = new Class<?>[] { byte.class, short.class, int.class, long.class, Byte.class, Short.class,
-			Integer.class, Long.class, BigInteger.class, BigDecimal.class };
-
-	Fixture notEmpty = Fixture.of(sut, NotEmpty.class);
-
-	Fixture notNull = Fixture.of(sut, NotNull.class);
-	Fixture notBlank = Fixture.of(sut, NotBlank.class);
-	Fixture pattern = Fixture.of(sut, Pattern.class, Map.of("regexp", "\\d{2}"));
-
-	Fixture size2To4 = Fixture.of(sut, Size.class, Map.of("min", 2, "max", 4));
-	Fixture digitsInt2Fraction0 = Fixture.of(sut, Digits.class, Map.of("integer", 2, "fraction", 0));
-	Fixture min0 = Fixture.of(sut, Min.class, Map.of("value", 0L));
-	Fixture max100 = Fixture.of(sut, Max.class, Map.of("value", 100L));
-	Fixture decimalMin2 = Fixture.of(sut, DecimalMin.class, Map.of("value", "2"));
-	Fixture decimalMax5 = Fixture.of(sut, DecimalMax.class, Map.of("value", "5"));
-
-	Fixture assertTrue = Fixture.of(sut, AssertTrue.class);
-	Fixture assertFalse = Fixture.of(sut, AssertFalse.class);
-
-	Fixture positive = Fixture.of(sut, Positive.class);
-	Fixture positiveOrZero = Fixture.of(sut, PositiveOrZero.class);
-	Fixture negative = Fixture.of(sut, Negative.class);
-	Fixture negativeOrZero = Fixture.of(sut, NegativeOrZero.class);
-
-	Fixture future = Fixture.of(sut, Future.class);
-	Fixture futureOrPresent = Fixture.of(sut, FutureOrPresent.class);
-	Fixture past = Fixture.of(sut, Past.class);
-	Fixture pastOrPresent = Fixture.of(sut, PastOrPresent.class);
-
-	Class<?>[] byteTypes = new Class<?>[] { byte.class, Byte.class };
-	Class<?>[] shortTypes = new Class<?>[] { short.class, Short.class };
-	Class<?>[] intTypes = new Class<?>[] { int.class, Integer.class };
-	Class<?>[] longTypes = new Class<?>[] { long.class, Long.class };
-
-	String[] emptyStringArray = new String[0];
-	Object[] emptyObjectArray = new Object[0];
+	Fixture future = fixtureFactory.create(Future.class);
+	Fixture futureOrPresent = fixtureFactory.create(FutureOrPresent.class);
+	Fixture past = fixtureFactory.create(Past.class);
+	Fixture pastOrPresent = fixtureFactory.create(PastOrPresent.class);
 
 	// NotNull: generated non-null strings should never fail
 	@Property
@@ -536,125 +389,6 @@ class GuavaCodeFragmentPBTest {
 
 		// FutureOrPresent should reject strictly past dates, but accept today
 		futureOrPresent.illegalArgumentExceptionIf(d.isBefore(LocalDate.now()), d, LocalDate.class);
-	}
-
-	/* --- Arbitraries --- */
-
-	// Providers for named arbitraries used by @ForAll("name")
-	@Provide
-	Arbitrary<String> nonNullStrings() {
-		return Arbitraries.strings().ofMinLength(0).ofMaxLength(20);
-	}
-
-	@Provide
-	Arbitrary<String> blankStrings() {
-		return Arbitraries.strings().withChars(' ', '\t', '\n', '\r', '\f', '\u1680').ofMinLength(0).ofMaxLength(20)
-				.filter(s -> s.chars().allMatch(Character::isWhitespace));
-	}
-
-	@Provide
-	Arbitrary<String> nonBlankStrings() {
-		Arbitrary<String> normal = Arbitraries.strings().ofMinLength(0).ofMaxLength(20)
-				.filter(s -> s.chars().anyMatch(c -> !Character.isWhitespace(c)));
-		Arbitrary<String> edgeCases = Arbitraries.of("-", "\u2007", "\u00A0", "x\u1680 ", "a ", "  b");
-		return Arbitraries.oneOf(normal, edgeCases);
-	}
-
-	@Provide
-	Arbitrary<String> twoDigits() {
-		return Arbitraries.integers().between(0, 99).map(i -> String.format("%02d", i));
-	}
-
-	@Provide
-	Arbitrary<String> sizeStrings() {
-		return Arbitraries.strings().ofMinLength(2).ofMaxLength(4);
-	}
-
-	@Provide
-	Arbitrary<String> shortStrings() {
-		return Arbitraries.strings().ofMaxLength(1);
-	}
-
-	@Provide
-	Arbitrary<List<String>> nonEmptyLists() {
-		return Arbitraries.strings().ofMinLength(1).list().ofMinSize(1).ofMaxSize(5);
-	}
-
-	@Provide
-	Arbitrary<Map<String, Integer>> nonEmptyMaps() {
-		return nonEmptyLists().map(l -> Map.of(l.get(0), 1));
-	}
-
-	@Provide
-	Arbitrary<Object> emptyArray() {
-		return Arbitraries.of(Object.class, String.class, Number.class, Boolean.class, Byte.class, Short.class,
-				Integer.class, Long.class, Double.class, Float.class, BigInteger.class, BigDecimal.class,
-				Collection.class, List.class, Set.class, Map.class).map(component -> Array.newInstance(component, 0));
-	}
-
-	@Provide
-	Arbitrary<Object[]> nonEmptyArrays() {
-		return Arbitraries.strings().list().ofMinSize(1).ofMaxSize(5).map(l -> l.toArray(emptyStringArray));
-	}
-
-	@Provide
-	Arbitrary<String> numericStringsGE2() {
-		return Arbitraries.integers().between(2, 1000).map(Object::toString);
-	}
-
-	@Provide
-	Arbitrary<String> numericStringsGT5() {
-		return Arbitraries.integers().greaterOrEqual(6).map(Object::toString);
-	}
-
-	@Provide
-	Arbitrary<LocalDate> pastDates() {
-		return Dates.dates().atTheEarliest(LocalDate.of(1970, 1, 1)).atTheLatest(LocalDate.now().minusDays(1));
-	}
-
-	@Provide
-	Arbitrary<LocalDate> futureDates() {
-		return Dates.dates().atTheEarliest(LocalDate.now().plusDays(1)).atTheLatest(LocalDate.now().plusYears(10));
-	}
-
-	@Provide
-	Arbitrary<List<String>> sizeLists() {
-		return Arbitraries.strings().list().ofMinSize(2).ofMaxSize(4);
-	}
-
-	@Provide
-	Arbitrary<List<String>> shortLists() {
-		return Arbitraries.strings().list().ofMaxSize(1);
-	}
-
-	@Provide
-	Arbitrary<Map<String, Integer>> sizeMaps() {
-		return sizeLists().map(l -> range(0, l.size()).boxed().collect(toMap(i -> "k" + i, identity())));
-	}
-
-	@Provide
-	Arbitrary<Map<String, Integer>> shortMaps() {
-		return shortLists().map(l -> l.isEmpty() ? Map.of() : Map.of(l.get(0), 1));
-	}
-
-	@Provide
-	Arbitrary<Object[]> sizeArrays() {
-		return sizeLists().map(l -> l.toArray(emptyObjectArray));
-	}
-
-	@Provide
-	Arbitrary<Object[]> shortArrays() {
-		return shortLists().map(l -> l.toArray(emptyObjectArray));
-	}
-
-	@Provide
-	Arbitrary<LocalDate> futureOrPresentDates() {
-		return Dates.dates().atTheEarliest(LocalDate.now()).atTheLatest(LocalDate.now().plusYears(10));
-	}
-
-	@Provide
-	Arbitrary<LocalDate> pastOrPresentDates() {
-		return Dates.dates().atTheEarliest(LocalDate.of(1970, 1, 1)).atTheLatest(LocalDate.now());
 	}
 
 }
