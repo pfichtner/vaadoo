@@ -17,15 +17,23 @@ At runtime:
 - ByteBuddy is not required
 - no reflection or validation framework is involved
 
+### ❓ What annotations does Vaadoo use?
+
+Vaadoo uses annotations from Jakarta Bean Validation (e.g. @NotNull, @Min, @NotBlank) as input to generate validation logic.
+
+These annotations are commonly used with runtime validation frameworks such as Hibernate Validator, but Vaadoo does not depend on any validation framework at runtime.
+
+During the build process, Bean Validation annotation metadata is removed from the compiled bytecode, unless explicitly configured to be retained.
+
 ### ❓ How is Vaadoo different from Hibernate Validator?
 
-Hibernate Validator is a runtime validation framework that uses reflection and must be explicitly triggered.
+Hibernate Validator is a runtime implementation of Jakarta Bean Validation. It evaluates constraints via reflection and must be explicitly invoked.
 
-Vaadoo instead:
-- moves validation into bytecode at build time
-- executes validation automatically inside constructors
-- removes the need for a runtime validation framework
-- does not rely on reflection
+Vaadoo takes a different approach:
+- it uses Bean Validation annotations only as build-time input
+- it injects validation logic directly into constructors
+- it executes validation automatically when objects are created
+- it does not require a validation framework or reflection at runtime
 Key difference:
 - Hibernate Validator → “validate this object”
 - Vaadoo → “this object is already validated when it is created”
@@ -52,22 +60,20 @@ If Lombok generates constructors, you must ensure that Bean Validation annotatio
 
 ### ❓ Does Vaadoo have runtime dependencies?
 
-No.
-Vaadoo guarantees that no runtime dependency exists.
+No. Vaadoo uses Bean Validation annotations as input during the build process and generates validation logic that is injected directly into constructors. This logic is executed at runtime when objects are created, without requiring any validation framework or reflection.
 
-Once the build is complete:
+By default, annotation metadata from Jakarta Bean Validation is removed from the bytecode during transformation. It can optionally be retained if required by other tools.
+
+The resulting bytecode is fully self-contained:
 - Vaadoo is no longer involved
 - ByteBuddy is not required at runtime
-- validation logic is fully embedded in compiled classes
-
-The resulting bytecode is self-contained.
+- validation logic is fully embedded in the compiled classes
 
 ### ❓ Does Vaadoo violate Clean Architecture or Ports & Adapters?
 
-No.
-It enforces invariants inside the domain and avoids runtime frameworks like Hibernate Validator. The only trade-offs are annotation coupling and build-time weaving.
+Vaadoo does not violate the dependency rule (no runtime dependency on frameworks), but it introduces annotation coupling and build-time bytecode transformation.
 
-Note: A strict purist might object due to annotation usage and build-time bytecode transformation via Byte Buddy, but core principles (dependency rule, domain integrity) are preserved.
+In strict Clean Architecture interpretations, this may be seen as a compromise. In practice, many teams accept this trade-off to enforce invariants consistently and eliminate runtime validation frameworks.
 
 ### ❓ Does Vaadoo violate DDD principles?
 
