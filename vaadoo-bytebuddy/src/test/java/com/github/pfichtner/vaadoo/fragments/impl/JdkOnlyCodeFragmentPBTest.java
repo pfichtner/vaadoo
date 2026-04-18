@@ -32,6 +32,7 @@ import jakarta.validation.constraints.Size;
 import net.jqwik.api.Example;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
+import net.jqwik.api.constraints.WithNull;
 
 /**
  * Property-based tests for {@link JdkOnlyCodeFragment} covering the same
@@ -75,9 +76,10 @@ class JdkOnlyCodeFragmentPBTest extends ConstraintArbitraries {
 		notNull.noException(value, String.class);
 	}
 
-	@Example
-	void notNull_should_throw_on_null() {
-		notNull.assertException(true, null, NullValueException.class, Object.class);
+	@Property
+	void notNull_should_throw_on_null(@ForAll @WithNull Object value) {
+		notNull.assertException(value == null, value, NullValueException.class,
+				value == null ? Object.class : value.getClass());
 	}
 
 	// NotBlank: non-blank strings should pass
