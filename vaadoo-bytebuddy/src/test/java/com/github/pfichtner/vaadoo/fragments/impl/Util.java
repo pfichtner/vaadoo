@@ -2,6 +2,8 @@ package com.github.pfichtner.vaadoo.fragments.impl;
 
 import static java.math.RoundingMode.UNNECESSARY;
 import static java.util.Collections.emptyMap;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -11,12 +13,19 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.AnnotationFactory;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
+import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Value;
 
 class Util {
@@ -37,7 +46,8 @@ class Util {
 
 		public void noException(Object value, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertThatNoException().isThrownBy(() -> accept(value, type));
+				assertThatNoException().describedAs("%s should not throw for type %s on value %s",
+						anno.annotationType(), type.getName(), value).isThrownBy(() -> accept(value, type));
 			}
 		}
 
@@ -63,9 +73,7 @@ class Util {
 		}
 
 		private void accept(Object value, Class<?> param1Type) {
-			Method method = only(Arrays.stream(sut.getClass().getMethods()).filter(m -> m.getName().equals("check"))
-					.filter(m -> m.getParameterTypes().length == 2 && m.getParameterTypes()[0].isInstance(anno)
-							&& m.getParameterTypes()[1].isAssignableFrom(param1Type)));
+			Method method = only(checkMethodsThatAccepts(param1Type));
 			try {
 				method.invoke(sut, anno, convert(param1Type, value));
 			} catch (IllegalAccessException | IllegalArgumentException e) {
@@ -76,12 +84,22 @@ class Util {
 			}
 		}
 
+		public boolean supports(Class<?> param1Type) {
+			return checkMethodsThatAccepts(param1Type).findAny().isPresent();
+		}
+
+		private Stream<Method> checkMethodsThatAccepts(Class<?> param1Type) {
+			return Arrays.stream(sut.getClass().getMethods()).filter(m -> m.getName().equals("check"))
+					.filter(m -> m.getParameterTypes().length == 2 && m.getParameterTypes()[0].isInstance(anno)
+							&& m.getParameterTypes()[1].isAssignableFrom(param1Type));
+		}
+
 	}
 
 	static <T> T only(Stream<T> stream) {
-		return stream.reduce((_ign1, _ign2) -> {
-			throw new IllegalStateException("multiple elements");
-		}).orElseThrow(() -> new IllegalStateException("no match"));
+		return stream.reduce((v1, v2) -> {
+			throw new IllegalStateException(String.format("more than one match (%s, %s)", v1, v2));
+		}).orElseThrow(() -> new IllegalStateException("stream is empty"));
 	}
 
 	static Object convert(Class<?> target, Object value) {
@@ -137,6 +155,39 @@ class Util {
 		}
 
 		return target.cast(value);
+	}
+
+	public static boolean acceptsNull(Fixture fixture) {
+		return acceptsNull(fixture.getAnno().annotationType());
+	}
+
+	/**
+	 * @return <code>true</code> if the constraint accepts null (i.e.
+	 *         <code>null</code> is considered valid)
+	 */
+	public static boolean acceptsNull(Class<? extends Annotation> annotationType) {
+		return !Set.of(NotNull.class, NotBlank.class, NotEmpty.class, AssertTrue.class, AssertFalse.class)
+				.contains(annotationType);
+	}
+
+	public static List<Fixture> nullAcceptingFixtures(Object obj) {
+		return fixtures(obj).filter(Util::acceptsNull).collect(toList());
+	}
+
+	public static List<Fixture> nullRejectingFixtures(Object obj) {
+		return fixtures(obj).filter(not(Util::acceptsNull)).collect(toList());
+	}
+
+	public static Stream<Fixture> fixtures(Object obj) {
+		return Arrays.stream(obj.getClass().getDeclaredFields()).filter(field -> field.getType().equals(Fixture.class)) //
+				.peek(f -> f.setAccessible(true)) //
+				.map(f -> {
+					try {
+						return (Fixture) f.get(obj);
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException(e);
+					}
+				});
 	}
 
 }

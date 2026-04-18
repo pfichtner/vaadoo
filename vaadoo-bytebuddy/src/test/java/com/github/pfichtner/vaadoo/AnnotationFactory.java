@@ -28,6 +28,8 @@ public class AnnotationFactory {
 				newProxyInstance(annotationType.getClassLoader(), new Class<?>[] { annotationType }, (p, m, a) -> {
 					if (m.getName().equals("message")) {
 						return "theMessage";
+					} else if (m.getName().equals("annotationType")) {
+						return annotationType;
 					}
 					Object object = values.get(m.getName());
 					return (object == null) ? m.getDefaultValue() : object;
