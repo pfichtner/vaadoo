@@ -225,7 +225,7 @@ class Jsr380DynamicClassPBTest {
 	}
 
 	@Property
-	void canLoadClassAreCallConstructor(@ForAll("constructorParameters") List<ParameterDefinition> params)
+	void canLoadClassAndCallConstructor(@ForAll("constructorParameters") List<ParameterDefinition> params)
 			throws Exception {
 		var unloaded = a(testClass("com.example.Generated").thatImplementsValueObject()
 				.withConstructor(ConstructorDefinition.of(params)));
