@@ -51,8 +51,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_534522221
 implements ValueObject {
     public Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
-        Generated_534522221.validate_offsetDateTime(offsetDateTime);
-        Generated_534522221.validate_minguoDate(minguoDate);
+        Generated_534522221.validate(offsetDateTime, calendar, minguoDate, instant, s);
         this(offsetDateTime, calendar, minguoDate, instant, s, null);
     }
 
@@ -67,6 +66,11 @@ implements ValueObject {
         Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
         Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         Preconditions.checkNotNull(offsetDateTime, "offsetDateTime must not be null");
+    }
+
+    private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
+        Generated_534522221.validate_offsetDateTime(offsetDateTime);
+        Generated_534522221.validate_minguoDate(minguoDate);
     }
 }
 

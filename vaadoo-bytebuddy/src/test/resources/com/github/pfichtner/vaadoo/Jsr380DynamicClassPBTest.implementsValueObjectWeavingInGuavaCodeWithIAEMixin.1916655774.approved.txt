@@ -60,13 +60,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_1916655774
 implements ValueObject {
     public Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {
-        Generated_1916655774.validate_objectArray(objectArray);
-        Generated_1916655774.validate_offsetDateTime(offsetDateTime);
-        Generated_1916655774.validate_integer(n);
-        Generated_1916655774.validate_bigDecimal(bigDecimal);
-        Generated_1916655774.validate_doubleArray(doubleArray);
-        Generated_1916655774.validate_byte(by);
-        Generated_1916655774.validate_japaneseDate(japaneseDate);
+        Generated_1916655774.validate(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate);
         this(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate, null);
     }
 
@@ -106,6 +100,16 @@ implements ValueObject {
     private static void validate_objectArray(Object[] objectArray) {
         Preconditions.checkArgument(objectArray != null, "objectArray must not be empty");
         Preconditions.checkArgument(objectArray.length > 0, "objectArray must not be empty");
+    }
+
+    private static void validate(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {
+        Generated_1916655774.validate_objectArray(objectArray);
+        Generated_1916655774.validate_offsetDateTime(offsetDateTime);
+        Generated_1916655774.validate_integer(n);
+        Generated_1916655774.validate_bigDecimal(bigDecimal);
+        Generated_1916655774.validate_doubleArray(doubleArray);
+        Generated_1916655774.validate_byte(by);
+        Generated_1916655774.validate_japaneseDate(japaneseDate);
     }
 }
 

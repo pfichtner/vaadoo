@@ -125,29 +125,43 @@ class VaadooImplementor {
 		for (InDefinedShape definedShape : typeDescription.getDeclaredMethods()) {
 			if (definedShape.isConstructor()) {
 				Parameters parameters = Parameters.of(definedShape.getParameters());
-				Implementation implementation = SuperMethodCall.INSTANCE;
+				Implementation.Composable centralValidateImpl = null;
 
-				// We iterate backwards to build the chain so the calls are in the correct order:
-				// validate_p1, validate_p2, ..., super()
+				// We iterate backwards to build the chain so the calls are in the correct
+				// order:
+				// validate_p1, validate_p2, ...
 				for (int i = parameters.count() - 1; i >= 0; i--) {
 					Parameter parameter = parameters.parameter(i);
-					String validateMethodName = nonExistingMethodName(usedMethodNames,
+					String validateParamMethodName = nonExistingMethodName(usedMethodNames,
 							VALIDATE_METHOD_BASE_NAME + "_" + parameter.name());
-					StaticValidateAppender parameterAppender = new StaticValidateAppender(validateMethodName, parameter,
-							configuration);
+					StaticValidateAppender parameterAppender = new StaticValidateAppender(validateParamMethodName,
+							parameter, configuration);
 
 					if (parameterAppender.hasInjections()) {
-						usedMethodNames.add(validateMethodName);
-						allGeneratedValidateMethodNames.add(validateMethodName);
+						usedMethodNames.add(validateParamMethodName);
+						allGeneratedValidateMethodNames.add(validateParamMethodName);
 						type = type.mapBuilder(t -> addStaticValidateMethod(t, parameterAppender, log));
-						implementation = invoke(named(validateMethodName).and(takesArguments(parameter.type())))
-								.withArgument(i).andThen(implementation);
+
+						Implementation.Composable invokeParam = invoke(
+								named(validateParamMethodName).and(takesArguments(parameter.type()))).withArgument(i);
+						centralValidateImpl = centralValidateImpl == null ? invokeParam
+								: invokeParam.andThen(centralValidateImpl);
 					}
 				}
 
-				final Implementation finalImplementation = implementation;
-				if (finalImplementation != SuperMethodCall.INSTANCE) {
-					type = type.mapBuilder(t -> t.constructor(is(definedShape)).intercept(finalImplementation));
+				if (centralValidateImpl != null) {
+					String centralValidateName = nonExistingMethodName(usedMethodNames, VALIDATE_METHOD_BASE_NAME);
+					usedMethodNames.add(centralValidateName);
+					allGeneratedValidateMethodNames.add(centralValidateName);
+
+					final Implementation finalCentralImpl = centralValidateImpl;
+					type = type.mapBuilder(t -> markGenerated(wrap(t, COMPUTE_FRAMES | COMPUTE_MAXS)
+							.defineMethod(centralValidateName, void.class, ACC_PRIVATE | ACC_STATIC)
+							.withParameters(parameters.types()).intercept(finalCentralImpl)));
+
+					type = type.mapBuilder(t -> t.constructor(is(definedShape))
+							.intercept(invoke(named(centralValidateName).and(takesArguments(parameters.types())))
+									.withAllArguments().andThen(SuperMethodCall.INSTANCE)));
 				}
 			}
 		}
@@ -294,7 +308,7 @@ class VaadooImplementor {
 			Object annotationValue = parameter.annotationValue(Type.getType(Pattern.class), "flags");
 			map.put(parameter, annotationValue == null //
 					? 0
-					: Template.bitwiseOr(Stream.of((EnumerationDescription[]) annotationValue)
+					: Template.bitwiseOr(Stream.of((EnumerationDescription[]) annotationValue) //
 							.map(EnumerationDescription::getValue) //
 							.map(Flag::valueOf) //
 							.toArray(Flag[]::new)));

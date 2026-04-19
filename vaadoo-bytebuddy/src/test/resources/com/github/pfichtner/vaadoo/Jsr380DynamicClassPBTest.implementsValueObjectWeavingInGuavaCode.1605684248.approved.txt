@@ -51,10 +51,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_1605684248
 implements ValueObject {
     public Generated_1605684248(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MonthDay monthDay, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay2, Float[] floatArray, short s, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) int n) {
-        Generated_1605684248.validate_monthDay(monthDay);
-        Generated_1605684248.validate_monthDay1(monthDay2);
-        Generated_1605684248.validate_zonedDateTime(zonedDateTime);
-        Generated_1605684248.validate_int(n);
+        Generated_1605684248.validate(monthDay, monthDay2, floatArray, s, zonedDateTime, n);
         this(monthDay, monthDay2, floatArray, s, zonedDateTime, n, null);
     }
 
@@ -75,6 +72,13 @@ implements ValueObject {
 
     private static void validate_monthDay(MonthDay monthDay) {
         Preconditions.checkArgument(monthDay == null || monthDay.isAfter(MonthDay.now()), String.format("monthDay must be a future date but was %s", monthDay));
+    }
+
+    private static void validate(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
+        Generated_1605684248.validate_monthDay(monthDay);
+        Generated_1605684248.validate_monthDay1(monthDay2);
+        Generated_1605684248.validate_zonedDateTime(zonedDateTime);
+        Generated_1605684248.validate_int(n);
     }
 }
 

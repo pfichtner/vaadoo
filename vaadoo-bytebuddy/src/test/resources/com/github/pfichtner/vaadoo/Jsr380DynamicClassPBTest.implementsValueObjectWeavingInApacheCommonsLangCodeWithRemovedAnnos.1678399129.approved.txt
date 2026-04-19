@@ -44,8 +44,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_1678399129
 implements ValueObject {
     public Generated_1678399129(HijrahDate hijrahDate, Long l) {
-        Generated_1678399129.validate_hijrahDate(hijrahDate);
-        Generated_1678399129.validate_long(l);
+        Generated_1678399129.validate(hijrahDate, l);
         this(hijrahDate, l, null);
     }
 
@@ -60,6 +59,11 @@ implements ValueObject {
 
     private static void validate_hijrahDate(HijrahDate hijrahDate) {
         Validate.isTrue(hijrahDate == null, String.format("hijrahDate must be null but was %s", hijrahDate), new Object[0]);
+    }
+
+    private static void validate(HijrahDate hijrahDate, Long l) {
+        Generated_1678399129.validate_hijrahDate(hijrahDate);
+        Generated_1678399129.validate_long(l);
     }
 }
 

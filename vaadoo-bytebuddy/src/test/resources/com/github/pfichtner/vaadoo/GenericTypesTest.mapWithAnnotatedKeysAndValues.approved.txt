@@ -39,7 +39,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class GenericGenerated
 implements ValueObject {
     public GenericGenerated(Map<String, Integer> map) {
-        GenericGenerated.validate_map(map);
+        GenericGenerated.validate(map);
         this(map, null);
     }
 
@@ -70,6 +70,10 @@ implements ValueObject {
                 throw new IllegalArgumentException("map[value for key=" + entry.getKey() + "] must not be null");
             }
         }
+    }
+
+    private static void validate(Map map) {
+        GenericGenerated.validate_map(map);
     }
 }
 

@@ -42,7 +42,7 @@ implements ValueObject {
     private static final /* synthetic */ Map regexpCache;
 
     public GenericGenerated(String[] stringArray) {
-        GenericGenerated.validate_stringArray(stringArray);
+        GenericGenerated.validate(stringArray);
         this(stringArray, null);
     }
 
@@ -61,6 +61,10 @@ implements ValueObject {
                 throw new IllegalArgumentException(String.format("stringArray[" + i + "] must match \"\\d*\" but was %s", string));
             }
         }
+    }
+
+    private static void validate(String[] stringArray) {
+        GenericGenerated.validate_stringArray(stringArray);
     }
 
     static {

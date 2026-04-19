@@ -48,10 +48,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_1605684248
 implements ValueObject {
     public Generated_1605684248(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
-        Generated_1605684248.validate_monthDay(monthDay);
-        Generated_1605684248.validate_monthDay1(monthDay2);
-        Generated_1605684248.validate_zonedDateTime(zonedDateTime);
-        Generated_1605684248.validate_int(n);
+        Generated_1605684248.validate(monthDay, monthDay2, floatArray, s, zonedDateTime, n);
         this(monthDay, monthDay2, floatArray, s, zonedDateTime, n, null);
     }
 
@@ -72,6 +69,13 @@ implements ValueObject {
 
     private static void validate_monthDay(MonthDay monthDay) {
         Validate.isTrue(monthDay == null || monthDay.isAfter(MonthDay.now()), String.format("monthDay must be a future date but was %s", monthDay), new Object[0]);
+    }
+
+    private static void validate(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
+        Generated_1605684248.validate_monthDay(monthDay);
+        Generated_1605684248.validate_monthDay1(monthDay2);
+        Generated_1605684248.validate_zonedDateTime(zonedDateTime);
+        Generated_1605684248.validate_int(n);
     }
 }
 
