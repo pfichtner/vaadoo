@@ -7,14 +7,25 @@ import static java.util.stream.IntStream.range;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.MonthDay;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
+import net.jqwik.api.Combinators;
 import net.jqwik.api.Provide;
 import net.jqwik.time.api.Dates;
 
@@ -132,6 +143,47 @@ class ConstraintArbitraries {
 	@Provide
 	public Arbitrary<LocalDate> pastOrPresentDates() {
 		return Dates.dates().atTheEarliest(LocalDate.of(1970, 1, 1)).atTheLatest(LocalDate.now());
+	}
+
+	@Provide
+	public Arbitrary<Object> objects() {
+		return Arbitraries.oneOf( //
+				Arbitraries.strings().ofMaxLength(100), //
+				Arbitraries.integers(), //
+				Arbitraries.longs(), //
+				Arbitraries.shorts(), //
+				Arbitraries.bytes(), //
+				Arbitraries.of(true, false), //
+				Arbitraries.bigDecimals(), //
+				Arbitraries.bigIntegers(), //
+				Arbitraries.longs().map(Instant::ofEpochMilli), //
+				dates().map(d -> d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()), //
+				dates().map(d -> d.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()), //
+				Arbitraries.integers().between(0, 86_399).map(LocalTime::ofSecondOfDay), //
+				Arbitraries.longs().map(l -> Instant.ofEpochMilli(l).atZone(ZoneId.systemDefault())), //
+				Arbitraries.longs().map(l -> Instant.ofEpochMilli(l).atOffset(ZoneOffset.UTC)), //
+				Arbitraries.integers().between(1900, 2100).map(Year::of), //
+				Combinators.combine(Arbitraries.integers().between(1900, 2100), Arbitraries.integers().between(1, 12))
+						.as(YearMonth::of), //
+
+				Combinators.combine(Arbitraries.integers().between(1, 12), Arbitraries.integers().between(1, 28))
+						.as(MonthDay::of), //
+				Arbitraries.longs().map(Date::new), //
+				Arbitraries.longs().map(ConstraintArbitraries::calendar), //
+				Arbitraries.integers().list().ofMaxSize(10).map(ArrayList::new), //
+				Arbitraries.maps(Arbitraries.strings(), Arbitraries.integers()).ofMaxSize(10), //
+				Arbitraries.integers().array(int[].class) //
+		);
+	}
+
+	private static Calendar calendar(Long timestamp) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(timestamp);
+		return calendar;
+	}
+
+	private static Arbitrary<Date> dates() {
+		return Arbitraries.longs().between(0, System.currentTimeMillis()).map(Date::new);
 	}
 
 }
