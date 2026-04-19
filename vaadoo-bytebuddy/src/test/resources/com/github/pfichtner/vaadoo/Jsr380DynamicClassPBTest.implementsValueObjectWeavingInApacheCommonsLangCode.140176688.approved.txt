@@ -45,7 +45,6 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import java.time.chrono.MinguoDate;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import org.apache.commons.lang3.Validate;
 import org.jmolecules.ddd.types.ValueObject;
 
@@ -63,8 +62,9 @@ implements ValueObject {
         Validate.notEmpty(linkedHashMap, "linkedHashMap must not be empty", new Object[0]);
         Validate.notNull(linkedHashMap, "linkedHashMap must not be null", new Object[0]);
         Validate.isTrue(linkedHashMap == null, String.format("linkedHashMap must be null but was %s", linkedHashMap), new Object[0]);
-        int n = ((Map)Validate.notNull(linkedHashMap, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap), new Object[0])).size();
-        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
+        if (linkedHashMap != null) {
+            Validate.inclusiveBetween(0, Integer.MAX_VALUE, linkedHashMap.size(), String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
+        }
         Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
         Validate.isTrue(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate), new Object[0]);
         Validate.notNull(minguoDate, "minguoDate must not be null", new Object[0]);

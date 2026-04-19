@@ -60,7 +60,6 @@ import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.time.chrono.MinguoDate;
-import java.util.Collection;
 import java.util.LinkedList;
 import org.apache.commons.lang3.Validate;
 import org.jmolecules.ddd.types.ValueObject;
@@ -76,17 +75,19 @@ implements ValueObject {
     }
 
     private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
-        Validate.isTrue(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate), new Object[0]);
-        Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
-        Validate.isTrue(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), String.format("zonedDateTime must be a past date but was %s", zonedDateTime), new Object[0]);
-        Validate.isTrue(zonedDateTime == null, String.format("zonedDateTime must be null but was %s", zonedDateTime), new Object[0]);
-        Validate.isTrue(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), String.format("zonedDateTime must be a future date but was %s", zonedDateTime), new Object[0]);
-        Validate.isTrue(offsetDateTime == null, String.format("offsetDateTime must be null but was %s", offsetDateTime), new Object[0]);
-        Validate.isTrue(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime), new Object[0]);
-        Validate.isTrue(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime), new Object[0]);
-        Validate.notEmpty(linkedList, "linkedList must not be empty", new Object[0]);
-        int n = ((Collection)Validate.notNull(linkedList, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList), new Object[0])).size();
-        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        block0: {
+            Validate.isTrue(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate), new Object[0]);
+            Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
+            Validate.isTrue(zonedDateTime == null || zonedDateTime.isBefore(ZonedDateTime.now()), String.format("zonedDateTime must be a past date but was %s", zonedDateTime), new Object[0]);
+            Validate.isTrue(zonedDateTime == null, String.format("zonedDateTime must be null but was %s", zonedDateTime), new Object[0]);
+            Validate.isTrue(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), String.format("zonedDateTime must be a future date but was %s", zonedDateTime), new Object[0]);
+            Validate.isTrue(offsetDateTime == null, String.format("offsetDateTime must be null but was %s", offsetDateTime), new Object[0]);
+            Validate.isTrue(offsetDateTime == null || !offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime), new Object[0]);
+            Validate.isTrue(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime), new Object[0]);
+            Validate.notEmpty(linkedList, "linkedList must not be empty", new Object[0]);
+            if (linkedList == null) break block0;
+            Validate.inclusiveBetween(0, Integer.MAX_VALUE, linkedList.size(), String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        }
     }
 }
 

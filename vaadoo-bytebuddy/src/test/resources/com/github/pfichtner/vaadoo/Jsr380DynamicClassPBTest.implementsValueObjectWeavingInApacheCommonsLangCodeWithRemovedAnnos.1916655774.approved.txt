@@ -72,8 +72,9 @@ implements ValueObject {
         Validate.isTrue(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime), new Object[0]);
         Validate.isTrue(n == null || new BigDecimal(n).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), String.format("integer must be less than or equal to 0 but was %s", n), new Object[0]);
         Validate.isTrue(bigDecimal == null || bigDecimal.signum() >= 0, String.format("bigDecimal must be greater than or equal to 0 but was %s", bigDecimal), new Object[0]);
-        int n2 = ((Object[])Validate.notNull(doubleArray, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)), new Object[0])).length;
-        Validate.inclusiveBetween(0, Integer.MAX_VALUE, n2, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)));
+        if (doubleArray != null) {
+            Validate.inclusiveBetween(0, Integer.MAX_VALUE, doubleArray.length, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)));
+        }
         Validate.isTrue(doubleArray == null, String.format("doubleArray must be null but was %s", Arrays.deepToString(doubleArray)), new Object[0]);
         Validate.isTrue(new BigDecimal(by).compareTo(new BigDecimal("0")) >= (1 != 0 ? 0 : 1), String.format("byte must be greater than or equal to 0 but was %s", by), new Object[0]);
         Validate.isTrue((long)by <= 0L, String.format("byte must be less than or equal to 0  but was %s", by), new Object[0]);
