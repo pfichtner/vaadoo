@@ -58,11 +58,15 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -80,7 +84,9 @@ import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfigu
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Pattern.Flag;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import lombok.experimental.Delegate;
 import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.enumeration.EnumerationDescription;
@@ -112,33 +118,51 @@ class VaadooImplementor {
 
 	JMoleculesTypeBuilder implementVaadoo(JMoleculesTypeBuilder type, Log log) {
 		TypeDescription typeDescription = type.getTypeDescription();
+		List<String> usedMethodNames = new ArrayList<>(typeDescription.getDeclaredMethods().stream()
+				.map(MethodDescription.InDefinedShape::getName).collect(toList()));
+		Set<String> allGeneratedValidateMethodNames = new HashSet<>();
+
 		for (InDefinedShape definedShape : typeDescription.getDeclaredMethods()) {
 			if (definedShape.isConstructor()) {
 				Parameters parameters = Parameters.of(definedShape.getParameters());
+				Implementation implementation = SuperMethodCall.INSTANCE;
 
-				// Generate a unique method name per constructor
-				// TODO we could overload (add validate(String,String) works also if there
-				// already is a validate())
-				String validateMethodName = nonExistingMethodName(typeDescription, VALIDATE_METHOD_BASE_NAME);
-				StaticValidateAppender staticValidateAppender = new StaticValidateAppender(validateMethodName,
-						parameters, configuration);
+				// We iterate backwards to build the chain so the calls are in the correct order:
+				// validate_p1, validate_p2, ..., super()
+				for (int i = parameters.count() - 1; i >= 0; i--) {
+					Parameter parameter = parameters.parameter(i);
+					String validateMethodName = nonExistingMethodName(usedMethodNames,
+							VALIDATE_METHOD_BASE_NAME + "_" + parameter.name());
+					StaticValidateAppender parameterAppender = new StaticValidateAppender(validateMethodName, parameter,
+							configuration);
 
-				if (staticValidateAppender.hasInjections()) {
-					type = type.mapBuilder(t -> addStaticValidateMethod(t, staticValidateAppender, log));
-					type = type.mapBuilder(
-							t -> injectCallToValidateIntoConstructor(t, definedShape, validateMethodName, parameters));
-
-					if (configuration.regexOptimizationEnabled()) {
-						type = type
-								.mapBuilder(t -> wrap(t, cv -> new PatternRewriteClassVisitor(cv, validateMethodName)));
+					if (parameterAppender.hasInjections()) {
+						usedMethodNames.add(validateMethodName);
+						allGeneratedValidateMethodNames.add(validateMethodName);
+						type = type.mapBuilder(t -> addStaticValidateMethod(t, parameterAppender, log));
+						implementation = invoke(named(validateMethodName).and(takesArguments(parameter.type())))
+								.withArgument(i).andThen(implementation);
 					}
+				}
 
-					if (configuration.removeJsr380Annotations()) {
-						type = type.mapBuilder(t -> wrap(t, cv -> new ConstructorAnnotationRemover(cv, configuration)));
-					}
+				final Implementation finalImplementation = implementation;
+				if (finalImplementation != SuperMethodCall.INSTANCE) {
+					type = type.mapBuilder(t -> t.constructor(is(definedShape)).intercept(finalImplementation));
 				}
 			}
 		}
+
+		if (!allGeneratedValidateMethodNames.isEmpty()) {
+			if (configuration.regexOptimizationEnabled()) {
+				type = type.mapBuilder(
+						t -> wrap(t, cv -> new PatternRewriteClassVisitor(cv, allGeneratedValidateMethodNames)));
+			}
+
+			if (configuration.removeJsr380Annotations()) {
+				type = type.mapBuilder(t -> wrap(t, cv -> new ConstructorAnnotationRemover(cv, configuration)));
+			}
+		}
+
 		return type;
 	}
 
@@ -165,9 +189,7 @@ class VaadooImplementor {
 		});
 	}
 
-	private static String nonExistingMethodName(TypeDescription typeDescription, String base) {
-		List<String> methodNames = typeDescription.getDeclaredMethods().stream()
-				.map(MethodDescription.InDefinedShape::getName).collect(toList());
+	private static String nonExistingMethodName(Collection<String> methodNames, String base) {
 		return Stream.iterate(0, i -> i + 1) //
 				.map(i -> (i == 0) ? base : base + "_" + i) //
 				.filter(not(methodNames::contains)) //
@@ -180,7 +202,7 @@ class VaadooImplementor {
 		log.info("Implementing static validate method #{}.", staticValidateAppender.validateMethodName);
 		return markGenerated(wrap(builder, COMPUTE_FRAMES | COMPUTE_MAXS)
 				.defineMethod(staticValidateAppender.validateMethodName, void.class, ACC_PRIVATE | ACC_STATIC)
-				.withParameters(staticValidateAppender.parameters.types())
+				.withParameters(staticValidateAppender.parameter.type())
 				.intercept(new Implementation.Simple(staticValidateAppender)));
 	}
 
@@ -188,11 +210,15 @@ class VaadooImplementor {
 		return builder.visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(flags));
 	}
 
-	private Builder<?> injectCallToValidateIntoConstructor(Builder<?> builder,
-			MethodDescription.InDefinedShape constructor, String validateMethodName, Parameters parameters) {
-		var validateMethod = named(validateMethodName).and(takesArguments(parameters.types()));
-		return builder.constructor(is(constructor)) //
-				.intercept(invoke(validateMethod).withAllArguments().andThen(SuperMethodCall.INSTANCE));
+	@RequiredArgsConstructor
+	private static class ParameterWithOffsetZero implements Parameter {
+		@Delegate
+		private final Parameter delegate;
+
+		@Override
+		public int offset() {
+			return 0;
+		}
 	}
 
 	private static class StaticValidateAppender implements ByteCodeAppender {
@@ -232,7 +258,7 @@ class VaadooImplementor {
 		}
 
 		private final String validateMethodName;
-		private final Parameters parameters;
+		private final Parameter parameter;
 		private final Map<Parameter, Integer> preComputedPatternFlags;
 		private final VaadooConfiguration configuration;
 		private final List<Method> fragmentMixinsCodeFragmentMethods;
@@ -241,19 +267,19 @@ class VaadooImplementor {
 		private final List<InjectionTask> injectionTasks;
 		private final List<TypeDescription> jsr380RepeatableAnnotationContainers;
 
-		public StaticValidateAppender(String validateMethodName, Parameters parameters,
+		public StaticValidateAppender(String validateMethodName, Parameter parameter,
 				VaadooConfiguration configuration) {
 			this.validateMethodName = validateMethodName;
-			this.parameters = parameters;
+			this.parameter = new ParameterWithOffsetZero(parameter);
 			this.configuration = configuration;
-			this.preComputedPatternFlags = computePatternFlagsDuringBuild(parameters);
+			this.preComputedPatternFlags = computePatternFlagsDuringBuild(this.parameter);
 			this.fragmentMixinsCodeFragmentMethods = configuration.codeFragmentMixins().stream()
 					.map(m -> fragmentMethods(m)).flatMap(List::stream).collect(toList());
 			this.codeFragmentMethods = fragmentMethods(configuration.jsr380CodeFragmentClass());
 			this.methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE,
-					toTypes(parameters.types()).toArray(Type[]::new));
+					Type.getType(this.parameter.type().getDescriptor()));
 			this.jsr380RepeatableAnnotationContainers = findRepeatableAnnotationContainers();
-			this.injectionTasks = parameters.stream().flatMap(this::tasksFor).collect(toList());
+			this.injectionTasks = tasksFor(this.parameter).collect(toList());
 		}
 
 		private static List<Method> fragmentMethods(Class<? extends Jsr380CodeFragment> clazz) {
@@ -263,16 +289,16 @@ class VaadooImplementor {
 					.collect(toList());
 		}
 
-		private static Map<Parameter, Integer> computePatternFlagsDuringBuild(Parameters parameters) {
-			return parameters.stream().collect(toMap(identity(), p -> {
-				Object annotationValue = p.annotationValue(Type.getType(Pattern.class), "flags");
-				return annotationValue == null //
-						? 0
-						: Template.bitwiseOr(Stream.of((EnumerationDescription[]) annotationValue)
-								.map(EnumerationDescription::getValue) //
-								.map(Flag::valueOf) //
-								.toArray(Flag[]::new));
-			}));
+		private static Map<Parameter, Integer> computePatternFlagsDuringBuild(Parameter parameter) {
+			Map<Parameter, Integer> map = new HashMap<>();
+			Object annotationValue = parameter.annotationValue(Type.getType(Pattern.class), "flags");
+			map.put(parameter, annotationValue == null //
+					? 0
+					: Template.bitwiseOr(Stream.of((EnumerationDescription[]) annotationValue)
+							.map(EnumerationDescription::getValue) //
+							.map(Flag::valueOf) //
+							.toArray(Flag[]::new)));
+			return map;
 		}
 
 		private Stream<InjectionTask> tasksFor(Parameter parameter) {
@@ -376,7 +402,7 @@ class VaadooImplementor {
 
 		@Override
 		public Size apply(MethodVisitor mv, Implementation.Context context, MethodDescription instrumentedMethod) {
-			int argsSize = sizeOf(parameters.types());
+			int argsSize = (int) parameter.type().getStackSize().getSize();
 			ValidationCodeInjector injector = new ValidationCodeInjector(configuration.jsr380CodeFragmentClass(),
 					methodDescriptor, preComputedPatternFlags, configuration.nullValueExceptionTypeInternalName())
 					.withLocalsOffset(4);

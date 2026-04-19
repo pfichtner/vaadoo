@@ -46,14 +46,21 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_140176688
 implements ValueObject {
     public Generated_140176688(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
-        Generated_140176688.validate(linkedHashMap, minguoDate);
+        Generated_140176688.validate_linkedHashMap(linkedHashMap);
+        Generated_140176688.validate_minguoDate(minguoDate);
         this(linkedHashMap, minguoDate, null);
     }
 
     private /* synthetic */ Generated_140176688(LinkedHashMap linkedHashMap, MinguoDate minguoDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
+    private static void validate_minguoDate(MinguoDate minguoDate) {
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
+        Preconditions.checkArgument(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate));
+        Preconditions.checkArgument(minguoDate != null, "minguoDate must not be null");
+    }
+
+    private static void validate_linkedHashMap(LinkedHashMap linkedHashMap) {
         Preconditions.checkArgument(linkedHashMap != null, "linkedHashMap must not be empty");
         Preconditions.checkArgument(linkedHashMap.size() > 0, "linkedHashMap must not be empty");
         Preconditions.checkArgument(linkedHashMap != null, "linkedHashMap must not be null");
@@ -61,9 +68,6 @@ implements ValueObject {
         Preconditions.checkArgument(linkedHashMap != null, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
         int n = linkedHashMap.size();
         Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
-        Preconditions.checkArgument(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate));
-        Preconditions.checkArgument(minguoDate != null, "minguoDate must not be null");
     }
 }
 

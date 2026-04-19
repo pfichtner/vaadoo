@@ -37,14 +37,14 @@ import org.jmolecules.ddd.types.ValueObject;
 public class GenericGenerated
 implements ValueObject {
     public GenericGenerated(int[] nArray) {
-        GenericGenerated.validate(nArray);
+        GenericGenerated.validate_intArray(nArray);
         this(nArray, null);
     }
 
     private /* synthetic */ GenericGenerated(int[] nArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(int[] nArray) {
+    private static void validate_intArray(int[] nArray) {
         if (nArray == null) {
             throw new IllegalArgumentException("intArray must not be null");
         }

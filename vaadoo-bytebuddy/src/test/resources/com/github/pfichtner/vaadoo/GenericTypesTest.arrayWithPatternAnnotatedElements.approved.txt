@@ -42,14 +42,14 @@ implements ValueObject {
     private static final /* synthetic */ Map regexpCache;
 
     public GenericGenerated(String[] stringArray) {
-        GenericGenerated.validate(stringArray);
+        GenericGenerated.validate_stringArray(stringArray);
         this(stringArray, null);
     }
 
     private /* synthetic */ GenericGenerated(String[] stringArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(String[] stringArray) {
+    private static void validate_stringArray(String[] stringArray) {
         if (stringArray == null) {
             throw new IllegalArgumentException("stringArray must not be null");
         }

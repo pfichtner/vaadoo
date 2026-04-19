@@ -54,18 +54,22 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_534522221
 implements ValueObject {
     public Generated_534522221(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) OffsetDateTime offsetDateTime, Calendar calendar, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MinguoDate minguoDate, Instant instant, short s) {
-        Generated_534522221.validate(offsetDateTime, calendar, minguoDate, instant, s);
+        Generated_534522221.validate_offsetDateTime(offsetDateTime);
+        Generated_534522221.validate_minguoDate(minguoDate);
         this(offsetDateTime, calendar, minguoDate, instant, s, null);
     }
 
     private /* synthetic */ Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
+    private static void validate_minguoDate(MinguoDate minguoDate) {
+        Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate));
+    }
+
+    private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
         Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
         Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         Preconditions.checkNotNull(offsetDateTime, "offsetDateTime must not be null");
-        Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate));
     }
 }
 

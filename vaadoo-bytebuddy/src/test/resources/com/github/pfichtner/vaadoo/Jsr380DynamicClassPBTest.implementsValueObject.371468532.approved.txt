@@ -57,23 +57,15 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_371468532
 implements ValueObject {
     public Generated_371468532(LocalTime localTime, @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MinguoDate minguoDate, Float[] floatArray, Year year, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) JapaneseDate japaneseDate) {
-        Generated_371468532.validate(localTime, minguoDate, floatArray, year, japaneseDate);
+        Generated_371468532.validate_minguoDate(minguoDate);
+        Generated_371468532.validate_japaneseDate(japaneseDate);
         this(localTime, minguoDate, floatArray, year, japaneseDate, null);
     }
 
     private /* synthetic */ Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
-        if (minguoDate == null) {
-            throw new NullPointerException("minguoDate must not be null");
-        }
-        if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));
-        }
-        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
-        }
+    private static void validate_japaneseDate(JapaneseDate japaneseDate) {
         if (japaneseDate != null) {
             throw new IllegalArgumentException(String.format("japaneseDate must be null but was %s", japaneseDate));
         }
@@ -85,6 +77,18 @@ implements ValueObject {
         }
         if (japaneseDate != null && !japaneseDate.isBefore(JapaneseDate.now())) {
             throw new IllegalArgumentException(String.format("japaneseDate must be a past date but was %s", japaneseDate));
+        }
+    }
+
+    private static void validate_minguoDate(MinguoDate minguoDate) {
+        if (minguoDate == null) {
+            throw new NullPointerException("minguoDate must not be null");
+        }
+        if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));
+        }
+        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
         }
     }
 }

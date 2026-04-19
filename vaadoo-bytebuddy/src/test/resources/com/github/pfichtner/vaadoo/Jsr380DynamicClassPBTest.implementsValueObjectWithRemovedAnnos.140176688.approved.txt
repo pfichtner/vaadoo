@@ -45,14 +45,27 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_140176688
 implements ValueObject {
     public Generated_140176688(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
-        Generated_140176688.validate(linkedHashMap, minguoDate);
+        Generated_140176688.validate_linkedHashMap(linkedHashMap);
+        Generated_140176688.validate_minguoDate(minguoDate);
         this(linkedHashMap, minguoDate, null);
     }
 
     private /* synthetic */ Generated_140176688(LinkedHashMap linkedHashMap, MinguoDate minguoDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
+    private static void validate_minguoDate(MinguoDate minguoDate) {
+        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
+        }
+        if (minguoDate != null) {
+            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
+        }
+        if (minguoDate == null) {
+            throw new IllegalArgumentException("minguoDate must not be null");
+        }
+    }
+
+    private static void validate_linkedHashMap(LinkedHashMap linkedHashMap) {
         if (linkedHashMap == null) {
             throw new IllegalArgumentException("linkedHashMap must not be empty");
         }
@@ -67,15 +80,6 @@ implements ValueObject {
         }
         if (linkedHashMap != null && (linkedHashMap.size() < 0 || linkedHashMap.size() > Integer.MAX_VALUE)) {
             throw new IllegalArgumentException(String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
-        }
-        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
-        }
-        if (minguoDate != null) {
-            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
-        }
-        if (minguoDate == null) {
-            throw new IllegalArgumentException("minguoDate must not be null");
         }
     }
 }

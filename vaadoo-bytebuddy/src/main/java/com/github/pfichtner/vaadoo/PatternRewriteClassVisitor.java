@@ -36,6 +36,8 @@ import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Opcodes.PUTSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.RETURN;
 
+import java.util.Set;
+
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
 import net.bytebuddy.jar.asm.MethodVisitor;
@@ -48,13 +50,13 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 //	private static final String HASH_MAP_IMPLEMENTATION = "java/util/HashMap";
 	private static final String HASH_MAP_IMPLEMENTATION = "java/util/concurrent/ConcurrentHashMap";
 
-	private final String validateMethodName;
+	private final Set<String> validateMethodNames;
 	private String owner;
 	private boolean replaced;
 
-	public PatternRewriteClassVisitor(ClassVisitor cv, String validateMethodName) {
+	public PatternRewriteClassVisitor(ClassVisitor cv, Set<String> validateMethodNames) {
 		super(ASM9, cv);
-		this.validateMethodName = validateMethodName;
+		this.validateMethodNames = validateMethodNames;
 	}
 
 	@Override
@@ -66,7 +68,7 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-		return name.equals(validateMethodName) ? new PatternRewriteMethodVisitor(mv) : mv;
+		return validateMethodNames.contains(name) ? new PatternRewriteMethodVisitor(mv) : mv;
 	}
 
 	private class PatternRewriteMethodVisitor extends MethodVisitor {

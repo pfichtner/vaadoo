@@ -66,29 +66,29 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_950819241
 implements ValueObject {
     public Generated_950819241(Object[] objectArray, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MinguoDate minguoDate, YearMonth yearMonth, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, MinguoDate minguoDate2, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) LinkedList linkedList, short s) {
-        Generated_950819241.validate(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s);
+        Generated_950819241.validate_minguoDate(minguoDate);
+        Generated_950819241.validate_zonedDateTime(zonedDateTime);
+        Generated_950819241.validate_offsetDateTime(offsetDateTime);
+        Generated_950819241.validate_linkedList(linkedList);
         this(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s, null);
     }
 
     private /* synthetic */ Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
-        if (minguoDate != null) {
-            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
+    private static void validate_linkedList(LinkedList linkedList) {
+        if (linkedList == null) {
+            throw new NullPointerException("linkedList must not be empty");
         }
-        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
+        if (linkedList.size() == 0) {
+            throw new IllegalArgumentException("linkedList must not be empty");
         }
-        if (zonedDateTime != null && !zonedDateTime.isBefore(ZonedDateTime.now())) {
-            throw new IllegalArgumentException(String.format("zonedDateTime must be a past date but was %s", zonedDateTime));
+        if (linkedList != null && (linkedList.size() < 0 || linkedList.size() > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
         }
-        if (zonedDateTime != null) {
-            throw new IllegalArgumentException(String.format("zonedDateTime must be null but was %s", zonedDateTime));
-        }
-        if (zonedDateTime != null && !zonedDateTime.isAfter(ZonedDateTime.now())) {
-            throw new IllegalArgumentException(String.format("zonedDateTime must be a future date but was %s", zonedDateTime));
-        }
+    }
+
+    private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
         if (offsetDateTime != null) {
             throw new IllegalArgumentException(String.format("offsetDateTime must be null but was %s", offsetDateTime));
         }
@@ -98,14 +98,26 @@ implements ValueObject {
         if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
             throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
         }
-        if (linkedList == null) {
-            throw new NullPointerException("linkedList must not be empty");
+    }
+
+    private static void validate_zonedDateTime(ZonedDateTime zonedDateTime) {
+        if (zonedDateTime != null && !zonedDateTime.isBefore(ZonedDateTime.now())) {
+            throw new IllegalArgumentException(String.format("zonedDateTime must be a past date but was %s", zonedDateTime));
         }
-        if (linkedList.size() == 0) {
-            throw new IllegalArgumentException("linkedList must not be empty");
+        if (zonedDateTime != null) {
+            throw new IllegalArgumentException(String.format("zonedDateTime must be null but was %s", zonedDateTime));
         }
-        if (linkedList != null && (linkedList.size() < 0 || linkedList.size() > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        if (zonedDateTime != null && !zonedDateTime.isAfter(ZonedDateTime.now())) {
+            throw new IllegalArgumentException(String.format("zonedDateTime must be a future date but was %s", zonedDateTime));
+        }
+    }
+
+    private static void validate_minguoDate(MinguoDate minguoDate) {
+        if (minguoDate != null) {
+            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
+        }
+        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
         }
     }
 }

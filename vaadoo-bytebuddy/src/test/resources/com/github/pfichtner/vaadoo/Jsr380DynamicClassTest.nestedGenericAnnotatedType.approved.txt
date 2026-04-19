@@ -39,14 +39,14 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated
 implements ValueObject {
     public Generated(List<List> list) {
-        Generated.validate(list);
+        Generated.validate_nested(list);
         this(list, null);
     }
 
     private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(List list) {
+    private static void validate_nested(List list) {
         if (list == null) {
             throw new IllegalArgumentException("nested must not be null");
         }
