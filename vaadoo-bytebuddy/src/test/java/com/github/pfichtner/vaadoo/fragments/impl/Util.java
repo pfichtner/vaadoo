@@ -1,7 +1,6 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
 import static java.util.Collections.emptyMap;
-import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -15,15 +14,11 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.AnnotationFactory;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 
-import jakarta.validation.constraints.AssertFalse;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -47,8 +42,10 @@ class Util {
 
 		public void noException(Object value, Class<?>... types) {
 			for (Class<?> type : types) {
-				assertThatNoException().describedAs("%s should not throw for type %s on value %s",
-						anno.annotationType(), type.getName(), value).isThrownBy(() -> accept(value, type));
+				assertThatNoException() //
+						.describedAs("%s should not throw exception for type %s on value %s", anno.annotationType(),
+								type.getName(), value)
+						.isThrownBy(() -> accept(value, type));
 			}
 		}
 
@@ -66,10 +63,15 @@ class Util {
 		private void assertException(boolean shouldThrow, Class<? extends Exception> exceptionType, Object value,
 				Class<?> type) {
 			if (shouldThrow) {
-				assertThatExceptionOfType(exceptionType).isThrownBy(() -> accept(value, type))
-						.withMessage("theMessage");
+				assertThatExceptionOfType(exceptionType) //
+						.describedAs("%s should throw exception for type %s on value %s", anno.annotationType(),
+								type.getName(), value) //
+						.isThrownBy(() -> accept(value, type)).withMessage("theMessage");
 			} else {
-				assertThatNoException().isThrownBy(() -> accept(value, type));
+				assertThatNoException() //
+						.describedAs("%s should not throw exception for type %s on value %s", anno.annotationType(),
+								type.getName(), value)
+						.isThrownBy(() -> accept(value, type));
 			}
 		}
 
@@ -87,6 +89,14 @@ class Util {
 
 		public boolean supports(Class<?> param1Type) {
 			return checkMethodsThatAccepts(param1Type).findAny().isPresent();
+		}
+
+		public boolean nullIsValidValue() {
+			Class<? extends Annotation> annotationType = getAnno().annotationType();
+			return annotationType != NotNull.class //
+					&& annotationType != NotBlank.class //
+					&& annotationType != NotEmpty.class //
+			;
 		}
 
 		private Stream<Method> checkMethodsThatAccepts(Class<?> param1Type) {
@@ -156,38 +166,14 @@ class Util {
 		return target.cast(value);
 	}
 
-	public static boolean acceptsNull(Fixture fixture) {
-		return acceptsNull(fixture.getAnno().annotationType());
-	}
-
-	/**
-	 * @return <code>true</code> if the constraint accepts null (i.e.
-	 *         <code>null</code> is considered valid)
-	 */
-	public static boolean acceptsNull(Class<? extends Annotation> annotationType) {
-		return !Set.of(NotNull.class, NotBlank.class, NotEmpty.class, AssertTrue.class, AssertFalse.class)
-				.contains(annotationType);
-	}
-
-	public static List<Fixture> nullAcceptingFixtures(Object obj) {
-		return fixtures(obj, Util::acceptsNull);
-	}
-
-	public static List<Fixture> nullRejectingFixtures(Object obj) {
-		return fixtures(obj, not(Util::acceptsNull));
-	}
-
-	private static List<Fixture> fixtures(Object obj, Predicate<Fixture> predicate) {
-		return fixtures(obj).filter(predicate).collect(toList());
-	}
-
 	@SuppressWarnings("null")
-	public static Stream<Fixture> fixtures(Object obj) {
+	public static List<Fixture> fixtures(Object obj) {
 		return Arrays.stream(obj.getClass().getDeclaredFields()) //
 				.filter(f -> Fixture.class.isAssignableFrom(f.getType())) //
 				.peek(f -> f.setAccessible(true)) //
 				.map(f -> getValue(obj, f)) //
-				.map(Fixture.class::cast); //
+				.map(Fixture.class::cast) //
+				.collect(toList());
 	}
 
 	private static Object getValue(Object obj, Field field) {
