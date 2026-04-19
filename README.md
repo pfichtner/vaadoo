@@ -11,6 +11,10 @@ Instead of validating objects after creation or delegating validation to a runti
 
 No runtime validator. No reflection. No boilerplate.
 
+## 🎥 See it in action
+
+[![Vaadoo Demo](https://img.youtube.com/vi/xcJNKk1Y3xY/hqdefault.jpg)](https://www.youtube.com/watch?v=xcJNKk1Y3xY)
+
 ## ✨ Quick Example
 
 ```java
