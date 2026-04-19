@@ -16,6 +16,7 @@
  */
 package com.github.pfichtner.vaadoo;
 
+import static java.lang.String.format;
 import static java.lang.reflect.Proxy.newProxyInstance;
 
 import java.lang.annotation.Annotation;
@@ -26,7 +27,9 @@ public class AnnotationFactory {
 	public static <A extends Annotation> A make(Class<A> annotationType, Map<String, Object> values) {
 		return annotationType.cast(
 				newProxyInstance(annotationType.getClassLoader(), new Class<?>[] { annotationType }, (p, m, a) -> {
-					if (m.getName().equals("message")) {
+					if (m.getName().equals("toString") && m.getParameterCount() == 0) {
+						return format("@%s %s", annotationType.getName(), values);
+					} else if (m.getName().equals("message")) {
 						return "theMessage";
 					} else if (m.getName().equals("annotationType")) {
 						return annotationType;
