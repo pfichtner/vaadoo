@@ -41,7 +41,7 @@ implements ValueObject {
     private static final /* synthetic */ Map regexpCache;
 
     public Generated(String string) {
-        Generated.validate_string(string);
+        Generated.validate(string);
         this(string, null);
     }
 
@@ -52,6 +52,10 @@ implements ValueObject {
         if (string != null && !Generated.getCachedPattern("\\d*", 0).matcher(string).matches()) {
             throw new IllegalArgumentException(String.format("string must match \"\\d*\" but was %s", string));
         }
+    }
+
+    private static void validate(String string) {
+        Generated.validate_string(string);
     }
 
     static {

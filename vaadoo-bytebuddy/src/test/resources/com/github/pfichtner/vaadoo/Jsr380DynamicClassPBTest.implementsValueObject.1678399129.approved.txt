@@ -47,8 +47,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_1678399129
 implements ValueObject {
     public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") Long l) {
-        Generated_1678399129.validate_hijrahDate(hijrahDate);
-        Generated_1678399129.validate_long(l);
+        Generated_1678399129.validate(hijrahDate, l);
         this(hijrahDate, l, null);
     }
 
@@ -71,6 +70,11 @@ implements ValueObject {
         if (hijrahDate != null) {
             throw new IllegalArgumentException(String.format("hijrahDate must be null but was %s", hijrahDate));
         }
+    }
+
+    private static void validate(HijrahDate hijrahDate, Long l) {
+        Generated_1678399129.validate_hijrahDate(hijrahDate);
+        Generated_1678399129.validate_long(l);
     }
 }
 

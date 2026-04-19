@@ -40,7 +40,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated
 implements ValueObject {
     public Generated(List<String> list) {
-        Generated.validate_list(list);
+        Generated.validate(list);
         this(list, null);
     }
 
@@ -71,6 +71,10 @@ implements ValueObject {
                 ++n;
             }
         }
+    }
+
+    private static void validate(List list) {
+        Generated.validate_list(list);
     }
 }
 

@@ -37,7 +37,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_170777430
 implements ValueObject {
     public Generated_170777430(Object[] objectArray) {
-        Generated_170777430.validate_objectArray(objectArray);
+        Generated_170777430.validate(objectArray);
         this(objectArray, null);
     }
 
@@ -46,6 +46,10 @@ implements ValueObject {
 
     private static void validate_objectArray(Object[] objectArray) {
         Validate.notEmpty(objectArray, "objectArray must not be empty", new Object[0]);
+    }
+
+    private static void validate(Object[] objectArray) {
+        Generated_170777430.validate_objectArray(objectArray);
     }
 }
 

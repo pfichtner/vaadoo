@@ -37,7 +37,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class GenericGenerated
 implements ValueObject {
     public GenericGenerated(int[] nArray) {
-        GenericGenerated.validate_intArray(nArray);
+        GenericGenerated.validate(nArray);
         this(nArray, null);
     }
 
@@ -56,6 +56,10 @@ implements ValueObject {
                 throw new IllegalArgumentException(String.format("intArray[" + i + "] must be greater than or equal to 1 but was %s", n2));
             }
         }
+    }
+
+    private static void validate(int[] nArray) {
+        GenericGenerated.validate_intArray(nArray);
     }
 }
 

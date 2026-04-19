@@ -45,7 +45,7 @@ implements ValueObject {
     private static final /* synthetic */ Map regexpCache;
 
     public Generated(List<String> list) {
-        Generated.validate_list(list);
+        Generated.validate(list);
         this(list, null);
     }
 
@@ -67,6 +67,10 @@ implements ValueObject {
                 ++n;
             }
         }
+    }
+
+    private static void validate(List list) {
+        Generated.validate_list(list);
     }
 
     static {

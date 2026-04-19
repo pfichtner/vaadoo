@@ -46,8 +46,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_140176688
 implements ValueObject {
     public Generated_140176688(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
-        Generated_140176688.validate_linkedHashMap(linkedHashMap);
-        Generated_140176688.validate_minguoDate(minguoDate);
+        Generated_140176688.validate(linkedHashMap, minguoDate);
         this(linkedHashMap, minguoDate, null);
     }
 
@@ -68,6 +67,11 @@ implements ValueObject {
         Preconditions.checkArgument(linkedHashMap != null, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
         int n = linkedHashMap.size();
         Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
+    }
+
+    private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
+        Generated_140176688.validate_linkedHashMap(linkedHashMap);
+        Generated_140176688.validate_minguoDate(minguoDate);
     }
 }
 

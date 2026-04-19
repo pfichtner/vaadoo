@@ -59,10 +59,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_950819241
 implements ValueObject {
     public Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
-        Generated_950819241.validate_minguoDate(minguoDate);
-        Generated_950819241.validate_zonedDateTime(zonedDateTime);
-        Generated_950819241.validate_offsetDateTime(offsetDateTime);
-        Generated_950819241.validate_linkedList(linkedList);
+        Generated_950819241.validate(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s);
         this(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s, null);
     }
 
@@ -112,6 +109,13 @@ implements ValueObject {
         if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
             throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
         }
+    }
+
+    private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
+        Generated_950819241.validate_minguoDate(minguoDate);
+        Generated_950819241.validate_zonedDateTime(zonedDateTime);
+        Generated_950819241.validate_offsetDateTime(offsetDateTime);
+        Generated_950819241.validate_linkedList(linkedList);
     }
 }
 

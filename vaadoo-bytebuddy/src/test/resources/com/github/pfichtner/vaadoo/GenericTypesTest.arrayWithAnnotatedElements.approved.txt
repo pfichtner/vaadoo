@@ -37,7 +37,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class GenericGenerated
 implements ValueObject {
     public GenericGenerated(String[] stringArray) {
-        GenericGenerated.validate_stringArray(stringArray);
+        GenericGenerated.validate(stringArray);
         this(stringArray, null);
     }
 
@@ -61,6 +61,10 @@ implements ValueObject {
                 throw new IllegalArgumentException("stringArray[" + i + "] must not be blank");
             }
         }
+    }
+
+    private static void validate(String[] stringArray) {
+        GenericGenerated.validate_stringArray(stringArray);
     }
 }
 

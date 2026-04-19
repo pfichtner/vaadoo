@@ -67,10 +67,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_950819241
 implements ValueObject {
     public Generated_950819241(Object[] objectArray, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MinguoDate minguoDate, YearMonth yearMonth, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, MinguoDate minguoDate2, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) LinkedList linkedList, short s) {
-        Generated_950819241.validate_minguoDate(minguoDate);
-        Generated_950819241.validate_zonedDateTime(zonedDateTime);
-        Generated_950819241.validate_offsetDateTime(offsetDateTime);
-        Generated_950819241.validate_linkedList(linkedList);
+        Generated_950819241.validate(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s);
         this(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s, null);
     }
 
@@ -100,6 +97,13 @@ implements ValueObject {
     private static void validate_minguoDate(MinguoDate minguoDate) {
         Validate.isTrue(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate), new Object[0]);
         Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
+    }
+
+    private static void validate(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
+        Generated_950819241.validate_minguoDate(minguoDate);
+        Generated_950819241.validate_zonedDateTime(zonedDateTime);
+        Generated_950819241.validate_offsetDateTime(offsetDateTime);
+        Generated_950819241.validate_linkedList(linkedList);
     }
 }
 

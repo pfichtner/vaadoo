@@ -53,8 +53,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_371468532
 implements ValueObject {
     public Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
-        Generated_371468532.validate_minguoDate(minguoDate);
-        Generated_371468532.validate_japaneseDate(japaneseDate);
+        Generated_371468532.validate(localTime, minguoDate, floatArray, year, japaneseDate);
         this(localTime, minguoDate, floatArray, year, japaneseDate, null);
     }
 
@@ -72,6 +71,11 @@ implements ValueObject {
         Preconditions.checkNotNull(minguoDate, "minguoDate must not be null");
         Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate));
         Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
+    }
+
+    private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
+        Generated_371468532.validate_minguoDate(minguoDate);
+        Generated_371468532.validate_japaneseDate(japaneseDate);
     }
 }
 
