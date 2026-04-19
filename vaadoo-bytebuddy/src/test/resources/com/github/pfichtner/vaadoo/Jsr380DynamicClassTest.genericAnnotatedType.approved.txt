@@ -40,14 +40,14 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated
 implements ValueObject {
     public Generated(List<String> list) {
-        Generated.validate(list);
+        Generated.validate_list(list);
         this(list, null);
     }
 
     private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(List list) {
+    private static void validate_list(List list) {
         if (list == null) {
             throw new IllegalArgumentException("list must not be null");
         }

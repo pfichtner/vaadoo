@@ -48,18 +48,22 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_1678399129
 implements ValueObject {
     public Generated_1678399129(@Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) HijrahDate hijrahDate, @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") Long l) {
-        Generated_1678399129.validate(hijrahDate, l);
+        Generated_1678399129.validate_hijrahDate(hijrahDate);
+        Generated_1678399129.validate_long(l);
         this(hijrahDate, l, null);
     }
 
     private /* synthetic */ Generated_1678399129(HijrahDate hijrahDate, Long l, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(HijrahDate hijrahDate, Long l) {
-        Validate.isTrue(hijrahDate == null, String.format("hijrahDate must be null but was %s", hijrahDate), new Object[0]);
+    private static void validate_long(Long l) {
         Validate.isTrue(l == null || l <= 0L, String.format("long must be less than or equal to 0 but was %s", l), new Object[0]);
         Validate.isTrue(l == null || l < 0L, String.format("long must be less than 0 but was %s", l), new Object[0]);
         Validate.isTrue(l == null || new BigDecimal(l).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), String.format("long must be less than or equal to 0 but was %s", l), new Object[0]);
+    }
+
+    private static void validate_hijrahDate(HijrahDate hijrahDate) {
+        Validate.isTrue(hijrahDate == null, String.format("hijrahDate must be null but was %s", hijrahDate), new Object[0]);
     }
 }
 

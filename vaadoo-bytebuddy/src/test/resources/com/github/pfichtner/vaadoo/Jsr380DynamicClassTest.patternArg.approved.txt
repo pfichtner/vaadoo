@@ -41,14 +41,14 @@ implements ValueObject {
     private static final /* synthetic */ Map regexpCache;
 
     public Generated(String string) {
-        Generated.validate(string);
+        Generated.validate_string(string);
         this(string, null);
     }
 
     private /* synthetic */ Generated(String string, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(String string) {
+    private static void validate_string(String string) {
         if (string != null && !Generated.getCachedPattern("\\d*", 0).matcher(string).matches()) {
             throw new IllegalArgumentException(String.format("string must match \"\\d*\" but was %s", string));
         }

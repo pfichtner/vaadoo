@@ -53,21 +53,25 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_371468532
 implements ValueObject {
     public Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
-        Generated_371468532.validate(localTime, minguoDate, floatArray, year, japaneseDate);
+        Generated_371468532.validate_minguoDate(minguoDate);
+        Generated_371468532.validate_japaneseDate(japaneseDate);
         this(localTime, minguoDate, floatArray, year, japaneseDate, null);
     }
 
     private /* synthetic */ Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
-        Validate.notNull(minguoDate, "minguoDate must not be null", new Object[0]);
-        Validate.isTrue(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate), new Object[0]);
-        Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
+    private static void validate_japaneseDate(JapaneseDate japaneseDate) {
         Validate.isTrue(japaneseDate == null, String.format("japaneseDate must be null but was %s", japaneseDate), new Object[0]);
         Validate.isTrue(japaneseDate == null || japaneseDate.isAfter(JapaneseDate.now()), String.format("japaneseDate must be a future date but was %s", japaneseDate), new Object[0]);
         Validate.isTrue(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate), new Object[0]);
         Validate.isTrue(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a past date but was %s", japaneseDate), new Object[0]);
+    }
+
+    private static void validate_minguoDate(MinguoDate minguoDate) {
+        Validate.notNull(minguoDate, "minguoDate must not be null", new Object[0]);
+        Validate.isTrue(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate), new Object[0]);
+        Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
     }
 }
 

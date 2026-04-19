@@ -39,14 +39,14 @@ import org.jmolecules.ddd.types.ValueObject;
 public class GenericGenerated
 implements ValueObject {
     public GenericGenerated(Map<String, Integer> map) {
-        GenericGenerated.validate(map);
+        GenericGenerated.validate_map(map);
         this(map, null);
     }
 
     private /* synthetic */ GenericGenerated(Map map, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(Map map) {
+    private static void validate_map(Map map) {
         Object object;
         if (map == null) {
             throw new IllegalArgumentException("map must not be null");

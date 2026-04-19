@@ -46,23 +46,28 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_140176688
 implements ValueObject {
     public Generated_140176688(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
-        Generated_140176688.validate(linkedHashMap, minguoDate);
+        Generated_140176688.validate_linkedHashMap(linkedHashMap);
+        Generated_140176688.validate_minguoDate(minguoDate);
         this(linkedHashMap, minguoDate, null);
     }
 
     private /* synthetic */ Generated_140176688(LinkedHashMap linkedHashMap, MinguoDate minguoDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(LinkedHashMap linkedHashMap, MinguoDate minguoDate) {
-        Validate.notEmpty(linkedHashMap, "linkedHashMap must not be empty", new Object[0]);
-        Validate.notNull(linkedHashMap, "linkedHashMap must not be null", new Object[0]);
-        Validate.isTrue(linkedHashMap == null, String.format("linkedHashMap must be null but was %s", linkedHashMap), new Object[0]);
-        if (linkedHashMap != null) {
-            Validate.inclusiveBetween(0, Integer.MAX_VALUE, linkedHashMap.size(), String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
-        }
+    private static void validate_minguoDate(MinguoDate minguoDate) {
         Validate.isTrue(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate), new Object[0]);
         Validate.isTrue(minguoDate == null, String.format("minguoDate must be null but was %s", minguoDate), new Object[0]);
         Validate.notNull(minguoDate, "minguoDate must not be null", new Object[0]);
+    }
+
+    private static void validate_linkedHashMap(LinkedHashMap linkedHashMap) {
+        block0: {
+            Validate.notEmpty(linkedHashMap, "linkedHashMap must not be empty", new Object[0]);
+            Validate.notNull(linkedHashMap, "linkedHashMap must not be null", new Object[0]);
+            Validate.isTrue(linkedHashMap == null, String.format("linkedHashMap must be null but was %s", linkedHashMap), new Object[0]);
+            if (linkedHashMap == null) break block0;
+            Validate.inclusiveBetween(0, Integer.MAX_VALUE, linkedHashMap.size(), String.format("size of linkedHashMap must be between 0 and 2147483647 but was %s", linkedHashMap));
+        }
     }
 }
 

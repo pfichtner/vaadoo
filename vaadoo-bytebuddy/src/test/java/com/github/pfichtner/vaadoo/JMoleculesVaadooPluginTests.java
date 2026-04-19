@@ -52,20 +52,19 @@ class JMoleculesVaadooPluginTests {
 
 	private static final Class<? extends RuntimeException> JMOLESCULES_NULL_EXCEPTION_TYPE = IllegalArgumentException.class;
 
-	static String validateMethodName = "validate";
 	static Transformer transformer = new Transformer();
 
 	@ParameterizedTest
 	@ValueSource(classes = { EmptyClass.class, ClassWithAttribute.class, ClassWithNotNullAttribute.class })
 	void doesNotAddValidateMethod(Class<?> clazz) throws Exception {
-		assertThat(methodNames(transformer.transform(clazz))).doesNotContain(validateMethodName);
+		assertThat(methodNames(transformer.transform(clazz))).noneMatch(name -> name.startsWith("validate_"));
 	}
 
 	@ParameterizedTest
 	@ValueSource(classes = { ValueObjectWithAttribute.class, TwoConstructorsValueObject.class,
 			ValueObjectWithRegexAttribute.class, CustomExample.class, CustomExampleWithCustomMessage.class })
 	void doesAddValidateMethod(Class<?> clazz) throws Exception {
-		assertThat(methodNames(transformer.transform(clazz))).contains(validateMethodName);
+		assertThat(methodNames(transformer.transform(clazz))).anyMatch(name -> name.startsWith("validate_"));
 	}
 
 	@Test

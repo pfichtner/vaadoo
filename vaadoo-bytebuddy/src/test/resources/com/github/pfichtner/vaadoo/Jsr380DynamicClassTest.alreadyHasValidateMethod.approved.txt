@@ -39,7 +39,7 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated
 implements ValueObject {
     public Generated(Object object) {
-        Generated.validate_1(object);
+        Generated.validate_object(object);
         this(object, null);
     }
 
@@ -49,7 +49,7 @@ implements ValueObject {
     private static void validate(Object object) {
     }
 
-    private static void validate_1(Object object) {
+    private static void validate_object(Object object) {
         if (object == null) {
             throw new IllegalArgumentException("object must not be null");
         }

@@ -36,7 +36,7 @@ class VaadooTests {
 	@Test
 	void defaultsForSampleValueObject() {
 		List<List<Class<?>>> methodParams = Stream.of(SampleValueObject.class.getDeclaredMethods())
-				.filter(m -> m.getName().equals("validate")).map(Method::getParameterTypes).map(Arrays::asList)
+				.filter(m -> m.getName().startsWith("validate_")).map(Method::getParameterTypes).map(Arrays::asList)
 				.collect(toList());
 		assertThat(methodParams).containsExactly(List.of(String.class));
 	}

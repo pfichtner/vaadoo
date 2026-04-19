@@ -51,18 +51,30 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_1605684248
 implements ValueObject {
     public Generated_1605684248(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MonthDay monthDay, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay2, Float[] floatArray, short s, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) int n) {
-        Generated_1605684248.validate(monthDay, monthDay2, floatArray, s, zonedDateTime, n);
+        Generated_1605684248.validate_monthDay(monthDay);
+        Generated_1605684248.validate_monthDay1(monthDay2);
+        Generated_1605684248.validate_zonedDateTime(zonedDateTime);
+        Generated_1605684248.validate_int(n);
         this(monthDay, monthDay2, floatArray, s, zonedDateTime, n, null);
     }
 
     private /* synthetic */ Generated_1605684248(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
-        Validate.isTrue(monthDay == null || monthDay.isAfter(MonthDay.now()), String.format("monthDay must be a future date but was %s", monthDay), new Object[0]);
-        Validate.isTrue(monthDay2 == null || monthDay2.isBefore(MonthDay.now()), String.format("monthDay1 must be a past date but was %s", monthDay2), new Object[0]);
-        Validate.isTrue(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), String.format("zonedDateTime must be a future date but was %s", zonedDateTime), new Object[0]);
+    private static void validate_int(int n) {
         Validate.isTrue(n > 0, String.format("int must be greater than 0 but was %s", n), new Object[0]);
+    }
+
+    private static void validate_zonedDateTime(ZonedDateTime zonedDateTime) {
+        Validate.isTrue(zonedDateTime == null || zonedDateTime.isAfter(ZonedDateTime.now()), String.format("zonedDateTime must be a future date but was %s", zonedDateTime), new Object[0]);
+    }
+
+    private static void validate_monthDay1(MonthDay monthDay) {
+        Validate.isTrue(monthDay == null || monthDay.isBefore(MonthDay.now()), String.format("monthDay1 must be a past date but was %s", monthDay), new Object[0]);
+    }
+
+    private static void validate_monthDay(MonthDay monthDay) {
+        Validate.isTrue(monthDay == null || monthDay.isAfter(MonthDay.now()), String.format("monthDay must be a future date but was %s", monthDay), new Object[0]);
     }
 }
 

@@ -36,14 +36,14 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated
 implements ValueObject {
     public Generated(Object object) {
-        Generated.validate(object);
+        Generated.validate_aNamedArgument(object);
         this(object, null);
     }
 
     private /* synthetic */ Generated(Object object, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(Object object) {
+    private static void validate_aNamedArgument(Object object) {
         if (object == null) {
             throw new IllegalArgumentException("aNamedArgument must not be null");
         }

@@ -37,14 +37,14 @@ import org.jmolecules.ddd.types.ValueObject;
 public class Generated_170777430
 implements ValueObject {
     public Generated_170777430(Object[] objectArray) {
-        Generated_170777430.validate(objectArray);
+        Generated_170777430.validate_objectArray(objectArray);
         this(objectArray, null);
     }
 
     private /* synthetic */ Generated_170777430(Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate(Object[] objectArray) {
+    private static void validate_objectArray(Object[] objectArray) {
         Preconditions.checkArgument(objectArray != null, "objectArray must not be empty");
         Preconditions.checkArgument(objectArray.length > 0, "objectArray must not be empty");
     }
