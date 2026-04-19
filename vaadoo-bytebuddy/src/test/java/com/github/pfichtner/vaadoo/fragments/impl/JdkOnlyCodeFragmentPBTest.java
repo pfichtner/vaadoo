@@ -1,5 +1,7 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
+import static com.github.pfichtner.vaadoo.fragments.impl.Util.fixtures;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +71,15 @@ class JdkOnlyCodeFragmentPBTest extends ConstraintArbitraries {
 	Fixture futureOrPresent = Fixture.of(sut, FutureOrPresent.class);
 	Fixture past = Fixture.of(sut, Past.class);
 	Fixture pastOrPresent = Fixture.of(sut, PastOrPresent.class);
+
+	@Property
+	void null_contract(@ForAll("objects") Object value) {
+		for (Fixture fixture : fixtures(this)) {
+			if (fixture.supports(value.getClass())) {
+				fixture.assertException(!fixture.nullIsValidValue(), null, RuntimeException.class, value.getClass());
+			}
+		}
+	}
 
 	// NotNull: generated non-null strings should never fail
 	@Property
