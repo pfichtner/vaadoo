@@ -143,25 +143,29 @@ public class GuavaCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Size anno, CharSequence charSequence) {
-		int length = checkNotNull(charSequence, anno.message()).length();
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		if (charSequence != null) {
+			checkArgument(charSequence.length() >= anno.min() && charSequence.length() <= anno.max(), anno.message());
+		}
 	}
 
 	public void check(Size anno, Collection<?> collection) {
-		int length = checkNotNull(collection, anno.message()).size();
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		if (collection != null) {
+			checkArgument(collection.size() >= anno.min() && collection.size() <= anno.max(), anno.message());
+		}
 	}
 
 	@Override
 	public void check(Size anno, Map<?, ?> map) {
-		int length = checkNotNull(map, anno.message()).size();
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		if (map != null) {
+			checkArgument(map.size() >= anno.min() && map.size() <= anno.max(), anno.message());
+		}
 	}
 
 	@Override
 	public void check(Size anno, Object[] objects) {
-		int length = checkNotNull(objects, anno.message()).length;
-		checkArgument(length >= anno.min() && length <= anno.max(), anno.message());
+		if (objects != null) {
+			checkArgument(objects.length >= anno.min() && objects.length <= anno.max(), anno.message());
+		}
 	}
 
 	// -----------------------------------------------------------------

@@ -142,25 +142,29 @@ public class ApacheCommonsLangCodeFragment implements Jsr380CodeFragment {
 
 	@Override
 	public void check(Size anno, CharSequence charSequence) {
-		int length = notNull(charSequence, anno.message()).length();
-		inclusiveBetween(anno.min(), anno.max(), length, anno.message());
+		if (charSequence != null) {
+			inclusiveBetween(anno.min(), anno.max(), charSequence.length(), anno.message());
+		}
 	}
 
 	public void check(Size anno, Collection<?> collection) {
-		int length = notNull(collection, anno.message()).size();
-		inclusiveBetween(anno.min(), anno.max(), length, anno.message());
+		if (collection != null) {
+			inclusiveBetween(anno.min(), anno.max(), collection.size(), anno.message());
+		}
 	}
 
 	@Override
 	public void check(Size anno, Map<?, ?> map) {
-		int length = notNull(map, anno.message()).size();
-		inclusiveBetween(anno.min(), anno.max(), length, anno.message());
+		if (map != null) {
+			inclusiveBetween(anno.min(), anno.max(), map.size(), anno.message());
+		}
 	}
 
 	@Override
 	public void check(Size anno, Object[] objects) {
-		int length = notNull(objects, anno.message()).length;
-		inclusiveBetween(anno.min(), anno.max(), length, anno.message());
+		if (objects != null) {
+			inclusiveBetween(anno.min(), anno.max(), objects.length, anno.message());
+		}
 	}
 
 	// -----------------------------------------------------------------
