@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -180,16 +181,21 @@ class Util {
 		return fixtures(obj).filter(predicate).collect(toList());
 	}
 
+	@SuppressWarnings("null")
 	public static Stream<Fixture> fixtures(Object obj) {
-		return Arrays.stream(obj.getClass().getDeclaredFields()).filter(field -> field.getType().equals(Fixture.class)) //
+		return Arrays.stream(obj.getClass().getDeclaredFields()) //
+				.filter(f -> Fixture.class.isAssignableFrom(f.getType())) //
 				.peek(f -> f.setAccessible(true)) //
-				.map(f -> {
-					try {
-						return (Fixture) f.get(obj);
-					} catch (IllegalAccessException e) {
-						throw new RuntimeException(e);
-					}
-				});
+				.map(f -> getValue(obj, f)) //
+				.map(Fixture.class::cast); //
+	}
+
+	private static Object getValue(Object obj, Field field) {
+		try {
+			return field.get(obj);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
