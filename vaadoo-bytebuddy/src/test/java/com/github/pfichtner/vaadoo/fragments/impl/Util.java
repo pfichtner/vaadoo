@@ -1,6 +1,5 @@
 package com.github.pfichtner.vaadoo.fragments.impl;
 
-import static java.math.RoundingMode.UNNECESSARY;
 import static java.util.Collections.emptyMap;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
@@ -16,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.AnnotationFactory;
@@ -148,9 +148,7 @@ class Util {
 			} else if (target == BigInteger.class) {
 				return BigInteger.valueOf(n.longValue());
 			} else if (target == BigDecimal.class) {
-				BigDecimal bd = BigDecimal.valueOf(n.doubleValue());
-				return value.getClass() == Integer.class || value.getClass() == Long.class ? bd.setScale(0, UNNECESSARY)
-						: bd;
+				return n instanceof BigDecimal ? n : new BigDecimal(n.toString());
 			}
 		}
 
@@ -171,11 +169,15 @@ class Util {
 	}
 
 	public static List<Fixture> nullAcceptingFixtures(Object obj) {
-		return fixtures(obj).filter(Util::acceptsNull).collect(toList());
+		return fixtures(obj, Util::acceptsNull);
 	}
 
 	public static List<Fixture> nullRejectingFixtures(Object obj) {
-		return fixtures(obj).filter(not(Util::acceptsNull)).collect(toList());
+		return fixtures(obj, not(Util::acceptsNull));
+	}
+
+	private static List<Fixture> fixtures(Object obj, Predicate<Fixture> predicate) {
+		return fixtures(obj).filter(predicate).collect(toList());
 	}
 
 	public static Stream<Fixture> fixtures(Object obj) {
