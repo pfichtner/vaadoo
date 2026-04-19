@@ -16,11 +16,14 @@
 package com.github.pfichtner.vaadoo;
 
 import static java.lang.String.format;
+import static java.lang.reflect.Modifier.isPublic;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -103,7 +106,13 @@ public final class Transformer {
 			throws Exception {
 		Class<?> clazz = unloaded.load(blockingClassLoader, ClassLoadingStrategy.Default.INJECTION).getLoaded();
 		try {
-			return clazz.getDeclaredConstructors()[0].newInstance(args);
+			Constructor<?> constructor = Arrays.stream(clazz.getDeclaredConstructors()) //
+					.filter(c -> isPublic(c.getModifiers())) //
+					.filter(c -> c.getParameterCount() == args.length) //
+					.findFirst() //
+					.orElseThrow(() -> new IllegalStateException(format(
+							"Class %s does not define a public constructor with %d parameters", clazz, args.length)));
+			return constructor.newInstance(args);
 		} catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			throw cause instanceof Exception ? (Exception) cause : new RuntimeException(e);
