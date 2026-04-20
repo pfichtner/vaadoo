@@ -13,7 +13,7 @@ No runtime validator. No reflection. No boilerplate.
 
 ## 🎥 See it in action
 
-[![Vaadoo Demo](https://img.youtube.com/vi/xcJNKk1Y3xY/hqdefault.jpg)](https://www.youtube.com/watch?v=xcJNKk1Y3xY)
+[![Vaadoo Demo](https://img.youtube.com/vi/kbVghtBEemc/hqdefault.jpg)](https://www.youtube.com/watch?v=kbVghtBEemc)
 
 ## ✨ Quick Example
 
