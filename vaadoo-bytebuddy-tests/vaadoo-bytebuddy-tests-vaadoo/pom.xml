@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -19,17 +21,17 @@
 			<version>2.0.1</version>
 		</dependency>
 
-		<!-- nodep artifact provides the plugin registration and minimal
-		     classes required for classpath discovery by the byte-buddy
-		     plugin without bringing full runtime dependencies. -->
+		<!-- nodep artifact provides the plugin registration and minimal classes 
+			required for classpath discovery by the byte-buddy plugin without bringing 
+			full runtime dependencies. -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>vaadoo-bytebuddy-nodep</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- Ensure the plugin implementation class is available on the
-		     test classpath so classPathDiscovery can load the plugin. -->
+		<!-- Ensure the plugin implementation class is available on the test classpath 
+			so classPathDiscovery can load the plugin. -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>vaadoo-bytebuddy</artifactId>
