@@ -100,16 +100,19 @@ Yes. In most real-world applications, DTOs and Vaadoo serve complementary roles 
 Vaadoo enforces domain correctness, while DTOs handle interaction-specific validation concerns at the application boundary.
 
 A typical separation:
+
 DTOs
 - validate user input
 - support partial updates and context-specific rules
 - provide aggregated, user-friendly error reporting
+
 Domain (Vaadoo)
 - enforces absolute invariants
 - guarantees that invalid objects cannot exist
 - remains consistent regardless of entry point (API, batch, tests, imports)
 
 DTO validation answers: “Is this input acceptable for this use case?”
+
 Vaadoo validation answers: “Can this object exist in the system at all?”
 
 This separation avoids forcing a single model to represent multiple conflicting contexts and is the recommended usage pattern.
