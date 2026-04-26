@@ -32,11 +32,11 @@ Hibernate Validator is a runtime implementation of Jakarta Bean Validation. It e
 Vaadoo takes a different approach:
 - it uses Bean Validation annotations only as build-time input
 - it injects validation logic directly into constructors
-- it executes validation automatically when objects are created
-- it does not require a validation framework or reflection at runtime
+- validation is executed automatically during object creation
+- no runtime validation framework or reflection is required
 Key difference:
-- Hibernate Validator → “validate this object”
-- Vaadoo → “this object is already validated when it is created”
+- Hibernate Validator → “validate this object after creation”
+- Vaadoo → “this object is guaranteed valid by construction”
 
 ### ❓ Does Vaadoo depend on Lombok?
 
@@ -77,10 +77,42 @@ In strict Clean Architecture interpretations, this may be seen as a compromise. 
 
 ### ❓ Does Vaadoo violate DDD principles?
 
-No.
-Vaadoo enforces invariants inside domain objects at construction time and encourages rich value objects instead of primitives.
+No. Vaadoo is aligned with core Domain-Driven Design principles.
 
-The only trade-offs are annotation coupling and build-time weaving.
+In particular, it strongly supports:
+
+- Rich domain models instead of anemic models
+- Value objects with enforced invariants
+- The principle that invalid states should be unrepresentable
+
+By injecting validation into constructors, Vaadoo ensures that domain objects are always created in a valid state.
+
+The main trade-offs are:
+- annotation coupling inside the domain model
+- build-time bytecode transformation as part of the build process
+
+These are implementation choices, not violations of DDD principles.
+
+### ❓ Do I still need DTOs if Vaadoo enforces validation in the domain?
+
+Yes. In most real-world applications, DTOs and Vaadoo serve complementary roles rather than competing ones.
+
+Vaadoo enforces domain correctness, while DTOs handle interaction-specific validation concerns at the application boundary.
+
+A typical separation:
+DTOs
+- validate user input
+- support partial updates and context-specific rules
+- provide aggregated, user-friendly error reporting
+Domain (Vaadoo)
+- enforces absolute invariants
+- guarantees that invalid objects cannot exist
+- remains consistent regardless of entry point (API, batch, tests, imports)
+
+DTO validation answers: “Is this input acceptable for this use case?”
+Vaadoo validation answers: “Can this object exist in the system at all?”
+
+This separation avoids forcing a single model to represent multiple conflicting contexts and is the recommended usage pattern.
 
 ### ❓ What exceptions does Vaadoo throw?
 
