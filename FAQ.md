@@ -189,7 +189,7 @@ The main benefit is not writing code, but reading it. Boilerplate validation add
 
 ### ❓ Why is Vaadoo named “Vaadoo”?
 
-“Vaadoo” is an acronym for **VA**lid**A**ting **DO**main ~O~bjects.
+“Vaadoo” is an acronym for **VA**lid**A**ting **DO**main **O**bjects.
 
 The name reflects the core idea behind the tool:
 
