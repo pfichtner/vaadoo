@@ -185,3 +185,17 @@ Vaadoo generates validation as part of the build process directly into bytecode.
 - consistent enforcement across all classes
 
 The main benefit is not writing code, but reading it. Boilerplate validation adds constant noise (“Is this checked?”, “Is it consistent?”, “Did I miss something?”). Vaadoo removes that noise so you focus on domain logic.
+
+
+### ❓ Why is Vaadoo named “Vaadoo”?
+
+“Vaadoo” is an acronym for **VA**lid**A**ting **DO**main ~O~bjects.
+
+The name reflects the core idea behind the tool:
+
+- Validating → enforcing constraints
+- Domain Objects → at the heart of your domain model
+
+Vaadoo ensures that domain objects are valid by construction, by injecting validation logic directly into constructors at build time.
+
+Because Vaadoo operates at build time and modifies bytecode invisibly, it can feel a bit like voodoo: validation logic appears in your constructors without being explicitly written in source code.
