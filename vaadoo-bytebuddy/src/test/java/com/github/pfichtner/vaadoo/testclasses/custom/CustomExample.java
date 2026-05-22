@@ -12,4 +12,8 @@ public class CustomExample {
 		this.iban = iban;
 	}
 
+	public CustomExample(@ValidIbanAlwaysTrue String iban, String ignore) {
+		this.iban = iban;
+	}
+
 }

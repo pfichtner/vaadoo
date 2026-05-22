@@ -211,7 +211,14 @@ class JMoleculesVaadooPluginTests {
 		);
 	}
 
-	private List<String> methodNames(Class<?> transformed) {
+	@Test
+	void canFindCustomValidatorThatNotDirectlyImpelementsTheValidatorInterface() throws Exception {
+		var transformed = transformer.transform(CustomExample.class);
+		var constructor = transformed.getDeclaredConstructor(String.class, String.class);
+		assertThatNoException().isThrownBy(() -> constructor.newInstance("XXX", "ignored"));
+	}
+
+	static List<String> methodNames(Class<?> transformed) {
 		return Arrays.stream(transformed.getDeclaredMethods()).map(Method::getName).collect(toList());
 	}
 

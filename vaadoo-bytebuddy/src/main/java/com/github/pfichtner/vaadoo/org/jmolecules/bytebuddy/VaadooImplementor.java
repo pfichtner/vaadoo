@@ -15,8 +15,6 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
-import static com.github.pfichtner.vaadoo.ByteBuddyUtil.sizeOf;
-import static com.github.pfichtner.vaadoo.ByteBuddyUtil.toTypes;
 import static com.github.pfichtner.vaadoo.CustomAnnotations.addCustomAnnotations;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.findRepeatableAnnotationContainers;
@@ -26,10 +24,8 @@ import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.Cached
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isAbstract;
 import static java.util.Collections.emptyList;
-import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
 import static java.util.stream.Stream.empty;
@@ -344,15 +340,12 @@ class VaadooImplementor {
 
 					return typeArgAnnotations.stream().flatMap(annotation -> {
 						TypeDescription annotationType = annotation.getAnnotationType();
-						if (isStandardJr380Anno(annotationType)) {
-							Optional<Method> fragmentMethod = codeFragmentMethod(annotationType,
-									typeArgument.asErasure());
-							if (fragmentMethod.isPresent()) {
-								return Stream.of(new GenericTypeInjectionTask(parameter, typeArgument.asErasure(),
-										fragmentMethod.get(), annotation, i));
-							}
-						}
-						return empty();
+						Optional<Method> codeFragmentMethod = isStandardJr380Anno(annotationType)
+								? codeFragmentMethod(annotationType, typeArgument.asErasure())
+								: Optional.empty();
+						return codeFragmentMethod.map(m -> Stream.of(
+								new GenericTypeInjectionTask(parameter, typeArgument.asErasure(), m, annotation, i)))
+								.orElse(empty());
 					});
 				});
 			} else if (genericType.isArray()) {

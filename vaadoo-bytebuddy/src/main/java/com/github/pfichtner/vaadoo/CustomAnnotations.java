@@ -130,14 +130,20 @@ public final class CustomAnnotations {
 	}
 
 	private static TypeDescription typeThatGetsValidated(TypeDefinition validatorClass) {
-		TypeList.Generic typeArguments = validatorClass.getInterfaces().stream() //
-				.filter(i -> i.asErasure().equals(ForLoadedType.of(ConstraintValidator.class))) //
-				.findFirst().orElseThrow().getTypeArguments();
-		if (typeArguments.size() == 2) {
-			return typeArguments.get(1).asErasure();
+		TypeDescription.Generic constraintValidator = validatorClass.asGenericType();
+		while (constraintValidator != null) {
+			for (TypeDescription.Generic iface : constraintValidator.getInterfaces()) {
+				if (iface.asErasure().equals(ForLoadedType.of(ConstraintValidator.class))) {
+					TypeList.Generic typeArguments = iface.getTypeArguments();
+					if (typeArguments.size() == 2) {
+						return typeArguments.get(1).asErasure();
+					}
+					throw new IllegalArgumentException("Expected ConstraintValidator<A, B> but found " + typeArguments);
+				}
+			}
+			constraintValidator = constraintValidator.getSuperClass();
 		}
-		throw new IllegalArgumentException(
-				format("Expect %s to have 2 generic types but found %s", validatorClass, typeArguments));
+		throw new IllegalStateException("No ConstraintValidator found in hierarchy of " + validatorClass);
 	}
 
 	private static InDefinedShape defaultMessageMethod(TypeDescription annotation) {
