@@ -33,6 +33,7 @@ jobs:
     name: Build project (Java ${{ matrix.java }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         java: ${{ fromJson(needs.setup.outputs.matrix) }}
 
