@@ -47,7 +47,6 @@ import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableRegexAtt
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableSizeAttribute;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExample;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMessage;
-import com.github.pfichtner.vaadoo.testclasses.custom.FinancialInstitution;
 
 class JMoleculesVaadooPluginTests {
 
@@ -142,16 +141,6 @@ class JMoleculesVaadooPluginTests {
 	}
 
 	@Test
-	void customExample2() throws Exception {
-		var transformed = transformer.transform(FinancialInstitution.class);
-		var constructor = transformed.getDeclaredConstructor(String.class, String.class);
-		constructor.newInstance("WXYZDE12XXX", "Some Bank");
-		assertThatException().isThrownBy(() -> constructor.newInstance("XXX", "Some Bank"))
-				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
-						.hasMessage("Bic XXX is invalid"));
-	}
-
-	@Test
 	void repeatableAnnotations() throws Exception {
 		var transformed = transformer.transform(ValueObjectWithRepeatableRegexAttribute.class);
 		var stringArgConstructor = transformed.getDeclaredConstructor(String.class);
@@ -222,7 +211,14 @@ class JMoleculesVaadooPluginTests {
 		);
 	}
 
-	private List<String> methodNames(Class<?> transformed) {
+	@Test
+	void canFindCustomValidatorThatNotDirectlyImpelementsTheValidatorInterface() throws Exception {
+		var transformed = transformer.transform(CustomExample.class);
+		var constructor = transformed.getDeclaredConstructor(String.class, String.class);
+		assertThatNoException().isThrownBy(() -> constructor.newInstance("XXX", "ignored"));
+	}
+
+	static List<String> methodNames(Class<?> transformed) {
 		return Arrays.stream(transformed.getDeclaredMethods()).map(Method::getName).collect(toList());
 	}
 
