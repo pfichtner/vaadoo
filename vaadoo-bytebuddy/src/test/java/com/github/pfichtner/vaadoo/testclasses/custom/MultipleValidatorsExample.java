@@ -4,6 +4,7 @@ import org.jmolecules.ddd.annotation.ValueObject;
 
 @ValueObject
 public class MultipleValidatorsExample {
+
 	private final String value;
 
 	public MultipleValidatorsExample(@MultipleValidators String value) {
@@ -13,4 +14,5 @@ public class MultipleValidatorsExample {
 	public String getValue() {
 		return value;
 	}
+
 }
