@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import example.vaadoo.FinancialInstitution;
 import example.vaadoo.SampleValueRecord;
 
 class VaadooRecordTests {
@@ -53,6 +54,16 @@ class VaadooRecordTests {
 	void doesNotThrowExceptionOnNonNullValueAndAssignsValues() {
 		String value = "not null and not empty";
 		assertThat(new SampleValueRecord(value).value()).isEqualTo(value);
+	}
+
+	@Test
+	void xxxxxxxxxxxxxxxxxxx() {
+		String validBic = "XXXXDE12ABC";
+		String invalidBic = "XXX";
+		String validName = "Some bank";
+		assertThat(new FinancialInstitution(validBic, validName).bic()).isEqualTo(validBic);
+		assertThatRuntimeException().isThrownBy(() -> new FinancialInstitution(invalidBic, validName))
+				.withMessage("Bic " + "XXX" + " is invalid");
 	}
 
 }

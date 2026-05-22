@@ -47,6 +47,7 @@ import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableRegexAtt
 import com.github.pfichtner.vaadoo.testclasses.ValueObjectWithRepeatableSizeAttribute;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExample;
 import com.github.pfichtner.vaadoo.testclasses.custom.CustomExampleWithCustomMessage;
+import com.github.pfichtner.vaadoo.testclasses.custom.FinancialInstitution;
 
 class JMoleculesVaadooPluginTests {
 
@@ -138,6 +139,16 @@ class JMoleculesVaadooPluginTests {
 		constructor.newInstance(validArgs.toArray());
 		assertThatException().isThrownBy(() -> constructor.newInstance(invalidArgs.toArray())).satisfies(
 				e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class).hasMessage(message));
+	}
+
+	@Test
+	void customExample2() throws Exception {
+		var transformed = transformer.transform(FinancialInstitution.class);
+		var constructor = transformed.getDeclaredConstructor(String.class, String.class);
+		constructor.newInstance("WXYZDE12XXX", "Some Bank");
+		assertThatException().isThrownBy(() -> constructor.newInstance("XXX", "Some Bank"))
+				.satisfies(e -> assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class)
+						.hasMessage("Bic XXX is invalid"));
 	}
 
 	@Test
