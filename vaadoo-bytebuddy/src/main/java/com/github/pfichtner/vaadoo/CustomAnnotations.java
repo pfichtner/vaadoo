@@ -95,7 +95,6 @@ public final class CustomAnnotations {
 					false);
 			mv.visitInsn(ATHROW);
 			mv.visitLabel(label0);
-			mv.visitFrame(F_APPEND, 1, new Object[] { validatorType }, 0, null);
 		}
 	}
 
