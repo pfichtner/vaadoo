@@ -6,24 +6,46 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Build project
+  setup:
+    name: Prepare matrix
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      min_java: ${{ steps.set-matrix.outputs.min_java }}
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v6
+      - name: Read Java version and build matrix
+        id: set-matrix
+        run: |
+          MIN_JAVA=$(cat .java-version)
+          # Combine MIN_JAVA with LTS versions and deduplicate
+          ALL_VERSIONS=($MIN_JAVA 17 21 25)
+          UNIQUE_VERSIONS=($(printf "%s\n" "${ALL_VERSIONS[@]}" | sort -un))
+          JSON=$(printf '%s\n' "${UNIQUE_VERSIONS[@]}" | jq -R . | jq -s -c .)
+          echo "matrix=$JSON" >> $GITHUB_OUTPUT
+          echo "min_java=$MIN_JAVA" >> $GITHUB_OUTPUT
+          echo "Determined matrix: $JSON"
+          echo "Minimum Java: $MIN_JAVA"
+
+  build:
+    needs: setup
+    name: Build project (Java ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: ${{ fromJson(needs.setup.outputs.matrix) }}
 
     steps:
 
     - name: Check out sources
       uses: actions/checkout@v6
 
-    - name: Read Java version from .java-version
-      id: read-version
-      run: echo "version=$(cat .java-version)" >> $GITHUB_OUTPUT
-    
-    - name: Set up JDK ${{ steps.read-version.outputs.version }}
+    - name: Set up JDK ${{ matrix.java }}
       uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
-        java-version: ${{ steps.read-version.outputs.version }}
+        java-version: ${{ matrix.java }}
         cache: 'maven'
 
     - name: Build and deploy snapshot
@@ -34,6 +56,7 @@ jobs:
 #     run: ./mvnw -B deploy -s settings.xml
 
     - name: Upload coverage reports to Codecov
+      if: matrix.java == needs.setup.outputs.min_java
       uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
