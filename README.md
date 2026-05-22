@@ -67,7 +67,7 @@ if (age < 18) {
 ## Getting Started
 
 Add the dependency and enable bytecode transformation:
-Vaadoo is available on **Maven Central**. The current release is **0.0.2**:
+Vaadoo is available on **Maven Central**. The current release is **0.0.3**:
 
 ## Java Requirements
 
@@ -80,7 +80,7 @@ Vaadoo is available on **Maven Central**. The current release is **0.0.2**:
 <dependency>
     <groupId>io.github.pfichtner</groupId>
     <artifactId>vaadoo-bytebuddy</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
@@ -108,7 +108,7 @@ To enable build-time class transformation using Byte Buddy, add the following to
 ### Gradle Build Plugin Configuration
 
 ```groovy
-implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.2'
+implementation 'io.github.pfichtner:vaadoo-bytebuddy:0.0.3'
 
 plugins {
     id 'java'
