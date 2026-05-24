@@ -59,6 +59,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -123,7 +124,7 @@ class VaadooImplementor {
 				.map(MethodDescription.InDefinedShape::getName).collect(toList()));
 		Set<String> allGeneratedValidateMethodNames = new HashSet<>();
 
-		Map<CustomValidatorInfo, String> customValidatorFields = new HashMap<>();
+		Map<CustomValidatorInfo, String> customValidatorFields = new LinkedHashMap<>();
 		AtomicInteger validatorCounter = new AtomicInteger();
 		Function<CustomValidatorInfo, String> fieldNameResolver = info -> {
 			for (Map.Entry<CustomValidatorInfo, String> entry : customValidatorFields.entrySet()) {

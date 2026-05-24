@@ -135,6 +135,89 @@ public class CustomAnnotationValidatorClassVisitor extends ClassVisitor {
 		} else if (value instanceof net.bytebuddy.description.type.TypeDescription) {
 			mv.visitLdcInsn(
 					Type.getObjectType(((net.bytebuddy.description.type.TypeDescription) value).getInternalName()));
+		} else if (value instanceof net.bytebuddy.description.type.TypeDescription[]) {
+			net.bytebuddy.description.type.TypeDescription[] array = (net.bytebuddy.description.type.TypeDescription[]) value;
+			mv.visitLdcInsn(array.length);
+			mv.visitTypeInsn(net.bytebuddy.jar.asm.Opcodes.ANEWARRAY, "java/lang/Class");
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitLdcInsn(Type.getObjectType(array[i].getInternalName()));
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.AASTORE);
+			}
+		} else if (value instanceof net.bytebuddy.description.enumeration.EnumerationDescription[]) {
+			net.bytebuddy.description.enumeration.EnumerationDescription[] array = (net.bytebuddy.description.enumeration.EnumerationDescription[]) value;
+			String enumInternalName = array.length > 0 ? array[0].getEnumerationType().getInternalName() : "java/lang/Enum";
+			mv.visitLdcInsn(array.length);
+			mv.visitTypeInsn(net.bytebuddy.jar.asm.Opcodes.ANEWARRAY, enumInternalName);
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitFieldInsn(net.bytebuddy.jar.asm.Opcodes.GETSTATIC,
+						array[i].getEnumerationType().getInternalName(), array[i].getValue(),
+						array[i].getEnumerationType().getDescriptor());
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.AASTORE);
+			}
+		} else if (value instanceof String[]) {
+			String[] array = (String[]) value;
+			mv.visitLdcInsn(array.length);
+			mv.visitTypeInsn(net.bytebuddy.jar.asm.Opcodes.ANEWARRAY, "java/lang/String");
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitLdcInsn(array[i]);
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.AASTORE);
+			}
+		} else if (value instanceof int[]) {
+			int[] array = (int[]) value;
+			mv.visitLdcInsn(array.length);
+			mv.visitIntInsn(net.bytebuddy.jar.asm.Opcodes.NEWARRAY, net.bytebuddy.jar.asm.Opcodes.T_INT);
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitLdcInsn(array[i]);
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.IASTORE);
+			}
+		} else if (value instanceof long[]) {
+			long[] array = (long[]) value;
+			mv.visitLdcInsn(array.length);
+			mv.visitIntInsn(net.bytebuddy.jar.asm.Opcodes.NEWARRAY, net.bytebuddy.jar.asm.Opcodes.T_LONG);
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitLdcInsn(array[i]);
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.LASTORE);
+			}
+		} else if (value instanceof boolean[]) {
+			boolean[] array = (boolean[]) value;
+			mv.visitLdcInsn(array.length);
+			mv.visitIntInsn(net.bytebuddy.jar.asm.Opcodes.NEWARRAY, net.bytebuddy.jar.asm.Opcodes.T_BOOLEAN);
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitLdcInsn(array[i] ? 1 : 0);
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.BASTORE);
+			}
+		} else if (value instanceof double[]) {
+			double[] array = (double[]) value;
+			mv.visitLdcInsn(array.length);
+			mv.visitIntInsn(net.bytebuddy.jar.asm.Opcodes.NEWARRAY, net.bytebuddy.jar.asm.Opcodes.T_DOUBLE);
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitLdcInsn(array[i]);
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.DASTORE);
+			}
+		} else if (value instanceof float[]) {
+			float[] array = (float[]) value;
+			mv.visitLdcInsn(array.length);
+			mv.visitIntInsn(net.bytebuddy.jar.asm.Opcodes.NEWARRAY, net.bytebuddy.jar.asm.Opcodes.T_FLOAT);
+			for (int i = 0; i < array.length; i++) {
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(i);
+				mv.visitLdcInsn(array[i]);
+				mv.visitInsn(net.bytebuddy.jar.asm.Opcodes.FASTORE);
+			}
 		} else if (value == null) {
 			mv.visitInsn(ACONST_NULL);
 		} else {
