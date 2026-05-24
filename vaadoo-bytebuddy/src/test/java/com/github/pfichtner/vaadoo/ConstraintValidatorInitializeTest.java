@@ -17,12 +17,12 @@ class ConstraintValidatorInitializeTest {
 		var constructor = transformed.getDeclaredConstructor(Integer.class);
 
 		// Passes: 10 >= 10
-		assertThatNoException().isThrownBy(() -> constructor.newInstance(Integer.valueOf(10)));
+		assertThatNoException().isThrownBy(() -> constructor.newInstance(10));
 
-		// Fails: 5 < 10
-		// If initialize is NOT called, threshold is 0, so 5 >= 0 would PASS.
+		// Fails: 9 < 10
+		// If initialize is NOT called, threshold is 0, so 9 >= 0 would PASS.
 		// So this test SHOULD FAIL with current implementation.
-		assertThatThrownBy(() -> constructor.newInstance(Integer.valueOf(5)))
+		assertThatThrownBy(() -> constructor.newInstance(9))
 				.hasCauseInstanceOf(IllegalArgumentException.class)
 				.hasRootCauseMessage("value too small");
 	}

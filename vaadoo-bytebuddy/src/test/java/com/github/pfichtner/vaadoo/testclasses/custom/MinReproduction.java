@@ -19,5 +19,5 @@ public @interface MinReproduction {
 	String message() default "value too small";
 	Class<?>[] groups() default {};
 	Class<? extends Payload>[] payload() default {};
-	int min() default 0;
+	int min();
 }
