@@ -117,8 +117,8 @@ public final class CustomAnnotations {
 	private static final Pattern annoMethodPattern = Pattern.compile("anno\\.(\\w+)\\(\\)");
 
 	private static Object getMessage(Parameter parameter, TypeDescription annotation, Object message) {
-		Object defaultMessage = defaultMessage(annotation);
-		if (message != null && message.equals(defaultMessage)) {
+		Object msgTemplate = message != null ? message : defaultMessage(annotation);
+		if (msgTemplate instanceof String) {
 			Function<String, String> rbResolver = Resources::message;
 			Function<String, String> paramNameResolver = k -> k.equals(ValidationCodeInjector.NAME) ? parameter.name()
 					: k;
@@ -138,10 +138,10 @@ public final class CustomAnnotations {
 								: annotationValue.toString();
 			};
 
-			message = NamedPlaceholders.replace((String) defaultMessage,
+			return NamedPlaceholders.replace((String) msgTemplate,
 					rbResolver.andThen(annotationValueResolver).andThen(paramNameResolver));
 		}
-		return message == null ? format("%s not valid", parameter.name()) : message;
+		return msgTemplate == null ? format("%s not valid", parameter.name()) : msgTemplate;
 	}
 
 	private static TypeDescription typeThatGetsValidated(TypeDefinition validatorClass) {

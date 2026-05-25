@@ -18,7 +18,7 @@ class StatefulValidatorTest {
 	@Retention(RUNTIME)
 	@Constraint(validatedBy = MinValidator.class)
 	public static @interface Min {
-		String message() default "Value must be at least {value}";
+		String message() default "{@@@NAME@@@} must be at least {anno.value()}";
 
 		int value();
 	}
@@ -41,7 +41,10 @@ class StatefulValidatorTest {
 
 	@ValueObject
 	public static class StatefulExample {
-		public StatefulExample(@Min(value = 42) int min42, @Min(value = 21) int min21) {
+		public StatefulExample( //
+				@Min(value = 42) int value1, //
+				@Min(value = 21, message = "Custom message for {@@@NAME@@@}") int value2 //
+		) {
 		}
 	}
 
@@ -52,8 +55,14 @@ class StatefulValidatorTest {
 		var constructor = transformed.getDeclaredConstructor(int.class, int.class);
 
 		assertThatNoException().isThrownBy(() -> constructor.newInstance(42, 21));
-		assertThatThrownBy(() -> constructor.newInstance(41, 21)).hasCauseInstanceOf(IllegalArgumentException.class);
-		assertThatThrownBy(() -> constructor.newInstance(42, 20)).hasCauseInstanceOf(IllegalArgumentException.class);
+
+		// Default message with placeholders
+		assertThatThrownBy(() -> constructor.newInstance(41, 21)).hasRootCauseInstanceOf(IllegalArgumentException.class)
+				.hasRootCauseMessage("value1 must be at least 42");
+
+		// Custom message with placeholders
+		assertThatThrownBy(() -> constructor.newInstance(42, 20)).hasRootCauseInstanceOf(IllegalArgumentException.class)
+				.hasRootCauseMessage("Custom message for value2");
 	}
 
 }
