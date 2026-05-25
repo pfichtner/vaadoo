@@ -2,6 +2,7 @@ package com.github.pfichtner.vaadoo.fragments.impl;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
@@ -12,6 +13,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -37,7 +39,12 @@ class Util {
 		}
 
 		public static Fixture of(Jsr380CodeFragment sut, Class<? extends Annotation> clazz, Map<String, Object> data) {
-			return new Fixture(sut, AnnotationFactory.make(clazz, data));
+			return new Fixture(sut, AnnotationFactory.make(clazz, merge(Map.of("message", "theMessage"), data)));
+		}
+
+		private static Map<String, Object> merge(Map<String, Object> map1, Map<String, Object> map2) {
+			return Stream.of(map1, map2).flatMap(m -> m.entrySet().stream())
+					.collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, HashMap::new));
 		}
 
 		public void noException(Object value, Class<?>... types) {

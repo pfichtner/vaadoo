@@ -24,14 +24,23 @@ import java.util.Map;
 
 public class AnnotationFactory {
 
+	/**
+	 * Creates an proxy instance of the specified annotation type with the given
+	 * element values. The returned annotation instance will have the specified
+	 * values for its elements, and any elements not specified in the values map
+	 * will have their default values (if defined in the annotation type).
+	 * 
+	 * @param <A>            the type of the annotation
+	 * @param annotationType the class of the annotation to create
+	 * @param values         a map of annotation element names to their values
+	 * @return an instance of the annotation with the specified values
+	 */
 	public static <A extends Annotation> A make(Class<A> annotationType, Map<String, Object> values) {
 		return annotationType.cast(
 				newProxyInstance(annotationType.getClassLoader(), new Class<?>[] { annotationType }, (p, m, a) -> {
-					if (m.getName().equals("toString") && m.getParameterCount() == 0) {
+					if (m.getParameterCount() == 0 && m.getName().equals("toString")) {
 						return format("@%s %s", annotationType.getName(), values);
-					} else if (m.getName().equals("message")) {
-						return "theMessage";
-					} else if (m.getName().equals("annotationType")) {
+					} else if (m.getParameterCount() == 0 && m.getName().equals("annotationType")) {
 						return annotationType;
 					}
 					Object object = values.get(m.getName());
