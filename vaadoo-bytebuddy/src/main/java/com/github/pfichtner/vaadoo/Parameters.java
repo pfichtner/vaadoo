@@ -103,10 +103,23 @@ public class Parameters implements Iterable<Parameter> {
 		/**
 		 * Returns all annotations present on this parameter.
 		 *
+		 * @return an array of {@link AnnotationDescription} representing the
+		 *         parameter's annotations, or an empty array if no annotations are
+		 *         present
+		 */
+		AnnotationDescription[] annotationDescriptions();
+
+		/**
+		 * Returns all annotations present on this parameter.
+		 *
 		 * @return an array of {@link TypeDescription} representing the parameter's
 		 *         annotations, or an empty array if no annotations are present
 		 */
-		TypeDescription[] annotations();
+		default TypeDescription[] annotations() {
+			return Stream.of(annotationDescriptions()) //
+					.map(AnnotationDescription::getAnnotationType) //
+					.toArray(TypeDescription[]::new);
+		}
 
 		/**
 		 * Retrieves the value of a specified attribute from the given annotation type.
@@ -193,9 +206,8 @@ public class Parameters implements Iterable<Parameter> {
 		}
 
 		@Override
-		public TypeDescription[] annotations() {
-			return annotationList() //
-					.asTypeList().toArray(TypeDescription[]::new);
+		public AnnotationDescription[] annotationDescriptions() {
+			return annotationList().toArray(new AnnotationDescription[0]);
 		}
 
 		@Override

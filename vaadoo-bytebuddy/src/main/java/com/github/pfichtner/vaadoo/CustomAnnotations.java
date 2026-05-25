@@ -21,12 +21,13 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACONST_NULL;
-import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ATHROW;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
-import static net.bytebuddy.jar.asm.Opcodes.F_APPEND;
+import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.IFNE;
+import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
+import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL;
 import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
@@ -36,6 +37,7 @@ import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,7 +61,8 @@ import net.bytebuddy.jar.asm.Type;
 @NoArgsConstructor(access = PRIVATE)
 public final class CustomAnnotations {
 
-	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation) {
+	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation,
+			String ownerClass, Map<TypeDescription, String> validatorFields) {
 		var contraint = annotation.getDeclaredAnnotations().ofType(Constraint.class);
 		if (contraint == null) {
 			return;
@@ -75,10 +78,23 @@ public final class CustomAnnotations {
 
 		for (TypeDescription validatorClass : validatorClasses) {
 			String validatorType = validatorClass.getInternalName();
-			mv.visitTypeInsn(NEW, validatorType);
-			mv.visitInsn(DUP);
-			mv.visitMethodInsn(INVOKESPECIAL, validatorType, "<init>", "()V", false);
-			mv.visitVarInsn(ALOAD, parameter.index());
+			String fieldName = validatorFields == null ? null : validatorFields.get(validatorClass);
+			if (fieldName == null) {
+				mv.visitTypeInsn(NEW, validatorType);
+				mv.visitInsn(DUP);
+				mv.visitMethodInsn(INVOKESPECIAL, validatorType, "<init>", "()V", false);
+			} else {
+				mv.visitFieldInsn(GETSTATIC, ownerClass, fieldName, "L" + validatorType + ";");
+			}
+
+			Type type = Type.getType(parameter.type().getDescriptor());
+			mv.visitVarInsn(type.getOpcode(ILOAD), 0);
+			if (parameter.type().isPrimitive()) {
+				TypeDescription boxed = parameter.type().asBoxed();
+				mv.visitMethodInsn(INVOKESTATIC, boxed.getInternalName(), "valueOf",
+						"(" + type.getDescriptor() + ")L" + boxed.getInternalName() + ";", false);
+			}
+
 			mv.visitInsn(ACONST_NULL);
 			String descriptor = getMethodDescriptor(BOOLEAN_TYPE,
 					getObjectType(typeThatGetsValidated(validatorClass).getInternalName()),
