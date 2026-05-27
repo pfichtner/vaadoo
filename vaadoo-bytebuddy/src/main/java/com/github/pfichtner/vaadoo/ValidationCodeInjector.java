@@ -27,19 +27,29 @@ import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.AASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ANEWARRAY;
+import static net.bytebuddy.jar.asm.Opcodes.ARRAYLENGTH;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;
+import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
+import static net.bytebuddy.jar.asm.Opcodes.CHECKCAST;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.GOTO;
+import static net.bytebuddy.jar.asm.Opcodes.IALOAD;
+import static net.bytebuddy.jar.asm.Opcodes.ICONST_0;
+import static net.bytebuddy.jar.asm.Opcodes.IFNE;
+import static net.bytebuddy.jar.asm.Opcodes.IFNULL;
+import static net.bytebuddy.jar.asm.Opcodes.IF_ICMPGE;
 import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL;
+import static net.bytebuddy.jar.asm.Opcodes.ISTORE;
 import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Opcodes.SIPUSH;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
@@ -61,6 +71,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
+import com.github.pfichtner.vaadoo.Parameters.SyntheticParameter;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.NullValueException;
 import com.github.pfichtner.vaadoo.fragments.impl.Template;
@@ -543,7 +554,221 @@ public class ValidationCodeInjector {
 
 	public void injectGenericType(MethodVisitor mv, Parameter parameter, TypeDescription validatedType, Method method,
 			AnnotationDescription annotation, int index) {
-		// TODO implementation missing
+		Label ifNullLabel = new Label();
+
+		// Generate: if (parameter != null)
+		mv.visitVarInsn(ALOAD, parameter.offset());
+		mv.visitJumpInsn(IFNULL, ifNullLabel);
+
+		TypeDescription containerType = parameter.type();
+		if (containerType.isArray()) {
+			generateArrayLoopWithValidation(mv, parameter, validatedType, method, annotation);
+		} else if (containerType.isAssignableTo(Map.class)) {
+			generateMapLoopWithValidation(mv, parameter, validatedType, method, annotation, index);
+		} else {
+			// Assume Iterable (Collection, List, Set)
+			generateForEachLoopWithValidation(mv, parameter, validatedType, method, annotation);
+		}
+
+		mv.visitLabel(ifNullLabel);
+	}
+
+	private void generateArrayLoopWithValidation(MethodVisitor mv, Parameter containerParam,
+			TypeDescription validatedType, Method method, AnnotationDescription annotation) {
+		TypeDescription containerType = containerParam.type();
+		TypeDescription elementType = containerType.getComponentType();
+
+		// Load the array
+		mv.visitVarInsn(ALOAD, containerParam.offset());
+		mv.visitInsn(ARRAYLENGTH);
+
+		// Store length in a local variable
+		int lengthVar = localsOffset;
+		mv.visitVarInsn(ISTORE, lengthVar);
+
+		// Initialize index in a local variable
+		int indexVar = lengthVar + 1;
+		mv.visitInsn(ICONST_0);
+		mv.visitVarInsn(ISTORE, indexVar);
+
+		Label loopStart = new Label();
+		Label loopEnd = new Label();
+
+		mv.visitLabel(loopStart);
+
+		// Loop condition: if index >= length then goto end
+		mv.visitVarInsn(ILOAD, indexVar);
+		mv.visitVarInsn(ILOAD, lengthVar);
+		mv.visitJumpInsn(IF_ICMPGE, loopEnd);
+
+		// Load element from array: array[index]
+		mv.visitVarInsn(ALOAD, containerParam.offset());
+		mv.visitVarInsn(ILOAD, indexVar);
+
+		int elementVar = indexVar + 1;
+		if (elementType.isPrimitive()) {
+			Type primitiveType = Type.getType(elementType.getDescriptor());
+			mv.visitInsn(primitiveType.getOpcode(IALOAD));
+			// For primitives, we need to box them if the fragment method expects an Object?
+			// Actually, fragment methods usually take the primitive or a supertype.
+			// The original code was using primitive ISTORE? No, ISTORE is only for int/boolean/byte/char/short.
+			// Let's use the correct store opcode.
+			mv.visitVarInsn(primitiveType.getOpcode(ISTORE), elementVar);
+		} else {
+			mv.visitInsn(AALOAD);
+			mv.visitVarInsn(ASTORE, elementVar);
+		}
+
+		// Call the fragment method using the injector
+		injectValidation(mv, containerParam, annotation, elementType, elementVar, Map.of("index", indexVar), method);
+
+		// increment index and goto start
+		mv.visitIincInsn(indexVar, 1);
+		mv.visitJumpInsn(GOTO, loopStart);
+
+		mv.visitLabel(loopEnd);
+	}
+
+	private void generateMapLoopWithValidation(MethodVisitor mv, Parameter containerParam,
+			TypeDescription validatedType, Method method, AnnotationDescription annotation, int index) {
+		// Load the map
+		mv.visitVarInsn(ALOAD, containerParam.offset());
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "entrySet", "()Ljava/util/Set;", true);
+
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
+
+		// Store iterator in a local variable
+		int iteratorVar = localsOffset;
+		mv.visitVarInsn(ASTORE, iteratorVar);
+
+		// Store entry in a local variable
+		int entryVar = iteratorVar + 1;
+
+		// Store element in a local variable
+		int elementVar = entryVar + 1;
+
+		Label loopStart = new Label();
+		Label loopTest = new Label();
+
+		// Jump to loop condition
+		mv.visitJumpInsn(GOTO, loopTest);
+
+		// Loop body label
+		mv.visitLabel(loopStart);
+
+		// Load iterator and get next entry
+		mv.visitVarInsn(ALOAD, iteratorVar);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
+		mv.visitTypeInsn(CHECKCAST, "java/util/Map$Entry");
+		mv.visitVarInsn(ASTORE, entryVar);
+
+		// Load entry and get key or value
+		mv.visitVarInsn(ALOAD, entryVar);
+		if (index == 0) {
+			mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;", true);
+		} else {
+			mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;", true);
+		}
+
+		// Cast to the actual element type if it's not Object
+		if (!validatedType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
+			mv.visitTypeInsn(CHECKCAST, validatedType.asErasure().getInternalName());
+		}
+
+		// Store element in local variable
+		mv.visitVarInsn(ASTORE, elementVar);
+
+		// Call the fragment method using the injector
+		injectValidation(mv, containerParam, annotation, validatedType, elementVar, Map.of("key", entryVar), method,
+				index);
+
+		// Loop condition: check if hasNext()
+		mv.visitLabel(loopTest);
+		mv.visitVarInsn(ALOAD, iteratorVar);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
+		mv.visitJumpInsn(IFNE, loopStart);
+	}
+
+	private void generateForEachLoopWithValidation(MethodVisitor mv, Parameter containerParam,
+			TypeDescription validatedType, Method method, AnnotationDescription annotation) {
+		// Load the container and get its iterator
+		mv.visitVarInsn(ALOAD, containerParam.offset());
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
+
+		// Store iterator in a local variable
+		int iteratorVar = localsOffset;
+		mv.visitVarInsn(ASTORE, iteratorVar);
+
+		// Initialize index in a local variable
+		int indexVar = iteratorVar + 1;
+		mv.visitInsn(ICONST_0);
+		mv.visitVarInsn(ISTORE, indexVar);
+
+		// Store element in a local variable (after index)
+		int elementVar = indexVar + 1;
+
+		Label loopStart = new Label();
+		Label loopTest = new Label();
+
+		// Jump to loop condition
+		mv.visitJumpInsn(GOTO, loopTest);
+
+		// Loop body label
+		mv.visitLabel(loopStart);
+
+		// Load iterator and get next element
+		mv.visitVarInsn(ALOAD, iteratorVar);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
+
+		// Cast to the actual element type if it's not Object
+		if (!validatedType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
+			mv.visitTypeInsn(CHECKCAST, validatedType.asErasure().getInternalName());
+		}
+
+		// Store element in local variable
+		mv.visitVarInsn(ASTORE, elementVar);
+
+		// Call the fragment method using the injector
+		injectValidation(mv, containerParam, annotation, validatedType, elementVar, Map.of("index", indexVar), method);
+
+		// increment index
+		mv.visitIincInsn(indexVar, 1);
+
+		// Loop condition: check if hasNext()
+		mv.visitLabel(loopTest);
+		mv.visitVarInsn(ALOAD, iteratorVar);
+		mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
+		mv.visitJumpInsn(IFNE, loopStart);
+	}
+
+	private void injectValidation(MethodVisitor mv, Parameter containerParam, AnnotationDescription annotation,
+			TypeDescription elementType, int elementVar, Map<String, Integer> placeholderValues, Method method) {
+		injectValidation(mv, containerParam, annotation, elementType, elementVar, placeholderValues, method, -1);
+	}
+
+	private void injectValidation(MethodVisitor mv, Parameter containerParam, AnnotationDescription annotation,
+			TypeDescription elementType, int elementVar, Map<String, Integer> placeholderValues, Method method,
+			int index) {
+		// Create a synthetic parameter representing the element
+		String suffix;
+		if (containerParam.type().isAssignableTo(Map.class)) {
+			suffix = index == 0 ? "[key={key}]" : "[value for key={key}]";
+		} else if (placeholderValues.containsKey("index")) {
+			suffix = "[{index}]";
+		} else {
+			suffix = "[]";
+		}
+		String name = containerParam.name() + suffix;
+
+		Map<String, Integer> cumulativePlaceholders = new HashMap<>(containerParam.placeholderValues());
+		cumulativePlaceholders.putAll(placeholderValues);
+
+		SyntheticParameter elementParam = new SyntheticParameter(name, elementVar, elementType, cumulativePlaceholders);
+
+		// Call the fragment method using the injector
+		@SuppressWarnings("unchecked")
+		Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) method.getDeclaringClass();
+		this.useFragmentClass(clazz).withLocalsOffset(localsOffset + 10).inject(mv, elementParam, method, annotation);
 	}
 
 	@RequiredArgsConstructor

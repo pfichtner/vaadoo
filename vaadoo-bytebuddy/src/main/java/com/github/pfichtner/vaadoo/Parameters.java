@@ -167,6 +167,72 @@ public class Parameters implements Iterable<Parameter> {
 
 	}
 
+	public static class SyntheticParameter implements Parameter {
+
+		private final String name;
+		private final int offset;
+		private final TypeDescription type;
+		private final Map<String, Integer> placeholderValues;
+
+		public SyntheticParameter(String name, int offset, TypeDescription type,
+				Map<String, Integer> placeholderValues) {
+			this.name = name;
+			this.offset = offset;
+			this.type = type;
+			this.placeholderValues = placeholderValues;
+		}
+
+		@Override
+		public int index() {
+			return 0;
+		}
+
+		@Override
+		public String name() {
+			return name;
+		}
+
+		@Override
+		public TypeDescription type() {
+			return type;
+		}
+
+		@Override
+		public int offset() {
+			return offset;
+		}
+
+		@Override
+		public AnnotationDescription[] annotationDescriptions() {
+			return new AnnotationDescription[0];
+		}
+
+		@Override
+		public Object annotationValue(Type annotation, String name) {
+			return null;
+		}
+
+		@Override
+		public List<List<AnnotationDescription>> genericAnnotations() {
+			return emptyList();
+		}
+
+		@Override
+		public Object genericAnnotationValue(Type annotation, String name) {
+			return null;
+		}
+
+		@Override
+		public TypeDescription.Generic genericType() {
+			return type.asGenericType();
+		}
+
+		@Override
+		public Map<String, Integer> placeholderValues() {
+			return placeholderValues;
+		}
+	}
+
 	private class ParameterWrapper implements Parameter {
 
 		private final int index;
