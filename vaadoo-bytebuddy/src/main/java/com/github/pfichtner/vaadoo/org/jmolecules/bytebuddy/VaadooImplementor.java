@@ -23,6 +23,7 @@ import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.m
 import static java.lang.reflect.Modifier.isAbstract;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
@@ -472,10 +473,6 @@ class VaadooImplementor {
 
 	private static Builder<?> wrap(Builder<?> builder, int flags) {
 		return builder.visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(flags));
-	}
-
-	private static <T> Predicate<T> not(Predicate<T> predicate) {
-		return predicate.negate();
 	}
 
 	@RequiredArgsConstructor(staticName = "of")
