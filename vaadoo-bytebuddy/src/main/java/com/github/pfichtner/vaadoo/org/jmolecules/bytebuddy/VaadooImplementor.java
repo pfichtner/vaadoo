@@ -771,65 +771,6 @@ class VaadooImplementor {
 
 		}
 
-		private static class SyntheticElementParameter implements Parameter {
-
-			private final TypeDescription type;
-
-			public SyntheticElementParameter(TypeDescription type) {
-				this.type = type;
-			}
-
-			@Override
-			public int index() {
-				return 0;
-			}
-
-			@Override
-			public String name() {
-				return "element";
-			}
-
-			@Override
-			public TypeDescription type() {
-				return type;
-			}
-
-			@Override
-			public int offset() {
-				return 0;
-			}
-
-			@Override
-			public AnnotationDescription[] annotationDescriptions() {
-				return new AnnotationDescription[0];
-			}
-
-			@Override
-			public Object annotationValue(Type annotation, String name) {
-				return null;
-			}
-
-			@Override
-			public List<List<AnnotationDescription>> genericAnnotations() {
-				return emptyList();
-			}
-
-			@Override
-			public Object genericAnnotationValue(Type annotation, String name) {
-				return null;
-			}
-
-			@Override
-			public TypeDescription.Generic genericType() {
-				return type.asGenericType();
-			}
-
-			@Override
-			public Map<String, Integer> placeholderValues() {
-				return emptyMap();
-			}
-		}
-
 	}
 
 }
