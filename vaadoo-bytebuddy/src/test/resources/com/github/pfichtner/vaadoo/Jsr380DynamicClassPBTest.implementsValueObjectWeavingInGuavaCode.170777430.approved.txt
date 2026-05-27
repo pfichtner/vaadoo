@@ -30,7 +30,6 @@ Analysing type com.example.Generated_170777430
  */
 package com.example;
 
-import com.example.Generated_170777430;
 import com.google.common.base.Preconditions;
 import jakarta.validation.constraints.NotEmpty;
 import org.jmolecules.ddd.types.ValueObject;
@@ -39,10 +38,6 @@ public class Generated_170777430
 implements ValueObject {
     public Generated_170777430(@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) Object[] objectArray) {
         Generated_170777430.validate(objectArray);
-        this(objectArray, null);
-    }
-
-    private /* synthetic */ Generated_170777430(Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_objectArray(Object[] objectArray) {

@@ -35,7 +35,6 @@ Analysing type com.example.Generated_1678399129
  */
 package com.example;
 
-import com.example.Generated_1678399129;
 import java.math.BigDecimal;
 import java.time.chrono.HijrahDate;
 import org.jmolecules.ddd.types.ValueObject;
@@ -44,10 +43,6 @@ public class Generated_1678399129
 implements ValueObject {
     public Generated_1678399129(HijrahDate hijrahDate, Long l) {
         Generated_1678399129.validate(hijrahDate, l);
-        this(hijrahDate, l, null);
-    }
-
-    private /* synthetic */ Generated_1678399129(HijrahDate hijrahDate, Long l, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_long(Long l) {

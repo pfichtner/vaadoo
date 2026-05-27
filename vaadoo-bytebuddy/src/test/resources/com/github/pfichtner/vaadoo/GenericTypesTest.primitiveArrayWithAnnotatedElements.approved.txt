@@ -31,17 +31,12 @@ Analysing type com.example.GenericGenerated
  */
 package com.example;
 
-import com.example.GenericGenerated;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class GenericGenerated
 implements ValueObject {
     public GenericGenerated(int[] nArray) {
         GenericGenerated.validate(nArray);
-        this(nArray, null);
-    }
-
-    private /* synthetic */ GenericGenerated(int[] nArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_intArray(int[] nArray) {
