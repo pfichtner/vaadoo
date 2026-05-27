@@ -31,11 +31,15 @@ Analysing type com.example.GenericGenerated
  */
 package com.example;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class GenericGenerated
 implements ValueObject {
+    private static final /* synthetic */ Map regexpCache;
+
     public GenericGenerated(String[] stringArray) {
         GenericGenerated.validate(stringArray);
     }
@@ -48,7 +52,7 @@ implements ValueObject {
             int n = stringArray.length;
             for (int i = 0; i < n; ++i) {
                 String string = stringArray[i];
-                if (string == null || Pattern.compile("\\d*", 0).matcher(string).matches()) continue;
+                if (string == null || GenericGenerated.getCachedPattern("\\d*", 0).matcher(string).matches()) continue;
                 throw new IllegalArgumentException(String.format("stringArray[" + i + "] must match \"\\d*\" but was %s", string));
             }
         }
@@ -56,6 +60,15 @@ implements ValueObject {
 
     private static void validate(String[] stringArray) {
         GenericGenerated.validate_stringArray(stringArray);
+    }
+
+    static {
+        regexpCache = new ConcurrentHashMap();
+    }
+
+    private static /* synthetic */ Pattern getCachedPattern(String string, int n) {
+        String string2 = string + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string2, object -> Pattern.compile(string, n));
     }
 }
 

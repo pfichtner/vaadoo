@@ -94,6 +94,7 @@ import com.github.pfichtner.vaadoo.Jsr380Annos;
 import com.github.pfichtner.vaadoo.Jsr380Annos.ConfigEntry;
 import com.github.pfichtner.vaadoo.Parameters;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
+import com.github.pfichtner.vaadoo.PatternRewriteClassVisitor;
 import com.github.pfichtner.vaadoo.ValidationCodeInjector;
 import com.github.pfichtner.vaadoo.ValidationCodeInjector.InjectionTask;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
@@ -237,6 +238,11 @@ class VaadooImplementor {
 
 		if (configuration.removeJsr380Annotations()) {
 			type = type.mapBuilder(t -> wrap(t, cv -> new ConstructorAnnotationRemover(cv, configuration)));
+		}
+
+		if (!allGeneratedValidateMethodNames.isEmpty()) {
+			type = type.mapBuilder(
+					t -> wrap(t, cv -> new PatternRewriteClassVisitor(cv, allGeneratedValidateMethodNames)));
 		}
 
 		return type;

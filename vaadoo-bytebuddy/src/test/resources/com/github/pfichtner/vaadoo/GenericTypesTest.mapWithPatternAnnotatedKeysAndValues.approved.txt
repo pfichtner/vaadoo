@@ -33,11 +33,14 @@ Analysing type com.example.GenericGenerated
 package com.example;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class GenericGenerated
 implements ValueObject {
+    private static final /* synthetic */ Map regexpCache;
+
     public GenericGenerated(Map<String, String> map) {
         GenericGenerated.validate(map);
     }
@@ -50,14 +53,14 @@ implements ValueObject {
         if (map != null) {
             for (Map.Entry entry : map.entrySet()) {
                 string = (String)entry.getKey();
-                if (string == null || Pattern.compile("K\\d*", 0).matcher(string).matches()) continue;
+                if (string == null || GenericGenerated.getCachedPattern("K\\d*", 0).matcher(string).matches()) continue;
                 throw new IllegalArgumentException(String.format("map[key=" + entry.getKey() + "] must match \"K\\d*\" but was %s", string));
             }
         }
         if (map != null) {
             for (Map.Entry entry : map.entrySet()) {
                 string = (String)entry.getValue();
-                if (string == null || Pattern.compile("V\\d*", 0).matcher(string).matches()) continue;
+                if (string == null || GenericGenerated.getCachedPattern("V\\d*", 0).matcher(string).matches()) continue;
                 throw new IllegalArgumentException(String.format("map[value for key=" + entry.getKey() + "] must match \"V\\d*\" but was %s", string));
             }
         }
@@ -65,6 +68,15 @@ implements ValueObject {
 
     private static void validate(Map map) {
         GenericGenerated.validate_map(map);
+    }
+
+    static {
+        regexpCache = new ConcurrentHashMap();
+    }
+
+    private static /* synthetic */ Pattern getCachedPattern(String string, int n) {
+        String string2 = string + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string2, object -> Pattern.compile(string, n));
     }
 }
 

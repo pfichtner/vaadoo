@@ -34,11 +34,15 @@ package com.example;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated
 implements ValueObject {
+    private static final /* synthetic */ Map regexpCache;
+
     public Generated(List<String> list) {
         Generated.validate(list);
     }
@@ -52,7 +56,7 @@ implements ValueObject {
             int n = 0;
             while (iterator.hasNext()) {
                 String string = (String)iterator.next();
-                if (string != null && !Pattern.compile("\\d*", 2).matcher(string).matches()) {
+                if (string != null && !Generated.getCachedPattern("\\d*", 2).matcher(string).matches()) {
                     throw new IllegalArgumentException(String.format("list[" + n + "] must match \"\\d*\" but was %s", string));
                 }
                 ++n;
@@ -62,6 +66,15 @@ implements ValueObject {
 
     private static void validate(List list) {
         Generated.validate_list(list);
+    }
+
+    static {
+        regexpCache = new ConcurrentHashMap();
+    }
+
+    private static /* synthetic */ Pattern getCachedPattern(String string, int n) {
+        String string2 = string + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string2, object -> Pattern.compile(string, n));
     }
 }
 

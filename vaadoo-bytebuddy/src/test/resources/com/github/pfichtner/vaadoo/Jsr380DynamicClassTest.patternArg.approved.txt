@@ -30,23 +30,36 @@ Analysing type com.example.Generated
  */
 package com.example;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated
 implements ValueObject {
+    private static final /* synthetic */ Map regexpCache;
+
     public Generated(String string) {
         Generated.validate(string);
     }
 
     private static void validate_string(String string) {
-        if (string != null && !Pattern.compile("\\d*", 0).matcher(string).matches()) {
+        if (string != null && !Generated.getCachedPattern("\\d*", 0).matcher(string).matches()) {
             throw new IllegalArgumentException(String.format("string must match \"\\d*\" but was %s", string));
         }
     }
 
     private static void validate(String string) {
         Generated.validate_string(string);
+    }
+
+    static {
+        regexpCache = new ConcurrentHashMap();
+    }
+
+    private static /* synthetic */ Pattern getCachedPattern(String string, int n) {
+        String string2 = string + "\u0000" + n;
+        return regexpCache.computeIfAbsent(string2, object -> Pattern.compile(string, n));
     }
 }
 
