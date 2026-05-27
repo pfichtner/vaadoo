@@ -73,6 +73,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.Delegate;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.enumeration.EnumerationDescription;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
 import net.bytebuddy.jar.asm.Label;
@@ -82,6 +83,10 @@ import net.bytebuddy.jar.asm.commons.ClassRemapper;
 import net.bytebuddy.jar.asm.commons.SimpleRemapper;
 
 public class ValidationCodeInjector {
+
+	public interface InjectionTask {
+		void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize);
+	}
 
 	// we remove the first arg (the code inserted has the annotation as it's first
 	// argument)
@@ -534,6 +539,11 @@ public class ValidationCodeInjector {
 		} else {
 			inject(mv, parameter, sourceMethod);
 		}
+	}
+
+	public void injectGenericType(MethodVisitor mv, Parameter parameter, TypeDescription validatedType, Method method,
+			AnnotationDescription annotation, int index) {
+		// TODO implementation missing
 	}
 
 	@RequiredArgsConstructor

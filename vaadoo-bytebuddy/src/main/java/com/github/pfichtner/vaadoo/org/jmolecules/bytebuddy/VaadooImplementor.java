@@ -20,11 +20,9 @@ import static com.github.pfichtner.vaadoo.Jsr380Annos.annotationOnTypeNotValid;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.findRepeatableAnnotationContainers;
 import static com.github.pfichtner.vaadoo.Jsr380Annos.isStandardJr380Anno;
 import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginUtils.markGenerated;
-import static com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.CachedVaadooConfiguration.cachedConfiguration;
-import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isAbstract;
 import static java.util.Collections.emptyList;
-import static java.util.function.Predicate.not;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.Stream.concat;
@@ -44,6 +42,7 @@ import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ANEWARRAY;
 import static net.bytebuddy.jar.asm.Opcodes.ARETURN;
 import static net.bytebuddy.jar.asm.Opcodes.ARRAYLENGTH;
+import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
 import static net.bytebuddy.jar.asm.Opcodes.CHECKCAST;
@@ -52,6 +51,7 @@ import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.GOTO;
 import static net.bytebuddy.jar.asm.Opcodes.IALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ICONST_0;
+import static net.bytebuddy.jar.asm.Opcodes.ICONST_1;
 import static net.bytebuddy.jar.asm.Opcodes.IFNE;
 import static net.bytebuddy.jar.asm.Opcodes.IFNULL;
 import static net.bytebuddy.jar.asm.Opcodes.IF_ICMPGE;
@@ -66,6 +66,7 @@ import static net.bytebuddy.jar.asm.Opcodes.POP;
 import static net.bytebuddy.jar.asm.Opcodes.PUTSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.RETURN;
 import static net.bytebuddy.matcher.ElementMatchers.is;
+import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
@@ -83,21 +84,22 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.ConstructorAnnotationRemover;
+import com.github.pfichtner.vaadoo.CustomAnnotations;
 import com.github.pfichtner.vaadoo.Jsr380Annos;
 import com.github.pfichtner.vaadoo.Jsr380Annos.ConfigEntry;
 import com.github.pfichtner.vaadoo.Parameters;
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
-import com.github.pfichtner.vaadoo.PatternRewriteClassVisitor;
 import com.github.pfichtner.vaadoo.ValidationCodeInjector;
+import com.github.pfichtner.vaadoo.ValidationCodeInjector.InjectionTask;
 import com.github.pfichtner.vaadoo.fragments.Jsr380CodeFragment;
 import com.github.pfichtner.vaadoo.fragments.impl.Template;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
-import jakarta.validation.Constraint;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Pattern.Flag;
 import lombok.RequiredArgsConstructor;
@@ -117,6 +119,7 @@ import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.Implementation.Context;
 import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
+import net.bytebuddy.implementation.bytecode.ByteCodeAppender.Size;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
@@ -132,13 +135,6 @@ class VaadooImplementor {
 
 	public VaadooImplementor(VaadooConfiguration configuration) {
 		this.configuration = cachedConfiguration(configuration);
-	}
-
-	private static List<TypeDescription> getCustomValidators(Parameter parameter) {
-		return Stream.of(parameter.annotations())
-				.map(a -> a.getDeclaredAnnotations().ofType(jakarta.validation.Constraint.class))
-				.filter(Objects::nonNull)
-				.flatMap(c -> Stream.of((TypeDescription[]) c.getValue("validatedBy").resolve())).collect(toList());
 	}
 
 	private static final String VALIDATOR_FIELD_PREFIX = "vaadoo$validator$";
@@ -160,8 +156,9 @@ class VaadooImplementor {
 		Set<String> allGeneratedValidateMethodNames = new HashSet<>();
 
 		for (InDefinedShape definedShape : typeDescription.getDeclaredMethods()) {
-			if (definedShape.isConstructor()) {
-				Parameters parameters = Parameters.of(definedShape.getParameters());
+			final InDefinedShape finalDefinedShape = definedShape;
+			if (finalDefinedShape.isConstructor()) {
+				Parameters parameters = Parameters.of(finalDefinedShape.getParameters());
 				Implementation.Composable centralValidateImpl = null;
 
 				// We iterate backwards to build the chain so the calls are in the correct
@@ -174,8 +171,6 @@ class VaadooImplementor {
 					StaticValidateAppender parameterAppender = new StaticValidateAppender(
 							typeDescription.getInternalName(), validateParamMethodName, parameter, configuration,
 							validatorFields);
-					List<TypeDescription> customValidators = getCustomValidators(parameter);
-					log.info("Parameter {} uses validators: {}", parameter.name(), customValidators);
 
 					if (parameterAppender.hasInjections()) {
 						usedMethodNames.add(validateParamMethodName);
@@ -190,31 +185,57 @@ class VaadooImplementor {
 				}
 
 				if (centralValidateImpl != null) {
-					String centralValidateName = nonExistingMethodName(usedMethodNames, VALIDATE_METHOD_BASE_NAME);
+					final String centralValidateName = nonExistingMethodName(usedMethodNames,
+							VALIDATE_METHOD_BASE_NAME);
 					usedMethodNames.add(centralValidateName);
 					allGeneratedValidateMethodNames.add(centralValidateName);
+					final Implementation.Composable finalCentralValidateImpl = centralValidateImpl;
+					type = type.mapBuilder(t -> t.defineMethod(centralValidateName, void.class, ACC_PRIVATE | ACC_STATIC)
+							.withParameters(finalDefinedShape.getParameters().asTypeList().asErasures())
+							.intercept(finalCentralValidateImpl));
 
-					final Implementation finalCentralImpl = centralValidateImpl;
-					type = type.mapBuilder(t -> markGenerated(wrap(t, COMPUTE_FRAMES | COMPUTE_MAXS)
-							.defineMethod(centralValidateName, void.class, ACC_PRIVATE | ACC_STATIC)
-							.withParameters(parameters.types()).intercept(finalCentralImpl)));
-
-					type = type.mapBuilder(t -> t.constructor(is(definedShape))
-							.intercept(invoke(named(centralValidateName).and(takesArguments(parameters.types())))
-									.withAllArguments().andThen(SuperMethodCall.INSTANCE)));
+					type = type.mapBuilder(t -> t.visit(new AsmVisitorWrapper.AbstractBase() {
+						@Override
+						public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor cv,
+								Implementation.Context implementationContext, TypePool typePool,
+								FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods,
+								int writerFlags, int readerFlags) {
+							return new ClassVisitor(ASM9, cv) {
+								@Override
+								public MethodVisitor visitMethod(int access, String name, String descriptor,
+										String signature, String[] exceptions) {
+									if ("<init>".equals(name) && descriptor.equals(finalDefinedShape.getDescriptor())) {
+										return new MethodVisitor(ASM9,
+												super.visitMethod(access, name, descriptor, signature, exceptions)) {
+											@Override
+											public void visitInsn(int opcode) {
+												if (opcode == RETURN) {
+													Type[] args = Type
+															.getArgumentTypes(finalDefinedShape.getDescriptor());
+													int slot = 1;
+													for (Type arg : args) {
+														mv.visitVarInsn(arg.getOpcode(ILOAD), slot);
+														slot += arg.getSize();
+													}
+													mv.visitMethodInsn(INVOKESTATIC, instrumentedType.getInternalName(),
+															centralValidateName, finalDefinedShape.getDescriptor(),
+															false);
+												}
+												super.visitInsn(opcode);
+											}
+										};
+									}
+									return super.visitMethod(access, name, descriptor, signature, exceptions);
+								}
+							};
+						}
+					}));
 				}
 			}
 		}
 
-		if (!allGeneratedValidateMethodNames.isEmpty()) {
-			if (configuration.regexOptimizationEnabled()) {
-				type = type.mapBuilder(
-						t -> wrap(t, cv -> new PatternRewriteClassVisitor(cv, allGeneratedValidateMethodNames)));
-			}
-
-			if (configuration.removeJsr380Annotations()) {
-				type = type.mapBuilder(t -> wrap(t, cv -> new ConstructorAnnotationRemover(cv, configuration)));
-			}
+		if (configuration.removeJsr380Annotations()) {
+			type = type.mapBuilder(t -> wrap(t, cv -> new ConstructorAnnotationRemover(cv, configuration)));
 		}
 
 		return type;
@@ -362,15 +383,17 @@ class VaadooImplementor {
 			if (definedShape.isConstructor()) {
 				for (Parameter parameter : Parameters.of(definedShape.getParameters())) {
 					for (AnnotationDescription annotation : parameter.annotationDescriptions()) {
-						var constraint = annotation.getAnnotationType().getDeclaredAnnotations()
-								.ofType(Constraint.class);
-						if (constraint != null) {
-							var validatedBy = (TypeDescription[]) constraint.getValue("validatedBy").resolve();
-							if (validatedBy != null) {
-								for (TypeDescription validatorClass : validatedBy) {
-									ValidatorKey key = new ValidatorKey(validatorClass, annotation);
-									if (!validatorFields.containsKey(key)) {
-										validatorFields.put(key, VALIDATOR_FIELD_PREFIX + validatorCounter++);
+						TypeDescription annotationType = annotation.getAnnotationType();
+						if (!isStandardJr380Anno(annotationType) && isConstraintAnnotation(annotationType)) {
+							AnnotationDescription constraint = findConstraintAnnotation(annotationType);
+							if (constraint != null) {
+								var validatedBy = (TypeDescription[]) constraint.getValue("validatedBy").resolve();
+								if (validatedBy != null) {
+									for (TypeDescription validatorClass : validatedBy) {
+										ValidatorKey key = new ValidatorKey(validatorClass, annotation);
+										if (!validatorFields.containsKey(key)) {
+											validatorFields.put(key, VALIDATOR_FIELD_PREFIX + validatorCounter++);
+										}
 									}
 								}
 							}
@@ -380,6 +403,19 @@ class VaadooImplementor {
 			}
 		}
 		return validatorFields;
+	}
+
+	private static AnnotationDescription findConstraintAnnotation(TypeDescription annotation) {
+		return annotation.getDeclaredAnnotations().stream()
+				.filter(a -> a.getAnnotationType().getName().equals("jakarta.validation.Constraint")
+						|| a.getAnnotationType().getName().equals("javax.validation.Constraint"))
+				.findFirst().orElse(null);
+	}
+
+	private static boolean isConstraintAnnotation(TypeDescription annotationType) {
+		return annotationType.getDeclaredAnnotations().stream()
+				.anyMatch(a -> a.getAnnotationType().getName().equals("jakarta.validation.Constraint")
+						|| a.getAnnotationType().getName().equals("javax.validation.Constraint"));
 	}
 
 	private Builder<?> addStaticValidateMethod(Builder<?> builder, StaticValidateAppender staticValidateAppender,
@@ -405,16 +441,28 @@ class VaadooImplementor {
 			}
 
 			@Override
-			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor cv, Implementation.Context context,
-					TypePool typePool, FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods,
-					int writerFlags, int readerFlags) {
+			public ClassVisitor wrap(TypeDescription instrumentedType, ClassVisitor cv,
+					net.bytebuddy.implementation.Implementation.Context context, TypePool typePool,
+					FieldList<FieldDescription.InDefinedShape> fields, MethodList<?> methods, int writerFlags,
+					int readerFlags) {
 				return classVisitorProvider.apply(cv);
 			}
 
 		});
 	}
 
-	private static String nonExistingMethodName(Collection<String> methodNames, String base) {
+	private static VaadooConfiguration cachedConfiguration(VaadooConfiguration configuration) {
+		Map<TypeDescription, Boolean> cache = new HashMap<>();
+		return (VaadooConfiguration) java.lang.reflect.Proxy.newProxyInstance(
+				VaadooConfiguration.class.getClassLoader(), new Class[] { VaadooConfiguration.class }, (p, m, a) -> {
+					if (m.getName().equals("include") && a.length == 1) {
+						return cache.computeIfAbsent((TypeDescription) a[0], configuration::include);
+					}
+					return m.invoke(configuration, a);
+				});
+	}
+
+	private String nonExistingMethodName(Collection<String> methodNames, String base) {
 		return Stream.iterate(0, i -> i + 1) //
 				.map(i -> (i == 0) ? base : base + "_" + i) //
 				.filter(not(methodNames::contains)) //
@@ -426,39 +474,22 @@ class VaadooImplementor {
 		return builder.visit(new AsmVisitorWrapper.ForDeclaredMethods().writerFlags(flags));
 	}
 
-	@RequiredArgsConstructor
-	private static class ParameterWithOffsetZero implements Parameter {
-		@Delegate
-		private final Parameter delegate;
-
-		@Override
-		public int offset() {
-			return 0;
-		}
+	private static <T> Predicate<T> not(Predicate<T> predicate) {
+		return predicate.negate();
 	}
 
+	@RequiredArgsConstructor(staticName = "of")
 	private static class StaticValidateAppender implements ByteCodeAppender {
-
-		private interface InjectionTask {
-			void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize);
-		}
 
 		@Value(staticConstructor = "of")
 		private static class Jsr380AnnoInjectionTask implements InjectionTask {
 			Parameter parameter;
-			Method fragmentMethod;
-			AnnotationDescription annotationDescription;
+			Method method;
+			AnnotationDescription annotation;
 
 			@Override
 			public void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize) {
-				try {
-					@SuppressWarnings("unchecked")
-					Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
-							.getDeclaringClass();
-					injector.useFragmentClass(clazz).inject(mv, parameter, fragmentMethod, annotationDescription);
-				} catch (Exception e) {
-					throw new RuntimeException(format("Error injecting %s for %s", fragmentMethod, parameter), e);
-				}
+				injector.inject(mv, parameter, method, annotation);
 			}
 		}
 
@@ -474,7 +505,7 @@ class VaadooImplementor {
 				// We need to build a map of validator class to field name for this SPECIFIC
 				// annotation
 				Map<TypeDescription, String> fieldsForThisAnno = new HashMap<>();
-				var constraint = annotation.getDeclaredAnnotations().ofType(Constraint.class);
+				AnnotationDescription constraint = findConstraintAnnotation(annotation);
 				if (constraint != null) {
 					var validatedBy = (TypeDescription[]) constraint.getValue("validatedBy").resolve();
 					if (validatedBy != null) {
@@ -498,6 +529,13 @@ class VaadooImplementor {
 					}
 				}
 				addCustomAnnotations(mv, parameter, annotation, ownerClass, fieldsForThisAnno);
+			}
+
+			private static AnnotationDescription findConstraintAnnotation(TypeDescription annotation) {
+				return annotation.getDeclaredAnnotations().stream()
+						.filter(a -> a.getAnnotationType().getName().equals("jakarta.validation.Constraint")
+								|| a.getAnnotationType().getName().equals("javax.validation.Constraint"))
+						.findFirst().orElse(null);
 			}
 		}
 
@@ -550,8 +588,9 @@ class VaadooImplementor {
 		}
 
 		private Stream<InjectionTask> tasksFor(Parameter parameter) {
-			Stream<InjectionTask> fromParam = Stream.of(parameter.annotations())
-					.flatMap(a -> concat(jsr380(parameter, a, null), custom(parameter, a)));
+			Stream<InjectionTask> fromParam = Stream.of(parameter.annotationDescriptions())
+					.flatMap(a -> concat(jsr380(parameter, a.getAnnotationType(), a),
+							custom(parameter, a.getAnnotationType())));
 
 			List<List<AnnotationDescription>> genericAnnotations = parameter.genericAnnotations();
 			return genericAnnotations.isEmpty() //
@@ -698,274 +737,59 @@ class VaadooImplementor {
 
 		private static class GenericTypeInjectionTask implements InjectionTask {
 			Parameter parameter;
-			TypeDescription elementType;
-			Method fragmentMethod;
+			TypeDescription validatedType;
+			Method method;
 			AnnotationDescription annotation;
 			int index;
 
-			GenericTypeInjectionTask(Parameter parameter, TypeDescription elementType, Method fragmentMethod,
+			public GenericTypeInjectionTask(Parameter parameter, TypeDescription validatedType, Method method,
 					AnnotationDescription annotation, int index) {
 				this.parameter = parameter;
-				this.elementType = elementType;
-				this.fragmentMethod = fragmentMethod;
+				this.validatedType = validatedType;
+				this.method = method;
 				this.annotation = annotation;
 				this.index = index;
 			}
 
 			@Override
 			public void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize) {
-				try {
-					generateIterationWithValidation(injector, mv, parameter, annotation, argsSize);
-				} catch (Exception e) {
-					throw new RuntimeException(format("Error injecting generic type %s for %s", elementType, parameter),
-							e);
-				}
-			}
-
-			private void generateIterationWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
-				Label ifNullLabel = new Label();
-
-				// Generate: if (parameter != null)
-				mv.visitVarInsn(ALOAD, containerParam.offset());
-				mv.visitJumpInsn(IFNULL, ifNullLabel);
-
-				TypeDescription containerType = containerParam.type();
-				if (containerType.isArray()) {
-					generateArrayLoopWithValidation(injector, mv, containerParam, annotation, argsSize);
-				} else if (containerType.isAssignableTo(Map.class)) {
-					generateMapLoopWithValidation(injector, mv, containerParam, annotation, argsSize);
-				} else {
-					// Assume Iterable (Collection, List, Set)
-					generateForEachLoopWithValidation(injector, mv, containerParam, annotation, argsSize);
-				}
-
-				mv.visitLabel(ifNullLabel);
-			}
-
-			private void generateArrayLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
-				TypeDescription containerType = containerParam.type();
-				TypeDescription elementType = containerType.getComponentType();
-
-				// Load the array
-				mv.visitVarInsn(ALOAD, containerParam.offset());
-				mv.visitInsn(ARRAYLENGTH);
-
-				// Store length in a local variable
-				int lengthVar = argsSize;
-				mv.visitVarInsn(ISTORE, lengthVar);
-
-				// Initialize index in a local variable
-				int indexVar = lengthVar + 1;
-				mv.visitInsn(ICONST_0);
-				mv.visitVarInsn(ISTORE, indexVar);
-
-				Label loopStart = new Label();
-				Label loopEnd = new Label();
-
-				mv.visitLabel(loopStart);
-
-				// Loop condition: if index >= length then goto end
-				mv.visitVarInsn(ILOAD, indexVar);
-				mv.visitVarInsn(ILOAD, lengthVar);
-				mv.visitJumpInsn(IF_ICMPGE, loopEnd);
-
-				// Load element from array: array[index]
-				mv.visitVarInsn(ALOAD, containerParam.offset());
-				mv.visitVarInsn(ILOAD, indexVar);
-
-				int elementVar = indexVar + 1;
-				if (elementType.isPrimitive()) {
-					Type primitiveType = Type.getType(elementType.getDescriptor());
-					mv.visitInsn(primitiveType.getOpcode(IALOAD));
-					mv.visitVarInsn(primitiveType.getOpcode(ISTORE), elementVar);
-				} else {
-					mv.visitInsn(AALOAD);
-					mv.visitVarInsn(ASTORE, elementVar);
-				}
-
-				// Call the fragment method using the injector
-				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
-						Map.of("index", indexVar));
-
-				// increment index and goto start
-				mv.visitIincInsn(indexVar, 1);
-				mv.visitJumpInsn(GOTO, loopStart);
-
-				mv.visitLabel(loopEnd);
-			}
-
-			private void generateMapLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
-				// Load the map
-				mv.visitVarInsn(ALOAD, containerParam.offset());
-				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map", "entrySet", "()Ljava/util/Set;", true);
-
-				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
-
-				// Store iterator in a local variable
-				int iteratorVar = argsSize;
-				mv.visitVarInsn(ASTORE, iteratorVar);
-
-				// Store entry in a local variable
-				int entryVar = iteratorVar + 1;
-
-				// Store element in a local variable
-				int elementVar = entryVar + 1;
-
-				Label loopStart = new Label();
-				Label loopTest = new Label();
-
-				// Jump to loop condition
-				mv.visitJumpInsn(GOTO, loopTest);
-
-				// Loop body label
-				mv.visitLabel(loopStart);
-
-				// Load iterator and get next entry
-				mv.visitVarInsn(ALOAD, iteratorVar);
-				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
-				mv.visitTypeInsn(CHECKCAST, "java/util/Map$Entry");
-				mv.visitVarInsn(ASTORE, entryVar);
-
-				// Load entry and get key or value
-				mv.visitVarInsn(ALOAD, entryVar);
-				if (index == 0) {
-					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;", true);
-				} else {
-					mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getValue", "()Ljava/lang/Object;",
-							true);
-				}
-
-				// Cast to the actual element type if it's not Object
-				if (!elementType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
-					mv.visitTypeInsn(CHECKCAST, elementType.asErasure().getInternalName());
-				}
-
-				// Store element in local variable
-				mv.visitVarInsn(ASTORE, elementVar);
-
-				// Call the fragment method using the injector
-				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
-						Map.of("key", entryVar));
-
-				// Loop condition: check if hasNext()
-				mv.visitLabel(loopTest);
-				mv.visitVarInsn(ALOAD, iteratorVar);
-				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
-				mv.visitJumpInsn(IFNE, loopStart);
-			}
-
-			private void generateForEachLoopWithValidation(ValidationCodeInjector injector, MethodVisitor mv,
-					Parameter containerParam, AnnotationDescription annotation, int argsSize) {
-				// Load the container and get its iterator
-				mv.visitVarInsn(ALOAD, containerParam.offset());
-				mv.visitMethodInsn(INVOKEINTERFACE, "java/lang/Iterable", "iterator", "()Ljava/util/Iterator;", true);
-
-				// Store iterator in a local variable
-				int iteratorVar = argsSize;
-				mv.visitVarInsn(ASTORE, iteratorVar);
-
-				// Initialize index in a local variable
-				int indexVar = iteratorVar + 1;
-				mv.visitInsn(ICONST_0);
-				mv.visitVarInsn(ISTORE, indexVar);
-
-				// Store element in a local variable (after index)
-				int elementVar = indexVar + 1;
-
-				Label loopStart = new Label();
-				Label loopTest = new Label();
-
-				// Jump to loop condition
-				mv.visitJumpInsn(GOTO, loopTest);
-
-				// Loop body label
-				mv.visitLabel(loopStart);
-
-				// Load iterator and get next element
-				mv.visitVarInsn(ALOAD, iteratorVar);
-				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
-
-				// Cast to the actual element type if it's not Object
-				if (!elementType.equals(TypeDescription.ForLoadedType.of(Object.class))) {
-					mv.visitTypeInsn(CHECKCAST, elementType.asErasure().getInternalName());
-				}
-
-				// Store element in local variable
-				mv.visitVarInsn(ASTORE, elementVar);
-
-				// Call the fragment method using the injector
-				injectValidation(injector, mv, containerParam, annotation, elementType, elementVar,
-						Map.of("index", indexVar));
-
-				// increment index
-				mv.visitIincInsn(indexVar, 1);
-
-				// Loop condition: check if hasNext()
-				mv.visitLabel(loopTest);
-				mv.visitVarInsn(ALOAD, iteratorVar);
-				mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
-				mv.visitJumpInsn(IFNE, loopStart);
-			}
-
-			private void injectValidation(ValidationCodeInjector injector, MethodVisitor mv, Parameter containerParam,
-					AnnotationDescription annotation, TypeDescription elementType, int elementVar,
-					Map<String, Integer> placeholderValues) {
-				// Create a synthetic parameter representing the element
-				String suffix;
-				if (containerParam.type().isAssignableTo(Map.class)) {
-					suffix = index == 0 ? "[key={key}]" : "[value for key={key}]";
-				} else if (placeholderValues.containsKey("index")) {
-					suffix = "[{index}]";
-				} else {
-					suffix = "[]";
-				}
-				String name = containerParam.name() + suffix;
-
-				Map<String, Integer> cumulativePlaceholders = new HashMap<>(containerParam.placeholderValues());
-				cumulativePlaceholders.putAll(placeholderValues);
-
-				SyntheticElementParameter elementParam = new SyntheticElementParameter(name, elementVar, elementType,
-						cumulativePlaceholders);
-
-				// Call the fragment method using the injector
-				@SuppressWarnings("unchecked")
-				Class<? extends Jsr380CodeFragment> clazz = (Class<? extends Jsr380CodeFragment>) fragmentMethod
-						.getDeclaringClass();
-				injector.useFragmentClass(clazz).inject(mv, elementParam, fragmentMethod, annotation);
+				injector.injectGenericType(mv, parameter, validatedType, method, annotation, index);
 			}
 
 		}
 
-		private static class SyntheticElementParameter implements Parameters.Parameter {
-			private final String name;
-			private final int offset;
-			private final TypeDescription type;
-			private final Map<String, Integer> placeholderValues;
+		private static class ParameterWithOffsetZero implements Parameter {
 
-			SyntheticElementParameter(String name, int offset, TypeDescription type,
-					Map<String, Integer> placeholderValues) {
-				this.name = name;
-				this.offset = offset;
-				this.type = type;
-				this.placeholderValues = placeholderValues;
-			}
+			@Delegate
+			private final Parameter delegate;
 
-			@Override
-			public Map<String, Integer> placeholderValues() {
-				return placeholderValues;
-			}
-
-			@Override
-			public int index() {
-				return 0; // Synthetic parameter, no real index
+			public ParameterWithOffsetZero(Parameter delegate) {
+				this.delegate = delegate;
 			}
 
 			@Override
 			public int offset() {
-				return offset;
+				return 0;
+			}
+
+		}
+
+		private static class SyntheticElementParameter implements Parameter {
+
+			private final TypeDescription type;
+
+			public SyntheticElementParameter(TypeDescription type) {
+				this.type = type;
+			}
+
+			@Override
+			public int index() {
+				return 0;
+			}
+
+			@Override
+			public String name() {
+				return "element";
 			}
 
 			@Override
@@ -974,13 +798,8 @@ class VaadooImplementor {
 			}
 
 			@Override
-			public String name() {
-				return name;
-			}
-
-			@Override
-			public TypeDescription.Generic genericType() {
-				return type.asGenericType();
+			public int offset() {
+				return 0;
 			}
 
 			@Override
@@ -1001,6 +820,16 @@ class VaadooImplementor {
 			@Override
 			public Object genericAnnotationValue(Type annotation, String name) {
 				return null;
+			}
+
+			@Override
+			public TypeDescription.Generic genericType() {
+				return type.asGenericType();
+			}
+
+			@Override
+			public Map<String, Integer> placeholderValues() {
+				return emptyMap();
 			}
 		}
 
