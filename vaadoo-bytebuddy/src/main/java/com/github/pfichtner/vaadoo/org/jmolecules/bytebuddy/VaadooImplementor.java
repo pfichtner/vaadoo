@@ -210,20 +210,16 @@ class VaadooImplementor {
 										return new MethodVisitor(ASM9,
 												super.visitMethod(access, name, descriptor, signature, exceptions)) {
 											@Override
-											public void visitInsn(int opcode) {
-												if (opcode == RETURN) {
-													Type[] args = Type
-															.getArgumentTypes(finalDefinedShape.getDescriptor());
-													int slot = 1;
-													for (Type arg : args) {
-														mv.visitVarInsn(arg.getOpcode(ILOAD), slot);
-														slot += arg.getSize();
-													}
-													mv.visitMethodInsn(INVOKESTATIC, instrumentedType.getInternalName(),
-															centralValidateName, finalDefinedShape.getDescriptor(),
-															false);
+											public void visitCode() {
+												super.visitCode();
+												Type[] args = Type.getArgumentTypes(finalDefinedShape.getDescriptor());
+												int slot = 1;
+												for (Type arg : args) {
+													mv.visitVarInsn(arg.getOpcode(ILOAD), slot);
+													slot += arg.getSize();
 												}
-												super.visitInsn(opcode);
+												mv.visitMethodInsn(INVOKESTATIC, instrumentedType.getInternalName(),
+														centralValidateName, finalDefinedShape.getDescriptor(), false);
 											}
 										};
 									}
