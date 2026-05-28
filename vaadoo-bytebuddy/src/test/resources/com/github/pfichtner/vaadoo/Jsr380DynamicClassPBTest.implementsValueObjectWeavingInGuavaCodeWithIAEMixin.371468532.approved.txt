@@ -42,7 +42,6 @@ Analysing type com.example.Generated_371468532
  */
 package com.example;
 
-import com.example.Generated_371468532;
 import com.google.common.base.Preconditions;
 import java.time.LocalTime;
 import java.time.Year;
@@ -54,10 +53,6 @@ public class Generated_371468532
 implements ValueObject {
     public Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate) {
         Generated_371468532.validate(localTime, minguoDate, floatArray, year, japaneseDate);
-        this(localTime, minguoDate, floatArray, year, japaneseDate, null);
-    }
-
-    private /* synthetic */ Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_japaneseDate(JapaneseDate japaneseDate) {
@@ -68,7 +63,7 @@ implements ValueObject {
     }
 
     private static void validate_minguoDate(MinguoDate minguoDate) {
-        Preconditions.checkArgument(minguoDate != null, "minguoDate must not be null");
+        Preconditions.checkNotNull(minguoDate, "minguoDate must not be null");
         Preconditions.checkArgument(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate));
         Preconditions.checkArgument(minguoDate == null || minguoDate.isBefore(MinguoDate.now()), String.format("minguoDate must be a past date but was %s", minguoDate));
     }

@@ -103,10 +103,23 @@ public class Parameters implements Iterable<Parameter> {
 		/**
 		 * Returns all annotations present on this parameter.
 		 *
+		 * @return an array of {@link AnnotationDescription} representing the
+		 *         parameter's annotations, or an empty array if no annotations are
+		 *         present
+		 */
+		AnnotationDescription[] annotationDescriptions();
+
+		/**
+		 * Returns all annotations present on this parameter.
+		 *
 		 * @return an array of {@link TypeDescription} representing the parameter's
 		 *         annotations, or an empty array if no annotations are present
 		 */
-		TypeDescription[] annotations();
+		default TypeDescription[] annotations() {
+			return Stream.of(annotationDescriptions()) //
+					.map(AnnotationDescription::getAnnotationType) //
+					.toArray(TypeDescription[]::new);
+		}
 
 		/**
 		 * Retrieves the value of a specified attribute from the given annotation type.
@@ -154,6 +167,72 @@ public class Parameters implements Iterable<Parameter> {
 
 	}
 
+	public static class SyntheticParameter implements Parameter {
+
+		private final String name;
+		private final int offset;
+		private final TypeDescription type;
+		private final Map<String, Integer> placeholderValues;
+
+		public SyntheticParameter(String name, int offset, TypeDescription type,
+				Map<String, Integer> placeholderValues) {
+			this.name = name;
+			this.offset = offset;
+			this.type = type;
+			this.placeholderValues = placeholderValues;
+		}
+
+		@Override
+		public int index() {
+			return 0;
+		}
+
+		@Override
+		public String name() {
+			return name;
+		}
+
+		@Override
+		public TypeDescription type() {
+			return type;
+		}
+
+		@Override
+		public int offset() {
+			return offset;
+		}
+
+		@Override
+		public AnnotationDescription[] annotationDescriptions() {
+			return new AnnotationDescription[0];
+		}
+
+		@Override
+		public Object annotationValue(Type annotation, String name) {
+			return null;
+		}
+
+		@Override
+		public List<List<AnnotationDescription>> genericAnnotations() {
+			return emptyList();
+		}
+
+		@Override
+		public Object genericAnnotationValue(Type annotation, String name) {
+			return null;
+		}
+
+		@Override
+		public TypeDescription.Generic genericType() {
+			return type.asGenericType();
+		}
+
+		@Override
+		public Map<String, Integer> placeholderValues() {
+			return placeholderValues;
+		}
+	}
+
 	private class ParameterWrapper implements Parameter {
 
 		private final int index;
@@ -193,9 +272,8 @@ public class Parameters implements Iterable<Parameter> {
 		}
 
 		@Override
-		public TypeDescription[] annotations() {
-			return annotationList() //
-					.asTypeList().toArray(TypeDescription[]::new);
+		public AnnotationDescription[] annotationDescriptions() {
+			return annotationList().toArray(new AnnotationDescription[0]);
 		}
 
 		@Override

@@ -32,7 +32,6 @@ Analysing type com.example.Generated
  */
 package com.example;
 
-import com.example.Generated;
 import java.util.Iterator;
 import java.util.List;
 import org.jmolecules.ddd.types.ValueObject;
@@ -41,10 +40,6 @@ public class Generated
 implements ValueObject {
     public Generated(List<String> list) {
         Generated.validate(list);
-        this(list, null);
-    }
-
-    private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_list(List list) {

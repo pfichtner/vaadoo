@@ -48,7 +48,6 @@ Analysing type com.example.Generated_950819241
  */
 package com.example;
 
-import com.example.Generated_950819241;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
@@ -61,10 +60,6 @@ public class Generated_950819241
 implements ValueObject {
     public Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
         Generated_950819241.validate(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s);
-        this(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s, null);
-    }
-
-    private /* synthetic */ Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_linkedList(LinkedList linkedList) {

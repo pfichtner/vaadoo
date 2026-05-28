@@ -30,7 +30,6 @@ Analysing type com.example.Generated
  */
 package com.example;
 
-import com.example.Generated;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -42,10 +41,6 @@ implements ValueObject {
 
     public Generated(String string) {
         Generated.validate(string);
-        this(string, null);
-    }
-
-    private /* synthetic */ Generated(String string, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_string(String string) {

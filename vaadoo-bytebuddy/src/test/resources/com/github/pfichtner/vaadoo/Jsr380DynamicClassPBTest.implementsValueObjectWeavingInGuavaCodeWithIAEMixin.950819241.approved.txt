@@ -48,12 +48,12 @@ Analysing type com.example.Generated_950819241
  */
 package com.example;
 
-import com.example.Generated_950819241;
 import com.google.common.base.Preconditions;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.time.chrono.MinguoDate;
+import java.util.Collection;
 import java.util.LinkedList;
 import org.jmolecules.ddd.types.ValueObject;
 
@@ -61,18 +61,14 @@ public class Generated_950819241
 implements ValueObject {
     public Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s) {
         Generated_950819241.validate(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s);
-        this(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s, null);
-    }
-
-    private /* synthetic */ Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_linkedList(LinkedList linkedList) {
-        Preconditions.checkArgument(linkedList != null, "linkedList must not be empty");
-        Preconditions.checkArgument(linkedList.size() > 0, "linkedList must not be empty");
-        Preconditions.checkArgument(linkedList != null, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
-        int n = linkedList.size();
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        block0: {
+            Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty");
+            if (linkedList == null) break block0;
+            Preconditions.checkArgument(linkedList.size() >= 0 && linkedList.size() <= Integer.MAX_VALUE, String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        }
     }
 
     private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {

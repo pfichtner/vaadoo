@@ -21,12 +21,13 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
 import static net.bytebuddy.jar.asm.Opcodes.ACONST_NULL;
-import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ATHROW;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
-import static net.bytebuddy.jar.asm.Opcodes.F_APPEND;
+import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.IFNE;
+import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
+import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL;
 import static net.bytebuddy.jar.asm.Opcodes.NEW;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
@@ -36,35 +37,34 @@ import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
-import lombok.NoArgsConstructor;
+import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.method.MethodDescription.InDefinedShape;
 import net.bytebuddy.description.method.MethodList;
-import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.description.type.TypeDescription.ForLoadedType;
+import net.bytebuddy.description.type.TypeDescription.Generic;
 import net.bytebuddy.description.type.TypeList;
 import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class CustomAnnotations {
 
-	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation) {
-		var contraint = annotation.getDeclaredAnnotations().ofType(Constraint.class);
-		if (contraint == null) {
+	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation,
+			String ownerClass, Map<TypeDescription, String> validatorFields) {
+		AnnotationDescription constraint = findConstraintAnnotation(annotation);
+		if (constraint == null) {
 			return;
 		}
-		var validatedBy = contraint.getValue("validatedBy");
+		var validatedBy = constraint.getValue("validatedBy");
 		if (validatedBy == null) {
 			return;
 		}
@@ -75,14 +75,31 @@ public final class CustomAnnotations {
 
 		for (TypeDescription validatorClass : validatorClasses) {
 			String validatorType = validatorClass.getInternalName();
-			mv.visitTypeInsn(NEW, validatorType);
-			mv.visitInsn(DUP);
-			mv.visitMethodInsn(INVOKESPECIAL, validatorType, "<init>", "()V", false);
-			mv.visitVarInsn(ALOAD, parameter.index());
+			String fieldName = validatorFields == null ? null : validatorFields.get(validatorClass);
+			if (fieldName == null) {
+				mv.visitTypeInsn(NEW, validatorType);
+				mv.visitInsn(DUP);
+				mv.visitMethodInsn(INVOKESPECIAL, validatorType, "<init>", "()V", false);
+			} else {
+				mv.visitFieldInsn(GETSTATIC, ownerClass, fieldName, "L" + validatorType + ";");
+			}
+
+			Type type = Type.getType(parameter.type().getDescriptor());
+			mv.visitVarInsn(type.getOpcode(ILOAD), 0);
+			if (parameter.type().isPrimitive()) {
+				TypeDescription boxed = parameter.type().asBoxed();
+				mv.visitMethodInsn(INVOKESTATIC, boxed.getInternalName(), "valueOf",
+						"(" + type.getDescriptor() + ")L" + boxed.getInternalName() + ";", false);
+			}
+
 			mv.visitInsn(ACONST_NULL);
-			String descriptor = getMethodDescriptor(BOOLEAN_TYPE,
-					getObjectType(typeThatGetsValidated(validatorClass).getInternalName()),
-					getType(ConstraintValidatorContext.class));
+			Generic validatorInterface = findValidatorInterface(validatorClass);
+			TypeDescription validatedType = validatorInterface.getTypeArguments().get(1).asErasure();
+			String contextTypeName = validatorInterface.asErasure().getName().startsWith("jakarta")
+					? "jakarta.validation.ConstraintValidatorContext"
+					: "javax.validation.ConstraintValidatorContext";
+			String descriptor = getMethodDescriptor(BOOLEAN_TYPE, getObjectType(validatedType.getInternalName()),
+					getObjectType(contextTypeName.replace('.', '/')));
 			mv.visitMethodInsn(INVOKEVIRTUAL, validatorType, "isValid", descriptor, false);
 			Label label0 = new Label();
 			mv.visitJumpInsn(IFNE, label0);
@@ -98,11 +115,33 @@ public final class CustomAnnotations {
 		}
 	}
 
+	private static AnnotationDescription findConstraintAnnotation(TypeDescription annotation) {
+		return annotation.getDeclaredAnnotations().stream()
+				.filter(a -> a.getAnnotationType().getName().equals("jakarta.validation.Constraint")
+						|| a.getAnnotationType().getName().equals("javax.validation.Constraint"))
+				.findFirst().orElse(null);
+	}
+
+	private static Generic findValidatorInterface(TypeDescription validatorClass) {
+		Generic constraintValidator = validatorClass.asGenericType();
+		while (constraintValidator != null) {
+			for (Generic iface : constraintValidator.getInterfaces()) {
+				String name = iface.asErasure().getName();
+				if (name.equals("jakarta.validation.ConstraintValidator")
+						|| name.equals("javax.validation.ConstraintValidator")) {
+					return iface;
+				}
+			}
+			constraintValidator = constraintValidator.getSuperClass();
+		}
+		throw new IllegalStateException("No ConstraintValidator found in hierarchy of " + validatorClass);
+	}
+
 	private static final Pattern annoMethodPattern = Pattern.compile("anno\\.(\\w+)\\(\\)");
 
 	private static Object getMessage(Parameter parameter, TypeDescription annotation, Object message) {
-		Object defaultMessage = defaultMessage(annotation);
-		if (message != null && message.equals(defaultMessage)) {
+		Object msgTemplate = message != null ? message : defaultMessage(annotation);
+		if (msgTemplate instanceof String) {
 			Function<String, String> rbResolver = Resources::message;
 			Function<String, String> paramNameResolver = k -> k.equals(ValidationCodeInjector.NAME) ? parameter.name()
 					: k;
@@ -122,27 +161,10 @@ public final class CustomAnnotations {
 								: annotationValue.toString();
 			};
 
-			message = NamedPlaceholders.replace((String) defaultMessage,
+			return NamedPlaceholders.replace((String) msgTemplate,
 					rbResolver.andThen(annotationValueResolver).andThen(paramNameResolver));
 		}
-		return message == null ? format("%s not valid", parameter.name()) : message;
-	}
-
-	private static TypeDescription typeThatGetsValidated(TypeDefinition validatorClass) {
-		TypeDescription.Generic constraintValidator = validatorClass.asGenericType();
-		while (constraintValidator != null) {
-			for (TypeDescription.Generic iface : constraintValidator.getInterfaces()) {
-				if (iface.asErasure().equals(ForLoadedType.of(ConstraintValidator.class))) {
-					TypeList.Generic typeArguments = iface.getTypeArguments();
-					if (typeArguments.size() == 2) {
-						return typeArguments.get(1).asErasure();
-					}
-					throw new IllegalArgumentException("Expected ConstraintValidator<A, B> but found " + typeArguments);
-				}
-			}
-			constraintValidator = constraintValidator.getSuperClass();
-		}
-		throw new IllegalStateException("No ConstraintValidator found in hierarchy of " + validatorClass);
+		return msgTemplate == null ? format("%s not valid", parameter.name()) : msgTemplate;
 	}
 
 	private static InDefinedShape defaultMessageMethod(TypeDescription annotation) {

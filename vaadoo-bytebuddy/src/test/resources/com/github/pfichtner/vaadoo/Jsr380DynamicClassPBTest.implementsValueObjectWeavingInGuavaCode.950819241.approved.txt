@@ -48,7 +48,6 @@ Analysing type com.example.Generated_950819241
  */
 package com.example;
 
-import com.example.Generated_950819241;
 import com.google.common.base.Preconditions;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -69,10 +68,6 @@ public class Generated_950819241
 implements ValueObject {
     public Generated_950819241(Object[] objectArray, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MinguoDate minguoDate, YearMonth yearMonth, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, MinguoDate minguoDate2, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) LinkedList linkedList, short s) {
         Generated_950819241.validate(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s);
-        this(objectArray, minguoDate, yearMonth, zonedDateTime, minguoDate2, offsetDateTime, linkedList, s, null);
-    }
-
-    private /* synthetic */ Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_linkedList(LinkedList linkedList) {

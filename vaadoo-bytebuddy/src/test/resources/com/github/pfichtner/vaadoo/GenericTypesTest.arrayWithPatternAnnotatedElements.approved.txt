@@ -31,7 +31,6 @@ Analysing type com.example.GenericGenerated
  */
 package com.example;
 
-import com.example.GenericGenerated;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -43,10 +42,6 @@ implements ValueObject {
 
     public GenericGenerated(String[] stringArray) {
         GenericGenerated.validate(stringArray);
-        this(stringArray, null);
-    }
-
-    private /* synthetic */ GenericGenerated(String[] stringArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_stringArray(String[] stringArray) {

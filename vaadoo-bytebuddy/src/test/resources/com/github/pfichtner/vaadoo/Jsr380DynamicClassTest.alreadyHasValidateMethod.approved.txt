@@ -33,17 +33,12 @@ Analysing type com.example.Generated
  */
 package com.example;
 
-import com.example.Generated;
 import org.jmolecules.ddd.types.ValueObject;
 
 public class Generated
 implements ValueObject {
     public Generated(Object object) {
         Generated.validate_1(object);
-        this(object, null);
-    }
-
-    private /* synthetic */ Generated(Object object, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate(Object object) {

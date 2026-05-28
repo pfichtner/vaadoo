@@ -32,7 +32,6 @@ Analysing type com.example.GenericGenerated
  */
 package com.example;
 
-import com.example.GenericGenerated;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -44,10 +43,6 @@ implements ValueObject {
 
     public GenericGenerated(Map<String, String> map) {
         GenericGenerated.validate(map);
-        this(map, null);
-    }
-
-    private /* synthetic */ GenericGenerated(Map map, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_map(Map map) {

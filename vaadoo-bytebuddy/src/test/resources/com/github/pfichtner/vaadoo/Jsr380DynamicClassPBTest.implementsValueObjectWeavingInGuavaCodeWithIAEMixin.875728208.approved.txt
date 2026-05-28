@@ -54,11 +54,11 @@ Analysing type com.example.Generated_875728208
  */
 package com.example;
 
-import com.example.Generated_875728208;
 import com.google.common.base.Preconditions;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -68,44 +68,42 @@ public class Generated_875728208
 implements ValueObject {
     public Generated_875728208(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList) {
         Generated_875728208.validate(s, n, instant, s2, offsetDateTime, objectArray, map, longArray, list, linkedList);
-        this(s, n, instant, s2, offsetDateTime, objectArray, map, longArray, list, linkedList, null);
-    }
-
-    private /* synthetic */ Generated_875728208(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_linkedList(LinkedList linkedList) {
         Preconditions.checkArgument(linkedList == null, String.format("linkedList must be null but was %s", linkedList));
-        Preconditions.checkArgument(linkedList != null, "linkedList must not be empty");
-        Preconditions.checkArgument(linkedList.size() > 0, "linkedList must not be empty");
+        Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(linkedList, "linkedList must not be empty")).size() > 0, "linkedList must not be empty");
     }
 
     private static void validate_list(List list) {
-        Preconditions.checkArgument(list != null, "list must not be empty");
-        Preconditions.checkArgument(list.size() > 0, "list must not be empty");
-        Preconditions.checkArgument(list == null, String.format("list must be null but was %s", list));
-        Preconditions.checkArgument(list != null, String.format("size of list must be between 0 and 2147483647 but was %s", list));
-        int n = list.size();
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of list must be between 0 and 2147483647 but was %s", list));
+        block0: {
+            Preconditions.checkArgument(((Collection)Preconditions.checkNotNull(list, "list must not be empty")).size() > 0, "list must not be empty");
+            Preconditions.checkArgument(list == null, String.format("list must be null but was %s", list));
+            if (list == null) break block0;
+            Preconditions.checkArgument(list.size() >= 0 && list.size() <= Integer.MAX_VALUE, String.format("size of list must be between 0 and 2147483647 but was %s", list));
+        }
     }
 
     private static void validate_longArray(Long[] longArray) {
-        Preconditions.checkArgument(longArray == null, String.format("longArray must be null but was %s", Arrays.deepToString(longArray)));
-        Preconditions.checkArgument(longArray != null, String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(longArray)));
-        int n = longArray.length;
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(longArray)));
+        block0: {
+            Preconditions.checkArgument(longArray == null, String.format("longArray must be null but was %s", Arrays.deepToString(longArray)));
+            if (longArray == null) break block0;
+            Preconditions.checkArgument(longArray.length >= 0 && longArray.length <= Integer.MAX_VALUE, String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(longArray)));
+        }
     }
 
     private static void validate_map(Map map) {
-        Preconditions.checkArgument(map != null, String.format("size of map must be between 0 and 2147483647 but was %s", map));
-        int n = map.size();
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of map must be between 0 and 2147483647 but was %s", map));
+        block0: {
+            if (map == null) break block0;
+            Preconditions.checkArgument(map.size() >= 0 && map.size() <= Integer.MAX_VALUE, String.format("size of map must be between 0 and 2147483647 but was %s", map));
+        }
     }
 
     private static void validate_objectArray(Object[] objectArray) {
-        Preconditions.checkArgument(objectArray != null, String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)));
-        int n = objectArray.length;
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)));
+        block0: {
+            if (objectArray == null) break block0;
+            Preconditions.checkArgument(objectArray.length >= 0 && objectArray.length <= Integer.MAX_VALUE, String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)));
+        }
     }
 
     private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
