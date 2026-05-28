@@ -39,7 +39,6 @@ Analysing type com.example.Generated_1605684248
  */
 package com.example;
 
-import com.example.Generated_1605684248;
 import java.time.MonthDay;
 import java.time.ZonedDateTime;
 import org.apache.commons.lang3.Validate;
@@ -49,10 +48,6 @@ public class Generated_1605684248
 implements ValueObject {
     public Generated_1605684248(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n) {
         Generated_1605684248.validate(monthDay, monthDay2, floatArray, s, zonedDateTime, n);
-        this(monthDay, monthDay2, floatArray, s, zonedDateTime, n, null);
-    }
-
-    private /* synthetic */ Generated_1605684248(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_int(int n) {

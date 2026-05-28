@@ -39,7 +39,6 @@ Analysing type com.example.Generated_1605684248
  */
 package com.example;
 
-import com.example.Generated_1605684248;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Positive;
@@ -52,10 +51,6 @@ public class Generated_1605684248
 implements ValueObject {
     public Generated_1605684248(@Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) MonthDay monthDay, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) MonthDay monthDay2, Float[] floatArray, short s, @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) ZonedDateTime zonedDateTime, @Positive(groups={}, message="{jakarta.validation.constraints.Positive.message}", payload={}) int n) {
         Generated_1605684248.validate(monthDay, monthDay2, floatArray, s, zonedDateTime, n);
-        this(monthDay, monthDay2, floatArray, s, zonedDateTime, n, null);
-    }
-
-    private /* synthetic */ Generated_1605684248(MonthDay monthDay, MonthDay monthDay2, Float[] floatArray, short s, ZonedDateTime zonedDateTime, int n, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_int(int n) {

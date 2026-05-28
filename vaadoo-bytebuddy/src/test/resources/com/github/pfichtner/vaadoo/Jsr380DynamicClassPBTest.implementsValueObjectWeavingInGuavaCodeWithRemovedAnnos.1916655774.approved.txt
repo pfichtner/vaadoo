@@ -49,7 +49,6 @@ Analysing type com.example.Generated_1916655774
  */
 package com.example;
 
-import com.example.Generated_1916655774;
 import com.google.common.base.Preconditions;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -61,10 +60,6 @@ public class Generated_1916655774
 implements ValueObject {
     public Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {
         Generated_1916655774.validate(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate);
-        this(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate, null);
-    }
-
-    private /* synthetic */ Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_japaneseDate(JapaneseDate japaneseDate) {

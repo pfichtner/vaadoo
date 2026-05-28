@@ -49,7 +49,6 @@ Analysing type com.example.Generated_1916655774
  */
 package com.example;
 
-import com.example.Generated_1916655774;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -70,10 +69,6 @@ public class Generated_1916655774
 implements ValueObject {
     public Generated_1916655774(@NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) Object[] objectArray, Short s, @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) OffsetDateTime offsetDateTime, @DecimalMax(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMax.message}", payload={}, value="0") Integer n, @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) BigDecimal bigDecimal, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) Double[] doubleArray, @DecimalMin(groups={}, inclusive=true, message="{jakarta.validation.constraints.DecimalMin.message}", payload={}, value="0") @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) byte by, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @FutureOrPresent(groups={}, message="{jakarta.validation.constraints.FutureOrPresent.message}", payload={}) @NotNull(groups={}, message="{jakarta.validation.constraints.NotNull.message}", payload={}) JapaneseDate japaneseDate) {
         Generated_1916655774.validate(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate);
-        this(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate, null);
-    }
-
-    private /* synthetic */ Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_japaneseDate(JapaneseDate japaneseDate) {

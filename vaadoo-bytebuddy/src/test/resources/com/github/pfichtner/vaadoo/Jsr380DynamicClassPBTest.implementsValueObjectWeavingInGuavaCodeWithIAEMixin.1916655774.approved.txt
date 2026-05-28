@@ -49,7 +49,6 @@ Analysing type com.example.Generated_1916655774
  */
 package com.example;
 
-import com.example.Generated_1916655774;
 import com.google.common.base.Preconditions;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -61,16 +60,12 @@ public class Generated_1916655774
 implements ValueObject {
     public Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {
         Generated_1916655774.validate(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate);
-        this(objectArray, s, offsetDateTime, n, bigDecimal, doubleArray, by, japaneseDate, null);
-    }
-
-    private /* synthetic */ Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_japaneseDate(JapaneseDate japaneseDate) {
         Preconditions.checkArgument(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a past date but was %s", japaneseDate));
         Preconditions.checkArgument(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate));
-        Preconditions.checkArgument(japaneseDate != null, "japaneseDate must not be null");
+        Preconditions.checkNotNull(japaneseDate, "japaneseDate must not be null");
     }
 
     private static void validate_byte(byte by) {
@@ -79,9 +74,9 @@ implements ValueObject {
     }
 
     private static void validate_doubleArray(Double[] doubleArray) {
-        Preconditions.checkArgument(doubleArray != null, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)));
-        int n = doubleArray.length;
-        Preconditions.checkArgument(n >= 0 && n <= Integer.MAX_VALUE, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)));
+        if (doubleArray != null) {
+            Preconditions.checkArgument(doubleArray.length >= 0 && doubleArray.length <= Integer.MAX_VALUE, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)));
+        }
         Preconditions.checkArgument(doubleArray == null, String.format("doubleArray must be null but was %s", Arrays.deepToString(doubleArray)));
     }
 
@@ -98,8 +93,7 @@ implements ValueObject {
     }
 
     private static void validate_objectArray(Object[] objectArray) {
-        Preconditions.checkArgument(objectArray != null, "objectArray must not be empty");
-        Preconditions.checkArgument(objectArray.length > 0, "objectArray must not be empty");
+        Preconditions.checkArgument(Preconditions.checkNotNull(objectArray, "objectArray must not be empty").length > 0, "objectArray must not be empty");
     }
 
     private static void validate(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {

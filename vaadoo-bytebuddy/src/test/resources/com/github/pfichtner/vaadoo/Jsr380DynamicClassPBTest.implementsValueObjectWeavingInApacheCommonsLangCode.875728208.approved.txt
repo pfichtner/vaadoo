@@ -54,7 +54,6 @@ Analysing type com.example.Generated_875728208
  */
 package com.example;
 
-import com.example.Generated_875728208;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -79,10 +78,6 @@ public class Generated_875728208
 implements ValueObject {
     public Generated_875728208(@PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) short s, @PositiveOrZero(groups={}, message="{jakarta.validation.constraints.PositiveOrZero.message}", payload={}) @Min(groups={}, message="{jakarta.validation.constraints.Min.message}", payload={}, value=0L) Integer n, Instant instant, @Negative(groups={}, message="{jakarta.validation.constraints.Negative.message}", payload={}) @Max(groups={}, message="{jakarta.validation.constraints.Max.message}", payload={}, value=0L) @NegativeOrZero(groups={}, message="{jakarta.validation.constraints.NegativeOrZero.message}", payload={}) short s2, @Past(groups={}, message="{jakarta.validation.constraints.Past.message}", payload={}) @PastOrPresent(groups={}, message="{jakarta.validation.constraints.PastOrPresent.message}", payload={}) @Future(groups={}, message="{jakarta.validation.constraints.Future.message}", payload={}) OffsetDateTime offsetDateTime, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Object[] objectArray, @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Map map, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) Long[] longArray, @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @Size(groups={}, max=0x7FFFFFFF, message="{jakarta.validation.constraints.Size.message}", min=0, payload={}) List list, @Null(groups={}, message="{jakarta.validation.constraints.Null.message}", payload={}) @NotEmpty(groups={}, message="{jakarta.validation.constraints.NotEmpty.message}", payload={}) LinkedList linkedList) {
         Generated_875728208.validate(s, n, instant, s2, offsetDateTime, objectArray, map, longArray, list, linkedList);
-        this(s, n, instant, s2, offsetDateTime, objectArray, map, longArray, list, linkedList, null);
-    }
-
-    private /* synthetic */ Generated_875728208(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_linkedList(LinkedList linkedList) {

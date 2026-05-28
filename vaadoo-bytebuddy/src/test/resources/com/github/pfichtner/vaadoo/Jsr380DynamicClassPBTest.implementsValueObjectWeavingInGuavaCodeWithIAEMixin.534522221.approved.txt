@@ -40,7 +40,6 @@ Analysing type com.example.Generated_534522221
  */
 package com.example;
 
-import com.example.Generated_534522221;
 import com.google.common.base.Preconditions;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -52,10 +51,6 @@ public class Generated_534522221
 implements ValueObject {
     public Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
         Generated_534522221.validate(offsetDateTime, calendar, minguoDate, instant, s);
-        this(offsetDateTime, calendar, minguoDate, instant, s, null);
-    }
-
-    private /* synthetic */ Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
     private static void validate_minguoDate(MinguoDate minguoDate) {
@@ -65,7 +60,7 @@ implements ValueObject {
     private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
         Preconditions.checkArgument(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
         Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
-        Preconditions.checkArgument(offsetDateTime != null, "offsetDateTime must not be null");
+        Preconditions.checkNotNull(offsetDateTime, "offsetDateTime must not be null");
     }
 
     private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {
