@@ -17,39 +17,98 @@ No runtime validator. No reflection. No boilerplate.
 
 ## ✨ Quick Example
 
-```java
-record User(@NotBlank String name, @Min(18) int age) {}
-```
+Suppose you model a reveal schedule as an ordered list of rounds.
 
-### What actually happens
-During the build, Vaadoo:
-1. reads the annotations (e.g. @NotBlank, @Min)
-2. generates equivalent validation code
-3. injects it into the constructor bytecode
-
-So your runtime code behaves like:
+With Vaadoo, you declare validation rules directly on the constructor parameter:
 
 ```java
-new User("", 10); 
-// → throws IllegalArgumentException immediately: "name must not be blank"
+public record RevealSchedule(@NotEmpty List<@NotNull Round> values) {
+
+    public RevealSchedule {
+        var sorted = values.stream().sorted().distinct().toList();
+        if (!sorted.equals(values)) {
+            throw new IllegalArgumentException(
+                "values must be in strictly ascending order without duplicates: " + values);
+        }
+    }
+
+}
 ```
+
+The annotations express generic validation rules:
+
+- `@NotEmpty` → the list must contain at least one element
+- `@NotNull` → elements of the list must not be null
+
+The constructor still contains the domain-specific rule that rounds must be in strictly ascending order without duplicates.
+
+### What Vaadoo adds
+
+During the build, Vaadoo converts validation annotations into ordinary constructor checks and injects them into the bytecode.
+
+The resulting constructor behaves roughly like:
+
+```java
+public record RevealSchedule(List<Round> values) {
+
+    public RevealSchedule {
+        if (values == null) {
+            throw new NullPointerException("values must not be null");
+        }
+
+        if (values.isEmpty()) {
+            throw new IllegalArgumentException("values must not be empty");
+        }
+
+        for (int i = 0; i < values.size(); i++) {
+            if (values.get(i) == null) {
+                throw new NullPointerException("values[" + i + "] must not be null");
+            }
+        }
+
+        var sorted = values.stream().sorted().distinct().toList();
+        if (!sorted.equals(values)) {
+            throw new IllegalArgumentException(
+                "values must be in strictly ascending order without duplicates: " + values);
+        }
+    }
+
+}
+```
+
+### Why this matters
+
+Vaadoo removes repetitive validation boilerplate while keeping domain logic explicit.
+
+You write:
+
+```java
+@NotEmpty List<@NotNull Round> values
+```
+
+instead of:
+
+```java
+if (values == null) {
+    throw new NullPointerException("values must not be null");
+}
+
+if (values.isEmpty()) {
+    throw new IllegalArgumentException("values must not be empty");
+}
+
+for (int i = 0; i < values.size(); i++) {
+    if (values.get(i) == null) {
+        throw new NullPointerException("values[" + i + "] must not be null");
+    }
+}
+
+```
+
+The business rule remains in the constructor, while the mechanical validation code is generated automatically.
 
 Vaadoo uses Byte Buddy to generate the validation logic at compile time and injects it into the constructor.
 No reflection. No runtime validator needed.
-
-### What happens under the hood
-
-This is roughly the bytecode Vaadoo injects into the constructor:
-
-```java
-// what Vaadoo generates
-if (name == null || name.trim().length() == 0) {
-    throw new IllegalArgumentException("name must not be blank");
-}
-if (age < 18) {
-    throw new IllegalArgumentException(String.format("age must be >= 18 but was %s", age));
-}
-```
 
 ### The key idea
 - ❌ Not runtime validation (like Hibernate Validator)
