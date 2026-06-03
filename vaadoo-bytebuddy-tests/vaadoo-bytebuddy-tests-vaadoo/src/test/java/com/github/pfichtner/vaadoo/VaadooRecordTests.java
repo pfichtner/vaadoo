@@ -18,6 +18,8 @@ package com.github.pfichtner.vaadoo;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatRuntimeException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -27,6 +29,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 import example.vaadoo.SampleValueRecord;
+import example.vaadoo.SampleRecordWithSideEffect;
 
 class VaadooRecordTests {
 
@@ -53,6 +56,15 @@ class VaadooRecordTests {
 	void doesNotThrowExceptionOnNonNullValueAndAssignsValues() {
 		String value = "not null and not empty";
 		assertThat(new SampleValueRecord(value).value()).isEqualTo(value);
+	}
+
+	@Test
+	void mustNotCallAddOnListWithNullInRecord() {
+		@SuppressWarnings("unchecked")
+		List<String> listMock = mock(List.class);
+		assertThatRuntimeException().isThrownBy(() -> new SampleRecordWithSideEffect(listMock, null))
+				.withMessage("toAdd must not be null");
+		verifyNoInteractions(listMock);
 	}
 
 }
