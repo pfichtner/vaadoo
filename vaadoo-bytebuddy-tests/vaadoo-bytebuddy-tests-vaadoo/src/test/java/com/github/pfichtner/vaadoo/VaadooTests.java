@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import example.vaadoo.SampleClassWithGenericNotNull;
 import example.vaadoo.SampleValueObject;
 import example.vaadoo.SampleValueObjectWithSideEffect;
 
@@ -65,6 +66,19 @@ class VaadooTests {
 		assertThatRuntimeException().isThrownBy(() -> new SampleValueObjectWithSideEffect(listMock, null))
 				.withMessage("toAdd must not be null");
 		verifyNoInteractions(listMock);
+	}
+
+	@Test
+	void classGenericNotNullCatchesNullElements() {
+		assertThatRuntimeException().isThrownBy(
+				() -> new SampleClassWithGenericNotNull(Arrays.asList(null, "hello")))
+				.withMessageContaining("must not be null");
+	}
+
+	@Test
+	void classGenericNotNullAcceptsListWithoutNulls() {
+		assertThat(new SampleClassWithGenericNotNull(List.of("hello", "world")).getValues())
+				.containsExactly("hello", "world");
 	}
 
 }
