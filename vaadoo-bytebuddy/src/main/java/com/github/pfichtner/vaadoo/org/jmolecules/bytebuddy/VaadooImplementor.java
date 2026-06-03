@@ -120,7 +120,7 @@ class VaadooImplementor {
 
 		for (InDefinedShape definedShape : typeDescription.getDeclaredMethods()) {
 			if (definedShape.isConstructor()) {
-				Parameters parameters = Parameters.of(definedShape.getParameters());
+				Parameters parameters = Parameters.of(definedShape.getParameters(), typeDescription);
 				Implementation.Composable centralValidateImpl = null;
 
 				// We iterate backwards to build the chain so the calls are in the correct

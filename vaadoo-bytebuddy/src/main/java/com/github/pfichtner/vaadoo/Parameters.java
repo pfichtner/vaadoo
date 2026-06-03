@@ -36,6 +36,7 @@ import com.github.pfichtner.vaadoo.Parameters.Parameter;
 
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationList;
+import net.bytebuddy.description.field.FieldDescription;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.MethodList;
 import net.bytebuddy.description.method.ParameterDescription.InDefinedShape;
@@ -55,11 +56,17 @@ import net.bytebuddy.jar.asm.Type;
 public class Parameters implements Iterable<Parameter> {
 
 	public static Parameters of(ParameterList<InDefinedShape> parameterList) {
-		return new Parameters(parameterList);
+		return new Parameters(parameterList, null);
+	}
+
+	public static Parameters of(ParameterList<InDefinedShape> parameterList,
+			TypeDescription declaringType) {
+		return new Parameters(parameterList, declaringType);
 	}
 
 	private final List<Parameter> values;
 	private final ParameterList<InDefinedShape> parameterList;
+	private final TypeDescription declaringType;
 
 	/**
 	 * Represents a single parameter.
@@ -214,20 +221,55 @@ public class Parameters implements Iterable<Parameter> {
 			return null;
 		}
 
-		@Override
-		public List<List<AnnotationDescription>> genericAnnotations() {
-			TypeDescription.Generic typeDescription = definedShape().getType();
-			if (typeDescription.getSort().isParameterized()) {
-				return typeDescription.getTypeArguments().stream() //
-						.filter(Objects::nonNull) //
-						.map(TypeDescription.Generic::getDeclaredAnnotations) //
-						.collect(toList());
+	@Override
+	public List<List<AnnotationDescription>> genericAnnotations() {
+		TypeDescription.Generic typeDescription = definedShape().getType();
+		if (typeDescription.getSort().isParameterized()) {
+			List<List<AnnotationDescription>> fromParam = typeDescription.getTypeArguments().stream() //
+					.filter(Objects::nonNull) //
+					.map(TypeDescription.Generic::getDeclaredAnnotations) //
+					.collect(toList());
+			if (fromParam.stream().anyMatch(a -> !a.isEmpty())) {
+				return fromParam;
 			}
-			if (typeDescription.isArray()) {
-				return List.of(typeDescription.getComponentType().getDeclaredAnnotations());
-			}
-			return emptyList();
 		}
+		if (typeDescription.isArray()) {
+			List<AnnotationDescription> fromParam = typeDescription.getComponentType().getDeclaredAnnotations();
+			if (!fromParam.isEmpty()) {
+				return List.of(fromParam);
+			}
+		}
+		if (declaringType != null && declaringType.isRecord()) {
+			return genericAnnotationsFromField();
+		}
+		return emptyList();
+	}
+
+	private List<List<AnnotationDescription>> genericAnnotationsFromField() {
+		String paramName = name();
+		for (FieldDescription.InDefinedShape field : declaringType.getDeclaredFields()) {
+			if (field.getName().equals(paramName)) {
+				List<List<AnnotationDescription>> fromField = genericAnnotationsFromType(field.getType());
+				if (!fromField.isEmpty()) {
+					return fromField;
+				}
+			}
+		}
+		return emptyList();
+	}
+
+	private List<List<AnnotationDescription>> genericAnnotationsFromType(TypeDescription.Generic type) {
+		if (type.getSort().isParameterized()) {
+			return type.getTypeArguments().stream() //
+					.filter(Objects::nonNull) //
+					.map(TypeDescription.Generic::getDeclaredAnnotations) //
+					.collect(toList());
+		}
+		if (type.isArray()) {
+			return List.of(type.getComponentType().getDeclaredAnnotations());
+		}
+		return emptyList();
+	}
 
 		@Override
 		public Object genericAnnotationValue(Type annotation, String name) {
@@ -271,8 +313,9 @@ public class Parameters implements Iterable<Parameter> {
 
 	}
 
-	private Parameters(ParameterList<InDefinedShape> parameterList) {
+	private Parameters(ParameterList<InDefinedShape> parameterList, TypeDescription declaringType) {
 		this.parameterList = parameterList;
+		this.declaringType = declaringType;
 		this.values = range(0, parameterList.size()).<Parameter>mapToObj(ParameterWrapper::new).collect(toList());
 	}
 

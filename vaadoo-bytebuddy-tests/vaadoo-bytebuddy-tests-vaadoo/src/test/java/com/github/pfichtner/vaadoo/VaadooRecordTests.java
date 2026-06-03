@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import example.vaadoo.SampleValueRecord;
 import example.vaadoo.SampleRecordWithSideEffect;
+import example.vaadoo.SampleRecordWithGenericNotNull;
 
 class VaadooRecordTests {
 
@@ -65,6 +66,33 @@ class VaadooRecordTests {
 		assertThatRuntimeException().isThrownBy(() -> new SampleRecordWithSideEffect(listMock, null))
 				.withMessage("toAdd must not be null");
 		verifyNoInteractions(listMock);
+	}
+
+	@Test
+	void genericNotNullCatchesNullElementsBeforeCompactConstructor() {
+		assertThatRuntimeException().isThrownBy(
+				() -> new SampleRecordWithGenericNotNull(Arrays.asList(null, "hello")))
+				.withMessageContaining("must not be null");
+	}
+
+	@Test
+	void genericNotNullCatchesAllNullElements() {
+		assertThatRuntimeException().isThrownBy(
+				() -> new SampleRecordWithGenericNotNull(Arrays.asList("hello", null, "world")))
+				.withMessageContaining("must not be null");
+	}
+
+	@Test
+	void genericNotNullAcceptsListWithoutNulls() {
+		assertThat(new SampleRecordWithGenericNotNull(List.of("hello", "world")).values())
+				.containsExactly("hello", "world");
+	}
+
+	@Test
+	void genericNotNullNotEmptyStillValidatesNotEmpty() {
+		assertThatRuntimeException().isThrownBy(
+				() -> new SampleRecordWithGenericNotNull(List.of()))
+				.withMessageContaining("must not be");
 	}
 
 }
