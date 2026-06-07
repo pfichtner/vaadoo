@@ -20,6 +20,7 @@ import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.AASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ARETURN;
+import static net.bytebuddy.jar.asm.Opcodes.ASM9;
 import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.DLOAD;
 import static net.bytebuddy.jar.asm.Opcodes.DRETURN;
@@ -38,16 +39,40 @@ import static net.bytebuddy.jar.asm.Type.ARRAY;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import lombok.NoArgsConstructor;
 import net.bytebuddy.jar.asm.ClassReader;
+import net.bytebuddy.jar.asm.ClassVisitor;
+import net.bytebuddy.jar.asm.Label;
+import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class AsmUtil {
 
 	public static final Type STRING_TYPE = Type.getType(String.class);
+
+	public static int firstLineNumber(ClassReader cr, String methodName, String methodDescriptor) {
+		AtomicInteger firstLine = new AtomicInteger(-1);
+		cr.accept(new ClassVisitor(ASM9) {
+			@Override
+			public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
+					String[] exceptions) {
+				if (name.equals(methodName) && descriptor.equals(methodDescriptor)) {
+					return new MethodVisitor(api) {
+						@Override
+						public void visitLineNumber(int line, Label start) {
+							firstLine.compareAndSet(-1, line);
+						}
+					};
+				}
+				return null;
+			}
+		}, 0);
+		return firstLine.get();
+	}
 
 	public static boolean isLoadOpcode(int opcode) {
 		return opcode == ALOAD || opcode == ILOAD || opcode == LLOAD //

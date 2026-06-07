@@ -60,20 +60,20 @@ implements ValueObject {
     private /* synthetic */ Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_minguoDate(MinguoDate minguoDate) {
-        if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));
+    private static void validate_minguoDate(MinguoDate scrubbed_param) {
+        if (scrubbed_param != null && !scrubbed_param.isAfter(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
-        if (offsetDateTime != null && !offsetDateTime.isAfter(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
+    private static void validate_offsetDateTime(OffsetDateTime scrubbed_param) {
+        if (scrubbed_param != null && !scrubbed_param.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a future date but was %s", scrubbed_param));
         }
-        if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
+        if (scrubbed_param != null && scrubbed_param.isBefore(OffsetDateTime.now())) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", scrubbed_param));
         }
-        if (offsetDateTime == null) {
+        if (scrubbed_param == null) {
             throw new NullPointerException("offsetDateTime must not be null");
         }
     }

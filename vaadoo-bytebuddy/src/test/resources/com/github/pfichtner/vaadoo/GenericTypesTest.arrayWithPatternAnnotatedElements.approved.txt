@@ -49,17 +49,24 @@ implements ValueObject {
     private /* synthetic */ GenericGenerated(String[] stringArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_stringArray(String[] stringArray) {
-        if (stringArray == null) {
+    /*
+     * WARNING - void declaration
+     */
+    private static void validate_stringArray(String[] scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("stringArray must not be null");
         }
-        if (stringArray != null) {
-            int n = stringArray.length;
-            for (int i = 0; i < n; ++i) {
-                String string = stringArray[i];
-                if (string == null || GenericGenerated.getCachedPattern("\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException(String.format("stringArray[" + i + "] must match \"\\d*\" but was %s", string));
+        int anno = scrubbed_param.length;
+        int ref = 0;
+        String string = null;
+        while (ref < anno) {
+            void var2_2;
+            string = scrubbed_param[ref];
+            if (string != null && !GenericGenerated.getCachedPattern("\\d*", 0).matcher(string).matches()) {
+                void charSequence;
+                throw new IllegalArgumentException(String.format("stringArray[" + String.valueOf((int)charSequence) + "] must match \"\\d*\" but was %s", string));
             }
+            ++var2_2;
         }
     }
 

@@ -60,10 +60,14 @@ public final class Decompiler {
 						}
 					}).build();
 			driver.analyse(singletonList(tempClass.toString()));
-			return normalizeAnnotations(source.toString());
+			return normalize(source.toString());
 		} finally {
 			Files.delete(tempClass);
 		}
+	}
+
+	private static String normalize(String source) {
+		return normalizeAnnotations(source);
 	}
 
 	private static String normalizeAnnotations(String source) {

@@ -45,8 +45,8 @@ implements ValueObject {
     private /* synthetic */ Generated_170777430(Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_objectArray(Object[] objectArray) {
-        Preconditions.checkArgument(Preconditions.checkNotNull(objectArray, "objectArray must not be empty").length > 0, "objectArray must not be empty");
+    private static void validate_objectArray(Object[] scrubbed_param) {
+        Preconditions.checkArgument(Preconditions.checkNotNull(scrubbed_param, "objectArray must not be empty").length > 0, "objectArray must not be empty");
     }
 
     private static void validate(Object[] objectArray) {

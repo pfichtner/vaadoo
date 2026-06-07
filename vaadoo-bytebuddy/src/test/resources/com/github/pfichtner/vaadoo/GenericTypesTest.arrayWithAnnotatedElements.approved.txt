@@ -44,22 +44,34 @@ implements ValueObject {
     private /* synthetic */ GenericGenerated(String[] stringArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_stringArray(String[] stringArray) {
-        if (stringArray == null) {
+    /*
+     * WARNING - void declaration
+     */
+    private static void validate_stringArray(String[] scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("stringArray must not be null");
         }
-        if (stringArray != null) {
-            int n = stringArray.length;
-            block0: for (int i = 0; i < n; ++i) {
-                String string = stringArray[i];
+        int anno = scrubbed_param.length;
+        int ref = 0;
+        String string = null;
+        while (ref < anno) {
+            void var2_2;
+            block5: {
+                void i;
+                void charSequence;
+                string = scrubbed_param[ref];
                 if (string == null) {
-                    throw new IllegalArgumentException("stringArray[" + i + "] must not be blank");
+                    throw new IllegalArgumentException("stringArray[" + String.valueOf((int)charSequence) + "] must not be blank");
                 }
-                for (int j = 0; j < string.length(); ++j) {
-                    if (!Character.isWhitespace(string.charAt(j))) continue block0;
+                for (int j = 0; j < i.length(); ++j) {
+                    if (Character.isWhitespace(i.charAt(j))) {
+                        continue;
+                    }
+                    break block5;
                 }
-                throw new IllegalArgumentException("stringArray[" + i + "] must not be blank");
+                throw new IllegalArgumentException("stringArray[" + String.valueOf((int)charSequence) + "] must not be blank");
             }
+            ++var2_2;
         }
     }
 

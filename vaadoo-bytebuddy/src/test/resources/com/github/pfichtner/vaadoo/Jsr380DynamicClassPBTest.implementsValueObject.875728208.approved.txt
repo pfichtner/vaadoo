@@ -84,90 +84,90 @@ implements ValueObject {
     private /* synthetic */ Generated_875728208(short s, Integer n, Instant instant, short s2, OffsetDateTime offsetDateTime, Object[] objectArray, Map map, Long[] longArray, List list, LinkedList linkedList, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_linkedList(LinkedList linkedList) {
-        if (linkedList != null) {
-            throw new IllegalArgumentException(String.format("linkedList must be null but was %s", linkedList));
+    private static void validate_linkedList(LinkedList scrubbed_param) {
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("linkedList must be null but was %s", scrubbed_param));
         }
-        if (linkedList == null) {
+        if (scrubbed_param == null) {
             throw new NullPointerException("linkedList must not be empty");
         }
-        if (linkedList.size() == 0) {
+        if (scrubbed_param.size() == 0) {
             throw new IllegalArgumentException("linkedList must not be empty");
         }
     }
 
-    private static void validate_list(List list) {
-        if (list == null) {
+    private static void validate_list(List scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new NullPointerException("list must not be empty");
         }
-        if (list.size() == 0) {
+        if (scrubbed_param.size() == 0) {
             throw new IllegalArgumentException("list must not be empty");
         }
-        if (list != null) {
-            throw new IllegalArgumentException(String.format("list must be null but was %s", list));
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("list must be null but was %s", scrubbed_param));
         }
-        if (list != null && (list.size() < 0 || list.size() > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of list must be between 0 and 2147483647 but was %s", list));
-        }
-    }
-
-    private static void validate_longArray(Long[] longArray) {
-        if (longArray != null) {
-            throw new IllegalArgumentException(String.format("longArray must be null but was %s", Arrays.deepToString(longArray)));
-        }
-        if (longArray != null && (longArray.length < 0 || longArray.length > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(longArray)));
+        if (scrubbed_param != null && (scrubbed_param.size() < 0 || scrubbed_param.size() > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(String.format("size of list must be between 0 and 2147483647 but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_map(Map map) {
-        if (map != null && (map.size() < 0 || map.size() > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of map must be between 0 and 2147483647 but was %s", map));
+    private static void validate_longArray(Long[] scrubbed_param) {
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("longArray must be null but was %s", Arrays.deepToString(scrubbed_param)));
+        }
+        if (scrubbed_param != null && (scrubbed_param.length < 0 || scrubbed_param.length > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(String.format("size of longArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(scrubbed_param)));
         }
     }
 
-    private static void validate_objectArray(Object[] objectArray) {
-        if (objectArray != null && (objectArray.length < 0 || objectArray.length > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(objectArray)));
+    private static void validate_map(Map scrubbed_param) {
+        if (scrubbed_param != null && (scrubbed_param.size() < 0 || scrubbed_param.size() > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(String.format("size of map must be between 0 and 2147483647 but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
-        if (offsetDateTime != null && !offsetDateTime.isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be a past date but was %s", offsetDateTime));
-        }
-        if (offsetDateTime != null && offsetDateTime.isAfter(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime));
-        }
-        if (offsetDateTime != null && !offsetDateTime.isAfter(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be a future date but was %s", offsetDateTime));
+    private static void validate_objectArray(Object[] scrubbed_param) {
+        if (scrubbed_param != null && (scrubbed_param.length < 0 || scrubbed_param.length > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(String.format("size of objectArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(scrubbed_param)));
         }
     }
 
-    private static void validate_short1(short s) {
-        if (s >= 0) {
-            throw new IllegalArgumentException(String.format("short1 must be less than 0 but was %s", s));
+    private static void validate_offsetDateTime(OffsetDateTime scrubbed_param) {
+        if (scrubbed_param != null && !scrubbed_param.isBefore(OffsetDateTime.now())) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a past date but was %s", scrubbed_param));
         }
-        if ((long)s > 0L) {
-            throw new IllegalArgumentException(String.format("short1 must be less than or equal to 0  but was %s", s));
+        if (scrubbed_param != null && scrubbed_param.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the past or in the present but was %s", scrubbed_param));
         }
-        if (s > 0) {
-            throw new IllegalArgumentException(String.format("short1 must be less than or equal to 0 but was %s", s));
-        }
-    }
-
-    private static void validate_integer(Integer n) {
-        if (n != null && n < 0) {
-            throw new IllegalArgumentException(String.format("integer must be greater than or equal to 0 but was %s", n));
-        }
-        if (n != null && (long)n.intValue() < 0L) {
-            throw new IllegalArgumentException(String.format("integer must be greater than or equal to 0 but was %s", n));
+        if (scrubbed_param != null && !scrubbed_param.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a future date but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_short(short s) {
-        if (s < 0) {
-            throw new IllegalArgumentException(String.format("short must be greater than or equal to 0 but was %s", s));
+    private static void validate_short1(short scrubbed_param) {
+        if (scrubbed_param >= 0) {
+            throw new IllegalArgumentException(String.format("short1 must be less than 0 but was %s", scrubbed_param));
+        }
+        if ((long)scrubbed_param > 0L) {
+            throw new IllegalArgumentException(String.format("short1 must be less than or equal to 0  but was %s", scrubbed_param));
+        }
+        if (scrubbed_param > 0) {
+            throw new IllegalArgumentException(String.format("short1 must be less than or equal to 0 but was %s", scrubbed_param));
+        }
+    }
+
+    private static void validate_integer(Integer scrubbed_param) {
+        if (scrubbed_param != null && scrubbed_param < 0) {
+            throw new IllegalArgumentException(String.format("integer must be greater than or equal to 0 but was %s", scrubbed_param));
+        }
+        if (scrubbed_param != null && (long)scrubbed_param.intValue() < 0L) {
+            throw new IllegalArgumentException(String.format("integer must be greater than or equal to 0 but was %s", scrubbed_param));
+        }
+    }
+
+    private static void validate_short(short scrubbed_param) {
+        if (scrubbed_param < 0) {
+            throw new IllegalArgumentException(String.format("short must be greater than or equal to 0 but was %s", scrubbed_param));
         }
     }
 

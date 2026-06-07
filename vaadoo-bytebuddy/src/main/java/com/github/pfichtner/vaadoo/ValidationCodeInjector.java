@@ -18,21 +18,31 @@ package com.github.pfichtner.vaadoo;
 import static com.github.pfichtner.vaadoo.AsmUtil.STRING_TYPE;
 import static com.github.pfichtner.vaadoo.AsmUtil.classReader;
 import static com.github.pfichtner.vaadoo.AsmUtil.isArray;
-import static com.github.pfichtner.vaadoo.AsmUtil.isLoadOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.isReturnOpcode;
-import static com.github.pfichtner.vaadoo.AsmUtil.isStoreOpcode;
 import static com.github.pfichtner.vaadoo.AsmUtil.sizeOf;
 import static com.github.pfichtner.vaadoo.FormatMessageInjector.injectFormatMessage;
 import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+import static net.bytebuddy.jar.asm.Opcodes.AALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.AASTORE;
+import static net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
+import static net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
+import static net.bytebuddy.jar.asm.Opcodes.ACC_SYNTHETIC;
 import static net.bytebuddy.jar.asm.Opcodes.ALOAD;
 import static net.bytebuddy.jar.asm.Opcodes.ANEWARRAY;
 import static net.bytebuddy.jar.asm.Opcodes.ASM9;
+import static net.bytebuddy.jar.asm.Opcodes.ASTORE;
 import static net.bytebuddy.jar.asm.Opcodes.BIPUSH;
+import static net.bytebuddy.jar.asm.Opcodes.CHECKCAST;
+import static net.bytebuddy.jar.asm.Opcodes.DLOAD;
+import static net.bytebuddy.jar.asm.Opcodes.DSTORE;
 import static net.bytebuddy.jar.asm.Opcodes.DUP;
+import static net.bytebuddy.jar.asm.Opcodes.FLOAD;
+import static net.bytebuddy.jar.asm.Opcodes.FSTORE;
 import static net.bytebuddy.jar.asm.Opcodes.GETSTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.GOTO;
 import static net.bytebuddy.jar.asm.Opcodes.ILOAD;
@@ -40,7 +50,11 @@ import static net.bytebuddy.jar.asm.Opcodes.INVOKEINTERFACE;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESPECIAL;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKESTATIC;
 import static net.bytebuddy.jar.asm.Opcodes.INVOKEVIRTUAL;
+import static net.bytebuddy.jar.asm.Opcodes.ISTORE;
+import static net.bytebuddy.jar.asm.Opcodes.LLOAD;
+import static net.bytebuddy.jar.asm.Opcodes.LSTORE;
 import static net.bytebuddy.jar.asm.Opcodes.NEW;
+import static net.bytebuddy.jar.asm.Opcodes.POP;
 import static net.bytebuddy.jar.asm.Opcodes.SIPUSH;
 import static net.bytebuddy.jar.asm.Type.BOOLEAN_TYPE;
 import static net.bytebuddy.jar.asm.Type.INT_TYPE;
@@ -66,13 +80,16 @@ import com.github.pfichtner.vaadoo.fragments.impl.NullValueException;
 import com.github.pfichtner.vaadoo.fragments.impl.Template;
 
 import jakarta.validation.constraints.Pattern.Flag;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.experimental.Delegate;
 import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.description.annotation.AnnotationValue;
 import net.bytebuddy.description.enumeration.EnumerationDescription;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
 import net.bytebuddy.jar.asm.Label;
@@ -82,6 +99,8 @@ import net.bytebuddy.jar.asm.commons.ClassRemapper;
 import net.bytebuddy.jar.asm.commons.SimpleRemapper;
 
 public class ValidationCodeInjector {
+
+	public static final String NAME = "@@@NAME@@@";
 
 	// we remove the first arg (the code inserted has the annotation as it's first
 	// argument)
@@ -117,21 +136,22 @@ public class ValidationCodeInjector {
 		private final SlotInfo tgtSlot;
 		private final SlotInfo offset;
 		private final int localsOffset;
+		private final int targetLineNumber;
 
 		@Value
 		@RequiredArgsConstructor
 		@Accessors(fluent = true)
 		static class SlotInfo {
+			boolean isStatic;
 			int firstArg;
 			int firstLocal;
 
 			public SlotInfo(boolean isStatic, Type[] args) {
-				this.firstArg = isStatic ? 0 : 1;
-				this.firstLocal = firstArg + sizeOf(args);
+				this(isStatic, isStatic ? 0 : 1, (isStatic ? 0 : 1) + sizeOf(args));
 			}
 
 			public SlotInfo offsetTo(SlotInfo other) {
-				return new SlotInfo(firstArg - other.firstArg, firstLocal - other.firstLocal);
+				return new SlotInfo(false, firstArg - other.firstArg, firstLocal - other.firstLocal);
 			}
 
 			public boolean isVariable(int index) {
@@ -142,7 +162,7 @@ public class ValidationCodeInjector {
 
 		private ValidationCallCodeInjectorClassVisitor(Method sourceMethod, MethodVisitor targetMethodVisitor,
 				String signatureOfTargetMethod, Parameter parameter, Map<Parameter, Integer> precomputedMasks,
-				int localsOffset) {
+				int localsOffset, int targetLineNumber) {
 			super(ASM9);
 			this.sourceMethodOwner = Type.getType(sourceMethod.getDeclaringClass()).getInternalName();
 			this.sourceMethodName = sourceMethod.getName();
@@ -154,6 +174,7 @@ public class ValidationCodeInjector {
 			this.tgtSlot = new SlotInfo(TARGET_METHOD_IS_STATIC, getArgumentTypes(signatureOfTargetMethod));
 			this.offset = srcSlot.offsetTo(tgtSlot);
 			this.localsOffset = localsOffset;
+			this.targetLineNumber = targetLineNumber;
 		}
 
 		private static Type[] argTypes(Method method) {
@@ -168,7 +189,7 @@ public class ValidationCodeInjector {
 				// TODO migrate to LocalVariablesSorter
 				return new MethodVisitor(api, targetMethodVisitor) {
 
-					private final boolean isStatic = isStatic(access);
+					private final boolean isStaticTarget = (access & ACC_STATIC) != 0;
 
 					private boolean isFirstParamLoad;
 					private Type currentAnnotationType;
@@ -193,67 +214,45 @@ public class ValidationCodeInjector {
 
 					private final Label endLabel = new Label();
 
+					private int lastEmittedLineNumber = -1;
+
 					@Override
 					public void visitCode() {
 						super.visitCode();
-					}
-
-					@Override
-					public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
-						// drop frames, we use COMPUTE_FRAMES
-					}
-
-					@Override
-					public void visitLineNumber(int line, Label start) {
-						// ignore
-					}
-
-					public void visitLocalVariable(String name, String descriptor, String signature, Label start,
-							Label end, int index) {
-						// ignore, we would have to rewrite owner
-					}
-
-					@Override
-					public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-						if (!owner.startsWith("java/lang")) {
-							throw new IllegalStateException(format(
-									"code that gets inserted must not access fields, found access to %s#%s in %s",
-									owner, name, sourceMethodOwner));
+						if (targetLineNumber != -1) {
+							Label label = new Label();
+							super.visitLabel(label);
+							super.visitLineNumber(targetLineNumber, label);
+							lastEmittedLineNumber = targetLineNumber;
 						}
 					}
 
 					@Override
-					public void visitMaxs(int maxStack, int maxLocals) {
-						mv.visitLabel(endLabel);
-					}
-
-					@Override
-					public void visitVarInsn(int opcode, int var) {
-						assert var >= 0 : "negative var index";
-						boolean opcodeIsLoad = isLoadOpcode(opcode);
-						boolean opcodeIsStore = isStoreOpcode(opcode);
-
-						if (opcodeIsLoad || opcodeIsStore) {
-							if (srcSlot.isVariable(var)) {
-								var = remapLocal(var);
-							} else {
-								// argument access
-								if (opcodeIsLoad && var == srcSlot.firstArg()) {
-									isFirstParamLoad = true;
-									return;
-								}
-								var = remapArg(var);
-							}
+					public void visitVarInsn(int opcode, int varIndex) {
+						if (isFirstArg(opcode, varIndex)) {
+							isFirstParamLoad = true;
+						} else {
+							super.visitVarInsn(opcode, remapLocal(varIndex));
 						}
-						super.visitVarInsn(opcode, var);
 					}
 
-					private int remapArg(int varIndex) {
-						return varIndex - offset.firstArg() - REMOVED_PARAMETERS + targetParam.offset();
+					private boolean isFirstArg(int opcode, int varIndex) {
+						return opcode == ALOAD && varIndex == srcSlot.firstArg();
 					}
 
 					private int remapLocal(int varIndex) {
-						return varIndex - offset.firstLocal() + localsOffset;
+						if (srcSlot.isVariable(varIndex)) {
+							return varIndex - offset.firstLocal() + localsOffset;
+						}
+						if (varIndex == 0 && !srcSlot.isStatic) {
+							throw new IllegalStateException(format(
+									"code that gets inserted must not access 'this', found access in %s#%s",
+									sourceMethodOwner, sourceMethodName));
+						}
+						if (varIndex - srcSlot.firstArg() == REMOVED_PARAMETERS) {
+							return targetParam.offset();
+						}
+						return varIndex - offset.firstArg() - REMOVED_PARAMETERS;
 					}
 
 					@Override
@@ -261,6 +260,7 @@ public class ValidationCodeInjector {
 						super.visitIincInsn(remapLocal(varIndex), increment);
 					}
 
+					@Override
 					public void visitMethodInsn(int opcode, String owner, String name, String descriptor,
 							boolean isInterface) {
 						if (opcode == INVOKEINTERFACE && owner.equals("jakarta/validation/constraints/Pattern")
@@ -272,7 +272,8 @@ public class ValidationCodeInjector {
 						}
 						if (patternFlagAccess && opcode == INVOKESTATIC && owner.equals(templateInternalName)
 								&& name.equals(bitwiseOrName) && descriptor.equals(bitwiseOrDesc) && !isInterface) {
-							super.visitLdcInsn(precomputedMasks.get(targetParam));
+							Integer mask = precomputedMasks.get(targetParam);
+							super.visitLdcInsn(mask != null ? mask : 0);
 							patternFlagAccess = false;
 							isFirstParamLoad = false;
 							return;
@@ -397,8 +398,6 @@ public class ValidationCodeInjector {
 					}
 
 					private void injectDynamicMessage(String text, Map<String, Integer> placeholders) {
-						// Simple implementation using StringBuilder:
-						// new StringBuilder().append("part1").append(var).append("part2").toString()
 						mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
 						mv.visitInsn(DUP);
 						mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
@@ -408,89 +407,122 @@ public class ValidationCodeInjector {
 							int start = text.indexOf('{', lastPos);
 							if (start == -1) {
 								appendString(text.substring(lastPos));
-								break;
-							}
-							int end = text.indexOf('}', start);
-							if (end == -1) {
-								appendString(text.substring(lastPos));
-								break;
-							}
-
-							String placeholder = text.substring(start + 1, end);
-							if (placeholders.containsKey(placeholder)) {
-								if (start > lastPos) {
-									appendString(text.substring(lastPos, start));
-								}
-								appendVariable(placeholder, placeholders.get(placeholder));
-								lastPos = end + 1;
+								lastPos = text.length();
 							} else {
-								appendString(text.substring(lastPos, end + 1));
-								lastPos = end + 1;
+								appendString(text.substring(lastPos, start));
+								int end = text.indexOf('}', start);
+								if (end == -1) {
+									appendString(text.substring(start));
+									lastPos = text.length();
+								} else {
+									String key = text.substring(start + 1, end);
+									Integer varIndex = placeholders.get(key);
+									if (varIndex != null) {
+										if ("index".equals(key)) {
+											mv.visitVarInsn(ILOAD, varIndex);
+											mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf",
+													"(I)Ljava/lang/String;", false);
+										} else {
+											mv.visitVarInsn(ALOAD, varIndex);
+											mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf",
+													"(Ljava/lang/Object;)Ljava/lang/String;", false);
+										}
+										mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
+												"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+									} else {
+										appendString("{" + key + "}");
+									}
+									lastPos = end + 1;
+								}
 							}
 						}
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;",
 								false);
 					}
 
-					private void appendString(String s) {
-						mv.visitLdcInsn(s);
-						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
-								"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
-					}
-
-					private void appendVariable(String placeholder, int varIndex) {
-						if ("index".equals(placeholder)) {
-							mv.visitVarInsn(ILOAD, varIndex);
+					private void appendString(String text) {
+						if (!text.isEmpty()) {
+							mv.visitLdcInsn(text);
 							mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
-									"(I)Ljava/lang/StringBuilder;", false);
-						} else if ("key".equals(placeholder)) {
-							// it's a Map.Entry
-							mv.visitVarInsn(ALOAD, varIndex);
-							mv.visitMethodInsn(INVOKEINTERFACE, "java/util/Map$Entry", "getKey", "()Ljava/lang/Object;",
-									true);
-							mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append",
-									"(Ljava/lang/Object;)Ljava/lang/StringBuilder;", false);
+									"(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
 						}
 					}
 
-					public void visitInvokeDynamicInsn(String name, String descriptor, Handle handle, Object... args) {
-						if ("makeConcatWithConstants".equals(name) && "(J)Ljava/lang/String;".equals(descriptor)
-								&& "makeConcatWithConstants".equals(handle.getName())
-								&& "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;"
-										.equals(handle.getDesc())
-								&& "java/lang/invoke/StringConcatFactory".equals(handle.getOwner()) && args.length >= 0
-								&& args[0] instanceof String) {
-							args[0] = format((String) args[0], targetParam.name());
+					@Override
+					public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
+						// drop frames, we use COMPUTE_FRAMES
+					}
+
+					@Override
+					public void visitLineNumber(int line, Label start) {
+						if (targetLineNumber != -1 && targetLineNumber != lastEmittedLineNumber) {
+							super.visitLineNumber(targetLineNumber, start);
+							lastEmittedLineNumber = targetLineNumber;
 						}
-						super.visitInvokeDynamicInsn(name, descriptor, handle, args);
+					}
+
+					@Override
+					public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+						if (!owner.startsWith("java/lang")) {
+							throw new IllegalStateException(format(
+									"code that gets inserted must not access fields, found access to %s#%s in %s",
+									owner, name, sourceMethodOwner));
+						}
+					}
+
+					@Override
+					public void visitMaxs(int maxStack, int maxLocals) {
+						mv.visitLabel(endLabel);
+					}
+
+					@Override
+					public void visitEnd() {
+						super.visitEnd();
 					}
 
 				};
 			}
-			return super.visitMethod(access, name, descriptor, signature, exceptions);
+
+			return null;
 		}
+
 	}
 
-	public static final String NAME = "@@@NAME@@@";
-	private Class<? extends Jsr380CodeFragment> fragmentClass;
+	private final Class<? extends Jsr380CodeFragment> fragmentClass;
 	private final String signatureOfTargetMethod;
-	private final Map<Parameter, Integer> precomputedMasks;
+	private final Map<Parameter, Integer> preComputedPatternFlags;
 	private final String nullValueExceptionType;
+
+	private int targetLineNumber = -1;
 	private int localsOffset;
 
 	public ValidationCodeInjector(Class<? extends Jsr380CodeFragment> fragmentClass, String signatureOfTargetMethod,
-			Map<Parameter, Integer> precomputedMasks, String nullValueExceptionType) {
+			Map<Parameter, Integer> preComputedPatternFlags, String nullValueExceptionType) {
 		this.fragmentClass = fragmentClass;
-		this.precomputedMasks = precomputedMasks;
 		this.signatureOfTargetMethod = signatureOfTargetMethod;
+		this.preComputedPatternFlags = preComputedPatternFlags;
 		this.nullValueExceptionType = nullValueExceptionType;
 	}
 
-	public ValidationCodeInjector useFragmentClass(Class<? extends Jsr380CodeFragment> declaringClass) {
-		ValidationCodeInjector injector = new ValidationCodeInjector(declaringClass, this.signatureOfTargetMethod,
-				this.precomputedMasks, nullValueExceptionType);
-		injector.localsOffset = this.localsOffset;
-		return injector;
+	public ValidationCodeInjector useFragmentClass(Class<? extends Jsr380CodeFragment> fragmentClass) {
+		return new ValidationCodeInjector(fragmentClass, signatureOfTargetMethod, preComputedPatternFlags,
+				nullValueExceptionType).withLocalsOffset(localsOffset).withTargetLineNumber(targetLineNumber);
+	}
+
+	public ValidationCodeInjector withTargetLineNumber(int targetLineNumber) {
+		this.targetLineNumber = targetLineNumber;
+		return this;
+	}
+
+	public int localsOffset() {
+		return localsOffset;
+	}
+
+	public List<Method> fragmentClassMethods() {
+		return stream(fragmentClass.getMethods()).filter(m -> !isStatic(m.getModifiers()))
+				.sorted(comparing(Method::getName).thenComparing(m -> m.getParameterCount() > 1
+						? m.getParameterTypes()[1].getName() : ""))
+				.collect(toList());
 	}
 
 	public ValidationCodeInjector withLocalsOffset(int localsOffset) {
@@ -499,43 +531,58 @@ public class ValidationCodeInjector {
 	}
 
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod) {
+		inject(mv, parameter, sourceMethod, new HashMap<>());
+	}
+
+	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod,
+			Map<Parameter, Integer> precomputedMasks) {
 		ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
-				signatureOfTargetMethod, parameter, precomputedMasks, localsOffset);
+				signatureOfTargetMethod, parameter, precomputedMasks, localsOffset, targetLineNumber);
 		ClassVisitor remapper = new ClassRemapper(classVisitor,
-				new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
+				new SimpleRemapper(nullValueExceptionInternalName, nullValueExceptionType));
 		classReader(fragmentClass).accept(remapper, 0);
 	}
 
 	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod,
 			AnnotationDescription annotationDescription) {
+		inject(mv, parameter, sourceMethod, preComputedPatternFlags, annotationDescription);
+	}
+
+	public void inject(MethodVisitor mv, Parameter parameter, Method sourceMethod,
+			Map<Parameter, Integer> precomputedMasks, AnnotationDescription annotationDescription) {
 		if (annotationDescription != null) {
 			AnnotationDescriptionParameterWrapper wrapper = new AnnotationDescriptionParameterWrapper(parameter,
 					annotationDescription);
 			// Add the wrapper to the precomputed masks map so it can be looked up later
 			Map<Parameter, Integer> masks = new HashMap<>(precomputedMasks);
 			Integer mask = precomputedMasks.get(parameter);
-			if (mask == null && annotationDescription.getAnnotationType()
-					.represents(jakarta.validation.constraints.Pattern.class)) {
-				EnumerationDescription[] flags = annotationDescription.getValue("flags")
-						.resolve(EnumerationDescription[].class);
-				mask = Template.bitwiseOr(java.util.stream.Stream.of(flags) //
-						.map(EnumerationDescription::getValue) //
-						.map(jakarta.validation.constraints.Pattern.Flag::valueOf) //
-						.toArray(jakarta.validation.constraints.Pattern.Flag[]::new));
+			if (mask == null && annotationDescription.getAnnotationType().getName()
+					.equals(jakarta.validation.constraints.Pattern.class.getName())) {
+				AnnotationValue<?, ?> flagsValue = annotationDescription.getValue("flags");
+				if (flagsValue != null) {
+					EnumerationDescription[] flags = flagsValue.resolve(EnumerationDescription[].class);
+					mask = Template.bitwiseOr(java.util.stream.Stream.of(flags) //
+							.map(EnumerationDescription::getValue) //
+							.map(jakarta.validation.constraints.Pattern.Flag::valueOf) //
+							.toArray(jakarta.validation.constraints.Pattern.Flag[]::new));
+				} else {
+					mask = 0;
+				}
 			}
 			masks.put(wrapper, mask);
 
 			// Create a new injector with the updated masks and use it to inject
 			ClassVisitor classVisitor = new ValidationCallCodeInjectorClassVisitor(sourceMethod, mv,
-					signatureOfTargetMethod, wrapper, masks, localsOffset);
+					signatureOfTargetMethod, wrapper, masks, localsOffset, targetLineNumber);
 			ClassVisitor remapper = new ClassRemapper(classVisitor,
-					new SimpleRemapper(ASM9, nullValueExceptionInternalName, nullValueExceptionType));
+					new SimpleRemapper(nullValueExceptionInternalName, nullValueExceptionType));
 			classReader(fragmentClass).accept(remapper, 0);
 		} else {
-			inject(mv, parameter, sourceMethod);
+			inject(mv, parameter, sourceMethod, precomputedMasks);
 		}
 	}
 
+	@EqualsAndHashCode
 	@RequiredArgsConstructor
 	private static class AnnotationDescriptionParameterWrapper implements Parameter {
 
@@ -560,6 +607,14 @@ public class ValidationCodeInjector {
 		@Override
 		public Map<String, Integer> placeholderValues() {
 			return delegate.placeholderValues();
+		}
+
+		@Override
+		public AnnotationDescription annotation(TypeDescription type) {
+			if (annotationDescription.getAnnotationType().equals(type)) {
+				return annotationDescription;
+			}
+			return delegate.annotation(type);
 		}
 
 	}

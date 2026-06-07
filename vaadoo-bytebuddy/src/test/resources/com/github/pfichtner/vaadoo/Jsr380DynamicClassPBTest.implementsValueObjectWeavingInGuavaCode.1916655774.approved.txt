@@ -77,38 +77,38 @@ implements ValueObject {
     private /* synthetic */ Generated_1916655774(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_japaneseDate(JapaneseDate japaneseDate) {
-        Preconditions.checkArgument(japaneseDate == null || japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a past date but was %s", japaneseDate));
-        Preconditions.checkArgument(japaneseDate == null || !japaneseDate.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate));
-        Preconditions.checkNotNull(japaneseDate, "japaneseDate must not be null");
+    private static void validate_japaneseDate(JapaneseDate scrubbed_param) {
+        Preconditions.checkArgument(scrubbed_param == null || scrubbed_param.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a past date but was %s", scrubbed_param));
+        Preconditions.checkArgument(scrubbed_param == null || !scrubbed_param.isBefore(JapaneseDate.now()), String.format("japaneseDate must be a date in the present or in the future but was %s", scrubbed_param));
+        Preconditions.checkNotNull(scrubbed_param, "japaneseDate must not be null");
     }
 
-    private static void validate_byte(byte by) {
-        Preconditions.checkArgument(new BigDecimal(by).compareTo(new BigDecimal("0")) >= (1 != 0 ? 0 : 1), String.format("byte must be greater than or equal to 0 but was %s", by));
-        Preconditions.checkArgument((long)by <= 0L, String.format("byte must be less than or equal to 0  but was %s", by));
+    private static void validate_byte(byte scrubbed_param) {
+        Preconditions.checkArgument(new BigDecimal(scrubbed_param).compareTo(new BigDecimal("0")) >= (1 != 0 ? 0 : 1), String.format("byte must be greater than or equal to 0 but was %s", scrubbed_param));
+        Preconditions.checkArgument((long)scrubbed_param <= 0L, String.format("byte must be less than or equal to 0  but was %s", scrubbed_param));
     }
 
-    private static void validate_doubleArray(Double[] doubleArray) {
-        if (doubleArray != null) {
-            Preconditions.checkArgument(doubleArray.length >= 0 && doubleArray.length <= Integer.MAX_VALUE, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(doubleArray)));
+    private static void validate_doubleArray(Double[] scrubbed_param) {
+        if (scrubbed_param != null) {
+            Preconditions.checkArgument(scrubbed_param.length >= 0 && scrubbed_param.length <= Integer.MAX_VALUE, String.format("size of doubleArray must be between 0 and 2147483647 but was %s", Arrays.deepToString(scrubbed_param)));
         }
-        Preconditions.checkArgument(doubleArray == null, String.format("doubleArray must be null but was %s", Arrays.deepToString(doubleArray)));
+        Preconditions.checkArgument(scrubbed_param == null, String.format("doubleArray must be null but was %s", Arrays.deepToString(scrubbed_param)));
     }
 
-    private static void validate_bigDecimal(BigDecimal bigDecimal) {
-        Preconditions.checkArgument(bigDecimal == null || bigDecimal.signum() >= 0, String.format("bigDecimal must be greater than or equal to 0 but was %s", bigDecimal));
+    private static void validate_bigDecimal(BigDecimal scrubbed_param) {
+        Preconditions.checkArgument(scrubbed_param == null || scrubbed_param.signum() >= 0, String.format("bigDecimal must be greater than or equal to 0 but was %s", scrubbed_param));
     }
 
-    private static void validate_integer(Integer n) {
-        Preconditions.checkArgument(n == null || new BigDecimal(n).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), String.format("integer must be less than or equal to 0 but was %s", n));
+    private static void validate_integer(Integer scrubbed_param) {
+        Preconditions.checkArgument(scrubbed_param == null || new BigDecimal(scrubbed_param).compareTo(new BigDecimal("0")) <= (1 != 0 ? 0 : -1), String.format("integer must be less than or equal to 0 but was %s", scrubbed_param));
     }
 
-    private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
-        Preconditions.checkArgument(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
+    private static void validate_offsetDateTime(OffsetDateTime scrubbed_param) {
+        Preconditions.checkArgument(scrubbed_param == null || !scrubbed_param.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", scrubbed_param));
     }
 
-    private static void validate_objectArray(Object[] objectArray) {
-        Preconditions.checkArgument(Preconditions.checkNotNull(objectArray, "objectArray must not be empty").length > 0, "objectArray must not be empty");
+    private static void validate_objectArray(Object[] scrubbed_param) {
+        Preconditions.checkArgument(Preconditions.checkNotNull(scrubbed_param, "objectArray must not be empty").length > 0, "objectArray must not be empty");
     }
 
     private static void validate(Object[] objectArray, Short s, OffsetDateTime offsetDateTime, Integer n, BigDecimal bigDecimal, Double[] doubleArray, byte by, JapaneseDate japaneseDate) {

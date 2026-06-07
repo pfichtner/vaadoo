@@ -40,6 +40,7 @@ import java.util.Set;
 
 import net.bytebuddy.jar.asm.ClassVisitor;
 import net.bytebuddy.jar.asm.Handle;
+import net.bytebuddy.jar.asm.Label;
 import net.bytebuddy.jar.asm.MethodVisitor;
 import net.bytebuddy.jar.asm.Type;
 
@@ -51,12 +52,14 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 	private static final String HASH_MAP_IMPLEMENTATION = "java/util/concurrent/ConcurrentHashMap";
 
 	private final Set<String> validateMethodNames;
+	private final int targetLineNumber;
 	private String owner;
 	private boolean replaced;
 
-	public PatternRewriteClassVisitor(ClassVisitor cv, Set<String> validateMethodNames) {
+	public PatternRewriteClassVisitor(ClassVisitor cv, Set<String> validateMethodNames, int targetLineNumber) {
 		super(ASM9, cv);
 		this.validateMethodNames = validateMethodNames;
+		this.targetLineNumber = targetLineNumber;
 	}
 
 	@Override
@@ -114,6 +117,11 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 	private void addStaticInitializer() {
 		MethodVisitor clinit = cv.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
 		clinit.visitCode();
+		Label start = new Label();
+		clinit.visitLabel(start);
+		if (targetLineNumber != -1) {
+			clinit.visitLineNumber(targetLineNumber, start);
+		}
 		clinit.visitTypeInsn(NEW, HASH_MAP_IMPLEMENTATION);
 		clinit.visitInsn(DUP);
 		clinit.visitMethodInsn(INVOKESPECIAL, HASH_MAP_IMPLEMENTATION, "<init>", "()V", false);
@@ -128,6 +136,11 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 		MethodVisitor lm = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, "lambda$0",
 				"(Ljava/lang/String;ILjava/lang/Object;)Ljava/util/regex/Pattern;", null, null);
 		lm.visitCode();
+		Label start = new Label();
+		lm.visitLabel(start);
+		if (targetLineNumber != -1) {
+			lm.visitLineNumber(targetLineNumber, start);
+		}
 		lm.visitVarInsn(ALOAD, 0); // regex
 		lm.visitVarInsn(ILOAD, 1); // flags
 		lm.visitMethodInsn(INVOKESTATIC, "java/util/regex/Pattern", "compile",
@@ -141,6 +154,11 @@ public class PatternRewriteClassVisitor extends ClassVisitor {
 		MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, "getCachedPattern",
 				"(Ljava/lang/String;I)Ljava/util/regex/Pattern;", null, null);
 		mv.visitCode();
+		Label start = new Label();
+		mv.visitLabel(start);
+		if (targetLineNumber != -1) {
+			mv.visitLineNumber(targetLineNumber, start);
+		}
 
 		// --- Build key = regex + "\u0000" + flags ---
 		mv.visitTypeInsn(NEW, "java/lang/StringBuilder");

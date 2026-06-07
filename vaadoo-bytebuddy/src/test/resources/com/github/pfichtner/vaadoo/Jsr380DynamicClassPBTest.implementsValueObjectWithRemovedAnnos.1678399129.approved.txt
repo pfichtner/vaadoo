@@ -50,21 +50,21 @@ implements ValueObject {
     private /* synthetic */ Generated_1678399129(HijrahDate hijrahDate, Long l, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_long(Long l) {
-        if (l != null && l > 0L) {
-            throw new IllegalArgumentException(String.format("long must be less than or equal to 0 but was %s", l));
+    private static void validate_long(Long scrubbed_param) {
+        if (scrubbed_param != null && scrubbed_param > 0L) {
+            throw new IllegalArgumentException(String.format("long must be less than or equal to 0 but was %s", scrubbed_param));
         }
-        if (l != null && l >= 0L) {
-            throw new IllegalArgumentException(String.format("long must be less than 0 but was %s", l));
+        if (scrubbed_param != null && scrubbed_param >= 0L) {
+            throw new IllegalArgumentException(String.format("long must be less than 0 but was %s", scrubbed_param));
         }
-        if (l != null && new BigDecimal(l).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
-            throw new IllegalArgumentException(String.format("long must be less than or equal to 0 but was %s", l));
+        if (scrubbed_param != null && new BigDecimal(scrubbed_param).compareTo(new BigDecimal("0")) > (1 != 0 ? 0 : -1)) {
+            throw new IllegalArgumentException(String.format("long must be less than or equal to 0 but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_hijrahDate(HijrahDate hijrahDate) {
-        if (hijrahDate != null) {
-            throw new IllegalArgumentException(String.format("hijrahDate must be null but was %s", hijrahDate));
+    private static void validate_hijrahDate(HijrahDate scrubbed_param) {
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("hijrahDate must be null but was %s", scrubbed_param));
         }
     }
 

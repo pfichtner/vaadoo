@@ -66,48 +66,48 @@ implements ValueObject {
     private /* synthetic */ Generated_950819241(Object[] objectArray, MinguoDate minguoDate, YearMonth yearMonth, ZonedDateTime zonedDateTime, MinguoDate minguoDate2, OffsetDateTime offsetDateTime, LinkedList linkedList, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_linkedList(LinkedList linkedList) {
-        if (linkedList == null) {
+    private static void validate_linkedList(LinkedList scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("linkedList must not be empty");
         }
-        if (linkedList.size() == 0) {
+        if (scrubbed_param.size() == 0) {
             throw new IllegalArgumentException("linkedList must not be empty");
         }
-        if (linkedList != null && (linkedList.size() < 0 || linkedList.size() > Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(String.format("size of linkedList must be between 0 and 2147483647 but was %s", linkedList));
+        if (scrubbed_param != null && (scrubbed_param.size() < 0 || scrubbed_param.size() > Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(String.format("size of linkedList must be between 0 and 2147483647 but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
-        if (offsetDateTime != null) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be null but was %s", offsetDateTime));
+    private static void validate_offsetDateTime(OffsetDateTime scrubbed_param) {
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be null but was %s", scrubbed_param));
         }
-        if (offsetDateTime != null && offsetDateTime.isAfter(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the past or in the present but was %s", offsetDateTime));
+        if (scrubbed_param != null && scrubbed_param.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the past or in the present but was %s", scrubbed_param));
         }
-        if (offsetDateTime != null && offsetDateTime.isBefore(OffsetDateTime.now())) {
-            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime));
-        }
-    }
-
-    private static void validate_zonedDateTime(ZonedDateTime zonedDateTime) {
-        if (zonedDateTime != null && !zonedDateTime.isBefore(ZonedDateTime.now())) {
-            throw new IllegalArgumentException(String.format("zonedDateTime must be a past date but was %s", zonedDateTime));
-        }
-        if (zonedDateTime != null) {
-            throw new IllegalArgumentException(String.format("zonedDateTime must be null but was %s", zonedDateTime));
-        }
-        if (zonedDateTime != null && !zonedDateTime.isAfter(ZonedDateTime.now())) {
-            throw new IllegalArgumentException(String.format("zonedDateTime must be a future date but was %s", zonedDateTime));
+        if (scrubbed_param != null && scrubbed_param.isBefore(OffsetDateTime.now())) {
+            throw new IllegalArgumentException(String.format("offsetDateTime must be a date in the present or in the future but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_minguoDate(MinguoDate minguoDate) {
-        if (minguoDate != null) {
-            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", minguoDate));
+    private static void validate_zonedDateTime(ZonedDateTime scrubbed_param) {
+        if (scrubbed_param != null && !scrubbed_param.isBefore(ZonedDateTime.now())) {
+            throw new IllegalArgumentException(String.format("zonedDateTime must be a past date but was %s", scrubbed_param));
         }
-        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("zonedDateTime must be null but was %s", scrubbed_param));
+        }
+        if (scrubbed_param != null && !scrubbed_param.isAfter(ZonedDateTime.now())) {
+            throw new IllegalArgumentException(String.format("zonedDateTime must be a future date but was %s", scrubbed_param));
+        }
+    }
+
+    private static void validate_minguoDate(MinguoDate scrubbed_param) {
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("minguoDate must be null but was %s", scrubbed_param));
+        }
+        if (scrubbed_param != null && !scrubbed_param.isBefore(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", scrubbed_param));
         }
     }
 

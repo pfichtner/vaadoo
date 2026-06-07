@@ -15,12 +15,15 @@
  */
 package com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy;
 
+import java.io.IOException;
+
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.PluginLogger.Log;
 import com.github.pfichtner.vaadoo.org.jmolecules.bytebuddy.config.VaadooConfiguration;
 
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Builder;
+import net.bytebuddy.jar.asm.ClassReader;
 
 /**
  * {@code VaadooPlugin} is a custom {@link LoggingPlugin} that extends the
@@ -67,11 +70,16 @@ class VaadooPlugin implements LoggingPlugin {
 	@Override
 	public Builder<?> apply(Builder<?> builder, TypeDescription type, ClassFileLocator classFileLocator) {
 		Log log = PluginLogger.INSTANCE.getLog(type, "vaadoo");
-		return JMoleculesTypeBuilder.of(log, builder).map(__ -> true, this::handleEntity).conclude();
+		try {
+			ClassReader cr = new ClassReader(classFileLocator.locate(type.getName()).resolve());
+			return JMoleculesTypeBuilder.of(log, builder).map(__ -> true, t -> handleEntity(t, log, cr)).conclude();
+		} catch (IOException e) {
+			throw new IllegalStateException("Failed to read class bytes for " + type.getName(), e);
+		}
 	}
 
-	private JMoleculesTypeBuilder handleEntity(JMoleculesTypeBuilder type) {
-		return type.map(vaadooImplementor::implementVaadoo);
+	private JMoleculesTypeBuilder handleEntity(JMoleculesTypeBuilder type, Log log, ClassReader cr) {
+		return type.map(t -> vaadooImplementor.implementVaadoo(t, log, cr));
 	}
 
 }

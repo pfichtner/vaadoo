@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.Parameters.Parameter;
 
+import lombok.EqualsAndHashCode;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.description.annotation.AnnotationList;
 import net.bytebuddy.description.field.FieldDescription;
@@ -53,6 +54,7 @@ import net.bytebuddy.jar.asm.Type;
  * implements {@link Iterable}, so parameters can be iterated in declaration
  * order.
  */
+@EqualsAndHashCode
 public class Parameters implements Iterable<Parameter> {
 
 	public static Parameters of(ParameterList<InDefinedShape> parameterList) {
@@ -65,6 +67,7 @@ public class Parameters implements Iterable<Parameter> {
 	}
 
 	private final List<Parameter> values;
+	@EqualsAndHashCode.Exclude
 	private final ParameterList<InDefinedShape> parameterList;
 	private final TypeDescription declaringType;
 
@@ -159,8 +162,18 @@ public class Parameters implements Iterable<Parameter> {
 		 */
 		Map<String, Integer> placeholderValues();
 
+		/**
+		 * Returns the annotation description for the given type, or {@code null} if not
+		 * present.
+		 * 
+		 * @param type the annotation type to retrieve
+		 * @return the annotation description, or {@code null} if not present
+		 */
+		AnnotationDescription annotation(TypeDescription type);
+
 	}
 
+	@EqualsAndHashCode
 	private class ParameterWrapper implements Parameter {
 
 		private final int index;
@@ -303,6 +316,16 @@ public class Parameters implements Iterable<Parameter> {
 		@Override
 		public TypeDescription.Generic genericType() {
 			return definedShape().getType();
+		}
+
+		@Override
+		public AnnotationDescription annotation(TypeDescription type) {
+			for (AnnotationDescription annotationDescription : annotationList()) {
+				if (annotationDescription.getAnnotationType().equals(type)) {
+					return annotationDescription;
+				}
+			}
+			return null;
 		}
 
 		@Override

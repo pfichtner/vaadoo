@@ -58,14 +58,14 @@ implements ValueObject {
     private /* synthetic */ Generated_534522221(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_minguoDate(MinguoDate minguoDate) {
-        Validate.isTrue(minguoDate == null || minguoDate.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", minguoDate), new Object[0]);
+    private static void validate_minguoDate(MinguoDate scrubbed_param) {
+        Validate.isTrue(scrubbed_param == null || scrubbed_param.isAfter(MinguoDate.now()), String.format("minguoDate must be a future date but was %s", scrubbed_param), new Object[0]);
     }
 
-    private static void validate_offsetDateTime(OffsetDateTime offsetDateTime) {
-        Validate.isTrue(offsetDateTime == null || offsetDateTime.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a future date but was %s", offsetDateTime), new Object[0]);
-        Validate.isTrue(offsetDateTime == null || !offsetDateTime.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", offsetDateTime), new Object[0]);
-        Validate.notNull(offsetDateTime, "offsetDateTime must not be null", new Object[0]);
+    private static void validate_offsetDateTime(OffsetDateTime scrubbed_param) {
+        Validate.isTrue(scrubbed_param == null || scrubbed_param.isAfter(OffsetDateTime.now()), String.format("offsetDateTime must be a future date but was %s", scrubbed_param), new Object[0]);
+        Validate.isTrue(scrubbed_param == null || !scrubbed_param.isBefore(OffsetDateTime.now()), String.format("offsetDateTime must be a date in the present or in the future but was %s", scrubbed_param), new Object[0]);
+        Validate.notNull(scrubbed_param, "offsetDateTime must not be null", new Object[0]);
     }
 
     private static void validate(OffsetDateTime offsetDateTime, Calendar calendar, MinguoDate minguoDate, Instant instant, short s) {

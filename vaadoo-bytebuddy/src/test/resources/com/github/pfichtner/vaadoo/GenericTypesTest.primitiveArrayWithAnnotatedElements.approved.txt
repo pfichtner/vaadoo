@@ -44,17 +44,24 @@ implements ValueObject {
     private /* synthetic */ GenericGenerated(int[] nArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_intArray(int[] nArray) {
-        if (nArray == null) {
+    /*
+     * WARNING - void declaration
+     */
+    private static void validate_intArray(int[] scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("intArray must not be null");
         }
-        if (nArray != null) {
-            int n = nArray.length;
-            for (int i = 0; i < n; ++i) {
-                int n2 = nArray[i];
-                if ((long)n2 >= 1L) continue;
-                throw new IllegalArgumentException(String.format("intArray[" + i + "] must be greater than or equal to 1 but was %s", n2));
+        int anno = scrubbed_param.length;
+        int ref = 0;
+        Object var3_3 = null;
+        while (ref < anno) {
+            void var2_2;
+            int n = scrubbed_param[ref];
+            if ((long)n < 1L) {
+                void value;
+                throw new IllegalArgumentException(String.format("intArray[" + String.valueOf((int)value) + "] must be greater than or equal to 1 but was %s", n));
             }
+            ++var2_2;
         }
     }
 

@@ -46,20 +46,24 @@ implements ValueObject {
     private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_nested(List list) {
-        if (list == null) {
+    /*
+     * WARNING - void declaration
+     */
+    private static void validate_nested(List scrubbed_param) {
+        void var1_1;
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("nested must not be null");
         }
-        if (list != null) {
-            Iterator iterator = list.iterator();
-            int n = 0;
-            while (iterator.hasNext()) {
-                List list2 = (List)iterator.next();
-                if (list2 == null) {
-                    throw new IllegalArgumentException("nested[" + n + "] must not be null");
-                }
-                ++n;
+        Iterator anno = scrubbed_param.iterator();
+        int ref = 0;
+        List list = null;
+        while (var1_1.hasNext()) {
+            void var2_2;
+            list = (List)anno.next();
+            if (list == null) {
+                throw new IllegalArgumentException("nested[" + String.valueOf(ref) + "] must not be null");
             }
+            ++var2_2;
         }
     }
 

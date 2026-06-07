@@ -52,20 +52,25 @@ implements ValueObject {
     private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_list(List list) {
-        if (list == null) {
+    /*
+     * WARNING - void declaration
+     */
+    private static void validate_list(List scrubbed_param) {
+        void var1_1;
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("list must not be null");
         }
-        if (list != null) {
-            Iterator iterator = list.iterator();
-            int n = 0;
-            while (iterator.hasNext()) {
-                String string = (String)iterator.next();
-                if (string != null && !Generated.getCachedPattern("\\d*", 2).matcher(string).matches()) {
-                    throw new IllegalArgumentException(String.format("list[" + n + "] must match \"\\d*\" but was %s", string));
-                }
-                ++n;
+        Iterator anno = scrubbed_param.iterator();
+        boolean ref = false;
+        String string = null;
+        while (var1_1.hasNext()) {
+            void var2_2;
+            string = (String)anno.next();
+            if (string != null && !Generated.getCachedPattern("\\d*", 2).matcher(string).matches()) {
+                void charSequence;
+                throw new IllegalArgumentException(String.format("list[" + String.valueOf((int)charSequence) + "] must match \"\\d*\" but was %s", string));
             }
+            ++var2_2;
         }
     }
 

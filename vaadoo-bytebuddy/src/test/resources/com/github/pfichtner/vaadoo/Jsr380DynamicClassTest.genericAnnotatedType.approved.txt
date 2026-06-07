@@ -47,29 +47,35 @@ implements ValueObject {
     private /* synthetic */ Generated(List list, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_list(List list) {
-        if (list == null) {
+    /*
+     * WARNING - void declaration
+     */
+    private static void validate_list(List scrubbed_param) {
+        void var1_1;
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("list must not be null");
         }
-        if (list != null) {
-            Iterator iterator = list.iterator();
-            int n = 0;
-            while (iterator.hasNext()) {
-                block6: {
-                    String string = (String)iterator.next();
-                    if (string == null) {
-                        throw new IllegalArgumentException("list[" + n + "] must not be blank");
-                    }
-                    for (int i = 0; i < string.length(); ++i) {
-                        if (Character.isWhitespace(string.charAt(i))) {
-                            continue;
-                        }
-                        break block6;
-                    }
-                    throw new IllegalArgumentException("list[" + n + "] must not be blank");
+        Iterator anno = scrubbed_param.iterator();
+        boolean ref = false;
+        String string = null;
+        while (var1_1.hasNext()) {
+            void var2_2;
+            block5: {
+                void i;
+                void charSequence;
+                string = (String)anno.next();
+                if (string == null) {
+                    throw new IllegalArgumentException("list[" + String.valueOf((int)charSequence) + "] must not be blank");
                 }
-                ++n;
+                for (int j = 0; j < i.length(); ++j) {
+                    if (Character.isWhitespace(i.charAt(j))) {
+                        continue;
+                    }
+                    break block5;
+                }
+                throw new IllegalArgumentException("list[" + String.valueOf((int)charSequence) + "] must not be blank");
             }
+            ++var2_2;
         }
     }
 

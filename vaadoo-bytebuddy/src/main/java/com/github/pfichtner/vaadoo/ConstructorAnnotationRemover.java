@@ -55,6 +55,11 @@ public class ConstructorAnnotationRemover extends ClassVisitor {
 	}
 
 	@Override
+	public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+		return shouldPurge(descriptor) ? null : super.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+	}
+
+	@Override
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
 			String[] exceptions) {
 		MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
@@ -62,8 +67,6 @@ public class ConstructorAnnotationRemover extends ClassVisitor {
 			return new MethodVisitor(api, mv) {
 				@Override
 				public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-					// TODO We should remove annotations that are annotated by Constraint (custom
-					// validator) as well
 					return shouldPurge(descriptor) ? null : super.visitAnnotation(descriptor, visible);
 				}
 
@@ -76,8 +79,6 @@ public class ConstructorAnnotationRemover extends ClassVisitor {
 
 				@Override
 				public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
-					// TODO We should remove annotations that are annotated by Constraint (custom
-					// validator) as well
 					return shouldPurge(descriptor) ? null
 							: super.visitParameterAnnotation(parameter, descriptor, visible);
 				}
@@ -88,7 +89,8 @@ public class ConstructorAnnotationRemover extends ClassVisitor {
 	}
 
 	private boolean shouldPurge(String descriptor) {
-		return configuration.removeJsr380Annotations() && isStandardJr380Anno(Type.getType(descriptor));
+		boolean purge = configuration.removeJsr380Annotations() && isStandardJr380Anno(Type.getType(descriptor));
+		return purge;
 	}
 
 }

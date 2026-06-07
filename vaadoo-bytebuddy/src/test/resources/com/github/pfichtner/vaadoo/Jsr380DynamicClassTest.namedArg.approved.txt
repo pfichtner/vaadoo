@@ -43,8 +43,8 @@ implements ValueObject {
     private /* synthetic */ Generated(Object object, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_aNamedArgument(Object object) {
-        if (object == null) {
+    private static void validate_aNamedArgument(Object scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("aNamedArgument must not be null");
         }
     }

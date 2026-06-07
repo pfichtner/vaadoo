@@ -74,7 +74,12 @@ class Approver {
 				i -> format("auxiliary.[AUX1_%d AUX1_%d]", i, i));
 		Scrubber s2 = new RegExScrubber("\\[Ljakarta\\.validation\\.constraints\\.Pattern\\$Flag;@[0-9a-f]+",
 				i -> "[Ljakarta.validation.constraints.Pattern$Flag;@HASHCODE");
-		return (s) -> s2.scrub(s1.scrub(s));
+		return (s) -> {
+			String scrubbed = s2.scrub(s1.scrub(s));
+			scrubbed = scrubbed.replaceAll("(?m)^(\\s+private static void validate_\\w+\\()([^)]+?)\\s+\\w+(\\)\\s+\\{)",
+					"$1$2 scrubbed_param$3");
+			return scrubbed.replaceAll("\\bthis_\\b", "scrubbed_param");
+		};
 	}
 
 	public static String decompile(Unloaded<?> clazz) throws IOException {

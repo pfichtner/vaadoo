@@ -59,30 +59,30 @@ implements ValueObject {
     private /* synthetic */ Generated_371468532(LocalTime localTime, MinguoDate minguoDate, Float[] floatArray, Year year, JapaneseDate japaneseDate, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_japaneseDate(JapaneseDate japaneseDate) {
-        if (japaneseDate != null) {
-            throw new IllegalArgumentException(String.format("japaneseDate must be null but was %s", japaneseDate));
+    private static void validate_japaneseDate(JapaneseDate scrubbed_param) {
+        if (scrubbed_param != null) {
+            throw new IllegalArgumentException(String.format("japaneseDate must be null but was %s", scrubbed_param));
         }
-        if (japaneseDate != null && !japaneseDate.isAfter(JapaneseDate.now())) {
-            throw new IllegalArgumentException(String.format("japaneseDate must be a future date but was %s", japaneseDate));
+        if (scrubbed_param != null && !scrubbed_param.isAfter(JapaneseDate.now())) {
+            throw new IllegalArgumentException(String.format("japaneseDate must be a future date but was %s", scrubbed_param));
         }
-        if (japaneseDate != null && japaneseDate.isBefore(JapaneseDate.now())) {
-            throw new IllegalArgumentException(String.format("japaneseDate must be a date in the present or in the future but was %s", japaneseDate));
+        if (scrubbed_param != null && scrubbed_param.isBefore(JapaneseDate.now())) {
+            throw new IllegalArgumentException(String.format("japaneseDate must be a date in the present or in the future but was %s", scrubbed_param));
         }
-        if (japaneseDate != null && !japaneseDate.isBefore(JapaneseDate.now())) {
-            throw new IllegalArgumentException(String.format("japaneseDate must be a past date but was %s", japaneseDate));
+        if (scrubbed_param != null && !scrubbed_param.isBefore(JapaneseDate.now())) {
+            throw new IllegalArgumentException(String.format("japaneseDate must be a past date but was %s", scrubbed_param));
         }
     }
 
-    private static void validate_minguoDate(MinguoDate minguoDate) {
-        if (minguoDate == null) {
+    private static void validate_minguoDate(MinguoDate scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("minguoDate must not be null");
         }
-        if (minguoDate != null && !minguoDate.isAfter(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", minguoDate));
+        if (scrubbed_param != null && !scrubbed_param.isAfter(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a future date but was %s", scrubbed_param));
         }
-        if (minguoDate != null && !minguoDate.isBefore(MinguoDate.now())) {
-            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", minguoDate));
+        if (scrubbed_param != null && !scrubbed_param.isBefore(MinguoDate.now())) {
+            throw new IllegalArgumentException(String.format("minguoDate must be a past date but was %s", scrubbed_param));
         }
     }
 

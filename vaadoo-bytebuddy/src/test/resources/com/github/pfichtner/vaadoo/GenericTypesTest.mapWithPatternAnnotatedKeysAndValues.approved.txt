@@ -33,6 +33,7 @@ Analysing type com.example.GenericGenerated
 package com.example;
 
 import com.example.GenericGenerated;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -50,24 +51,35 @@ implements ValueObject {
     private /* synthetic */ GenericGenerated(Map map, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_map(Map map) {
-        String string;
-        if (map == null) {
+    /*
+     * WARNING - void declaration
+     */
+    private static void validate_map(Map scrubbed_param) {
+        void var1_1;
+        if (scrubbed_param == null) {
             throw new IllegalArgumentException("map must not be null");
         }
-        if (map != null) {
-            for (Map.Entry entry : map.entrySet()) {
-                string = (String)entry.getKey();
-                if (string == null || GenericGenerated.getCachedPattern("K\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException(String.format("map[key=" + entry.getKey() + "] must match \"K\\d*\" but was %s", string));
-            }
+        Iterator anno = scrubbed_param.entrySet().iterator();
+        Map.Entry ref = null;
+        Object var3_3 = null;
+        String string = null;
+        while (anno.hasNext()) {
+            ref = (Map.Entry)anno.next();
+            var3_3 = ref.getKey();
+            string = var3_3;
+            if (string == null || GenericGenerated.getCachedPattern("K\\d*", 0).matcher(string).matches()) continue;
+            throw new IllegalArgumentException(String.format("map[key=" + String.valueOf(var3_3) + "] must match \"K\\d*\" but was %s", string));
         }
-        if (map != null) {
-            for (Map.Entry entry : map.entrySet()) {
-                string = (String)entry.getValue();
-                if (string == null || GenericGenerated.getCachedPattern("V\\d*", 0).matcher(string).matches()) continue;
-                throw new IllegalArgumentException(String.format("map[value for key=" + entry.getKey() + "] must match \"V\\d*\" but was %s", string));
-            }
+        anno = scrubbed_param.entrySet().iterator();
+        Map.Entry charSequence = null;
+        var3_3 = null;
+        string = null;
+        while (var1_1.hasNext()) {
+            charSequence = (Map.Entry)anno.next();
+            var3_3 = charSequence.getKey();
+            string = (String)charSequence.getValue();
+            if (string == null || GenericGenerated.getCachedPattern("V\\d*", 0).matcher(string).matches()) continue;
+            throw new IllegalArgumentException(String.format("map[value for key=" + String.valueOf(var3_3) + "] must match \"V\\d*\" but was %s", string));
         }
     }
 

@@ -44,11 +44,11 @@ implements ValueObject {
     private /* synthetic */ Generated_170777430(Object[] objectArray, auxiliary.[AUX1_1 AUX1_1] {
     }
 
-    private static void validate_objectArray(Object[] objectArray) {
-        if (objectArray == null) {
+    private static void validate_objectArray(Object[] scrubbed_param) {
+        if (scrubbed_param == null) {
             throw new NullPointerException("objectArray must not be empty");
         }
-        if (objectArray.length == 0) {
+        if (scrubbed_param.length == 0) {
             throw new IllegalArgumentException("objectArray must not be empty");
         }
     }
