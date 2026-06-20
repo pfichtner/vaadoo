@@ -1,0 +1,321 @@
+Story:
+Custom validators with initialize
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.Integer, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction, values={min=74})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.Integer, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction, values={min=99})])
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.Integer, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction, values={min=23})])
+
+
+Source:
+Analysing type com.example.Generated_1766960183
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1766960183
+implements ValueObject {
+    public Generated_1766960183(@MinReproduction(groups={}, message="value too small", min=74, payload={}) Integer n, @MinReproduction(groups={}, message="value too small", min=99, payload={}) Integer n2, @MinReproduction(groups={}, message="value too small", min=23, payload={}) Integer n3) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_1766960183
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_1766960183;
+import com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction;
+import com.github.pfichtner.vaadoo.testclasses.custom.MinValidator;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Proxy;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_1766960183
+implements ValueObject {
+    private static final /* synthetic */ MinValidator _$vaadoo_validator_0;
+    private static final /* synthetic */ MinValidator _$vaadoo_validator_1;
+    private static final /* synthetic */ MinValidator _$vaadoo_validator_2;
+
+    public Generated_1766960183(@MinReproduction(groups={}, message="value too small", min=74, payload={}) Integer n, @MinReproduction(groups={}, message="value too small", min=99, payload={}) Integer n2, @MinReproduction(groups={}, message="value too small", min=23, payload={}) Integer n3) {
+        Generated_1766960183.validate(n, n2, n3);
+        this(n, n2, n3, null);
+    }
+
+    private /* synthetic */ Generated_1766960183(Integer n, Integer n2, Integer n3, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    /*
+     * Exception decompiling
+     */
+    private static void validate_integer2(Integer var0) {
+        /*
+         * This method has failed to decompile.  When submitting a bug report, please provide this stack trace, and (if you hold appropriate legal rights) the relevant class file.
+         * 
+         * java.lang.IllegalStateException: Invisible function parameters on a non-constructor (or reads of uninitialised local variables).
+         *     at org.benf.cfr.reader.bytecode.analysis.opgraph.Op02WithProcessedDataAndRefs.assignSSAIdentifiers(Op02WithProcessedDataAndRefs.java:1631)
+         *     at org.benf.cfr.reader.bytecode.analysis.opgraph.Op02WithProcessedDataAndRefs.discoverStorageLiveness(Op02WithProcessedDataAndRefs.java:1871)
+         *     at org.benf.cfr.reader.bytecode.CodeAnalyser.getAnalysisInner(CodeAnalyser.java:461)
+         *     at org.benf.cfr.reader.bytecode.CodeAnalyser.getAnalysisOrWrapFail(CodeAnalyser.java:278)
+         *     at org.benf.cfr.reader.bytecode.CodeAnalyser.getAnalysis(CodeAnalyser.java:201)
+         *     at org.benf.cfr.reader.entities.attributes.AttributeCode.analyse(AttributeCode.java:94)
+         *     at org.benf.cfr.reader.entities.Method.analyse(Method.java:531)
+         *     at org.benf.cfr.reader.entities.ClassFile.analyseMid(ClassFile.java:1055)
+         *     at org.benf.cfr.reader.entities.ClassFile.analyseTop(ClassFile.java:942)
+         *     at org.benf.cfr.reader.Driver.doClass(Driver.java:84)
+         *     at org.benf.cfr.reader.CfrDriverImpl.analyse(CfrDriverImpl.java:78)
+         *     at com.github.pfichtner.vaadoo.Decompiler.decompile(Decompiler.java:62)
+         *     at com.github.pfichtner.vaadoo.Approver.decompile(Approver.java:81)
+         *     at com.github.pfichtner.vaadoo.Approver.approveTransformed(Approver.java:64)
+         *     at com.github.pfichtner.vaadoo.Approver.approveTransformed(Approver.java:48)
+         *     at com.github.pfichtner.vaadoo.CustomValidatorInitializePBTest.lambda$customValidatorsWithInitialize$0(CustomValidatorInitializePBTest.java:82)
+         *     at com.github.pfichtner.vaadoo.CustomValidatorInitializePBTest.withProjectRoot(CustomValidatorInitializePBTest.java:87)
+         *     at com.github.pfichtner.vaadoo.CustomValidatorInitializePBTest.customValidatorsWithInitialize(CustomValidatorInitializePBTest.java:82)
+         *     at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+         *     at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+         *     at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:786)
+         *     at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:514)
+         *     at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$1(CheckedPropertyFactory.java:84)
+         *     at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$2(CheckedPropertyFactory.java:91)
+         *     at net.jqwik.engine.properties.CheckedFunction.execute(CheckedFunction.java:17)
+         *     at net.jqwik.api.lifecycle.AroundTryHook.lambda$static$0(AroundTryHook.java:57)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+         *     at net.jqwik.engine.hooks.lifecycle.TryLifecycleMethodsHook.aroundTry(TryLifecycleMethodsHook.java:56)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+         *     at net.jqwik.engine.hooks.lifecycle.BeforeTryMembersHook.aroundTry(BeforeTryMembersHook.java:69)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+         *     at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createTryExecutor$0(CheckedPropertyFactory.java:60)
+         *     at net.jqwik.engine.execution.lifecycle.AroundTryLifecycle.execute(AroundTryLifecycle.java:23)
+         *     at net.jqwik.engine.properties.GenericProperty.testPredicate(GenericProperty.java:166)
+         *     at net.jqwik.engine.properties.GenericProperty.check(GenericProperty.java:68)
+         *     at net.jqwik.engine.execution.CheckedProperty.check(CheckedProperty.java:67)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.executeProperty(PropertyMethodExecutor.java:90)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.executeMethod(PropertyMethodExecutor.java:69)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.lambda$execute$0(PropertyMethodExecutor.java:49)
+         *     at net.jqwik.api.lifecycle.AroundPropertyHook.lambda$static$0(AroundPropertyHook.java:46)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$0(HookSupport.java:26)
+         *     at net.jqwik.api.lifecycle.PropertyExecutor.executeAndFinally(PropertyExecutor.java:39)
+         *     at net.jqwik.engine.hooks.lifecycle.PropertyLifecycleMethodsHook.aroundProperty(PropertyLifecycleMethodsHook.java:56)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$1(HookSupport.java:31)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$0(HookSupport.java:26)
+         *     at net.jqwik.engine.hooks.statistics.StatisticsHook.aroundProperty(StatisticsHook.java:37)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$1(HookSupport.java:31)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$0(HookSupport.java:26)
+         *     at net.jqwik.engine.hooks.lifecycle.AutoCloseableHook.aroundProperty(AutoCloseableHook.java:13)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$1(HookSupport.java:31)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.execute(PropertyMethodExecutor.java:47)
+         *     at net.jqwik.engine.execution.PropertyTaskCreator.executeTestMethod(PropertyTaskCreator.java:166)
+         *     at net.jqwik.engine.execution.PropertyTaskCreator.lambda$createTask$1(PropertyTaskCreator.java:51)
+         *     at net.jqwik.engine.execution.lifecycle.CurrentDomainContext.runWithContext(CurrentDomainContext.java:30)
+         *     at net.jqwik.engine.execution.PropertyTaskCreator.lambda$createTask$2(PropertyTaskCreator.java:50)
+         *     at net.jqwik.engine.execution.pipeline.ExecutionTask$1.lambda$execute$0(ExecutionTask.java:31)
+         *     at net.jqwik.engine.execution.lifecycle.CurrentTestDescriptor.runWithDescriptor(CurrentTestDescriptor.java:18)
+         *     at net.jqwik.engine.execution.pipeline.ExecutionTask$1.execute(ExecutionTask.java:31)
+         *     at net.jqwik.engine.execution.pipeline.ExecutionPipeline.runToTermination(ExecutionPipeline.java:82)
+         *     at net.jqwik.engine.execution.JqwikExecutor.execute(JqwikExecutor.java:46)
+         *     at net.jqwik.engine.JqwikTestEngine.executeTests(JqwikTestEngine.java:70)
+         *     at net.jqwik.engine.JqwikTestEngine.execute(JqwikTestEngine.java:53)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:230)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:204)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:172)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:101)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:64)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:150)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:63)
+         *     at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:109)
+         *     at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:91)
+         *     at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+         *     at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+         *     at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+         *     at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+         *     at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+         *     at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+         *     at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+         *     at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+         *     at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+         *     at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+         */
+        throw new IllegalStateException("Decompilation failed");
+    }
+
+    /*
+     * Exception decompiling
+     */
+    private static void validate_integer1(Integer var0) {
+        /*
+         * This method has failed to decompile.  When submitting a bug report, please provide this stack trace, and (if you hold appropriate legal rights) the relevant class file.
+         * 
+         * java.lang.IllegalStateException: Invisible function parameters on a non-constructor (or reads of uninitialised local variables).
+         *     at org.benf.cfr.reader.bytecode.analysis.opgraph.Op02WithProcessedDataAndRefs.assignSSAIdentifiers(Op02WithProcessedDataAndRefs.java:1631)
+         *     at org.benf.cfr.reader.bytecode.analysis.opgraph.Op02WithProcessedDataAndRefs.discoverStorageLiveness(Op02WithProcessedDataAndRefs.java:1871)
+         *     at org.benf.cfr.reader.bytecode.CodeAnalyser.getAnalysisInner(CodeAnalyser.java:461)
+         *     at org.benf.cfr.reader.bytecode.CodeAnalyser.getAnalysisOrWrapFail(CodeAnalyser.java:278)
+         *     at org.benf.cfr.reader.bytecode.CodeAnalyser.getAnalysis(CodeAnalyser.java:201)
+         *     at org.benf.cfr.reader.entities.attributes.AttributeCode.analyse(AttributeCode.java:94)
+         *     at org.benf.cfr.reader.entities.Method.analyse(Method.java:531)
+         *     at org.benf.cfr.reader.entities.ClassFile.analyseMid(ClassFile.java:1055)
+         *     at org.benf.cfr.reader.entities.ClassFile.analyseTop(ClassFile.java:942)
+         *     at org.benf.cfr.reader.Driver.doClass(Driver.java:84)
+         *     at org.benf.cfr.reader.CfrDriverImpl.analyse(CfrDriverImpl.java:78)
+         *     at com.github.pfichtner.vaadoo.Decompiler.decompile(Decompiler.java:62)
+         *     at com.github.pfichtner.vaadoo.Approver.decompile(Approver.java:81)
+         *     at com.github.pfichtner.vaadoo.Approver.approveTransformed(Approver.java:64)
+         *     at com.github.pfichtner.vaadoo.Approver.approveTransformed(Approver.java:48)
+         *     at com.github.pfichtner.vaadoo.CustomValidatorInitializePBTest.lambda$customValidatorsWithInitialize$0(CustomValidatorInitializePBTest.java:82)
+         *     at com.github.pfichtner.vaadoo.CustomValidatorInitializePBTest.withProjectRoot(CustomValidatorInitializePBTest.java:87)
+         *     at com.github.pfichtner.vaadoo.CustomValidatorInitializePBTest.customValidatorsWithInitialize(CustomValidatorInitializePBTest.java:82)
+         *     at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+         *     at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+         *     at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:786)
+         *     at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:514)
+         *     at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$1(CheckedPropertyFactory.java:84)
+         *     at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$2(CheckedPropertyFactory.java:91)
+         *     at net.jqwik.engine.properties.CheckedFunction.execute(CheckedFunction.java:17)
+         *     at net.jqwik.api.lifecycle.AroundTryHook.lambda$static$0(AroundTryHook.java:57)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+         *     at net.jqwik.engine.hooks.lifecycle.TryLifecycleMethodsHook.aroundTry(TryLifecycleMethodsHook.java:56)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+         *     at net.jqwik.engine.hooks.lifecycle.BeforeTryMembersHook.aroundTry(BeforeTryMembersHook.java:69)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+         *     at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createTryExecutor$0(CheckedPropertyFactory.java:60)
+         *     at net.jqwik.engine.execution.lifecycle.AroundTryLifecycle.execute(AroundTryLifecycle.java:23)
+         *     at net.jqwik.engine.properties.GenericProperty.testPredicate(GenericProperty.java:166)
+         *     at net.jqwik.engine.properties.GenericProperty.check(GenericProperty.java:68)
+         *     at net.jqwik.engine.execution.CheckedProperty.check(CheckedProperty.java:67)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.executeProperty(PropertyMethodExecutor.java:90)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.executeMethod(PropertyMethodExecutor.java:69)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.lambda$execute$0(PropertyMethodExecutor.java:49)
+         *     at net.jqwik.api.lifecycle.AroundPropertyHook.lambda$static$0(AroundPropertyHook.java:46)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$0(HookSupport.java:26)
+         *     at net.jqwik.api.lifecycle.PropertyExecutor.executeAndFinally(PropertyExecutor.java:39)
+         *     at net.jqwik.engine.hooks.lifecycle.PropertyLifecycleMethodsHook.aroundProperty(PropertyLifecycleMethodsHook.java:56)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$1(HookSupport.java:31)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$0(HookSupport.java:26)
+         *     at net.jqwik.engine.hooks.statistics.StatisticsHook.aroundProperty(StatisticsHook.java:37)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$1(HookSupport.java:31)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$0(HookSupport.java:26)
+         *     at net.jqwik.engine.hooks.lifecycle.AutoCloseableHook.aroundProperty(AutoCloseableHook.java:13)
+         *     at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$1(HookSupport.java:31)
+         *     at net.jqwik.engine.execution.PropertyMethodExecutor.execute(PropertyMethodExecutor.java:47)
+         *     at net.jqwik.engine.execution.PropertyTaskCreator.executeTestMethod(PropertyTaskCreator.java:166)
+         *     at net.jqwik.engine.execution.PropertyTaskCreator.lambda$createTask$1(PropertyTaskCreator.java:51)
+         *     at net.jqwik.engine.execution.lifecycle.CurrentDomainContext.runWithContext(CurrentDomainContext.java:30)
+         *     at net.jqwik.engine.execution.PropertyTaskCreator.lambda$createTask$2(PropertyTaskCreator.java:50)
+         *     at net.jqwik.engine.execution.pipeline.ExecutionTask$1.lambda$execute$0(ExecutionTask.java:31)
+         *     at net.jqwik.engine.execution.lifecycle.CurrentTestDescriptor.runWithDescriptor(CurrentTestDescriptor.java:18)
+         *     at net.jqwik.engine.execution.pipeline.ExecutionTask$1.execute(ExecutionTask.java:31)
+         *     at net.jqwik.engine.execution.pipeline.ExecutionPipeline.runToTermination(ExecutionPipeline.java:82)
+         *     at net.jqwik.engine.execution.JqwikExecutor.execute(JqwikExecutor.java:46)
+         *     at net.jqwik.engine.JqwikTestEngine.executeTests(JqwikTestEngine.java:70)
+         *     at net.jqwik.engine.JqwikTestEngine.execute(JqwikTestEngine.java:53)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:230)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:204)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:172)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:101)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:64)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:150)
+         *     at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:63)
+         *     at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:109)
+         *     at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:91)
+         *     at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+         *     at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$1(InterceptingLauncher.java:39)
+         *     at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+         *     at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:38)
+         *     at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+         *     at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithoutCancellationToken(LauncherAdapter.java:60)
+         *     at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:52)
+         *     at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+         *     at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+         *     at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+         *     at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+         */
+        throw new IllegalStateException("Decompilation failed");
+    }
+
+    private static void validate_integer(Integer n) {
+        if (!_$vaadoo_validator_2.isValid(n, null)) {
+            throw new IllegalArgumentException(String.format("value too small", n));
+        }
+    }
+
+    private static void validate(Integer n, Integer n2, Integer n3) {
+        Generated_1766960183.validate_integer(n);
+        Generated_1766960183.validate_integer1(n2);
+        Generated_1766960183.validate_integer2(n3);
+    }
+
+    static {
+        MinValidator minValidator = new MinValidator();
+        minValidator.initialize((Annotation)((MinReproduction)Proxy.newProxyInstance(Generated_1766960183.class.getClassLoader(), new Class[]{MinReproduction.class}, (object, method, objectArray) -> {
+            String string = method.getName();
+            if (string.equals("min")) {
+                return 23;
+            }
+            if (string.equals("payload")) {
+                return new Class[0];
+            }
+            if (string.equals("groups")) {
+                return new Class[0];
+            }
+            if (string.equals("message")) {
+                return "value too small";
+            }
+            return null;
+        })));
+        _$vaadoo_validator_0 = minValidator;
+        MinValidator minValidator2 = new MinValidator();
+        minValidator2.initialize((Annotation)((MinReproduction)Proxy.newProxyInstance(Generated_1766960183.class.getClassLoader(), new Class[]{MinReproduction.class}, (object, method, objectArray) -> {
+            String string = method.getName();
+            if (string.equals("min")) {
+                return 99;
+            }
+            if (string.equals("payload")) {
+                return new Class[0];
+            }
+            if (string.equals("groups")) {
+                return new Class[0];
+            }
+            if (string.equals("message")) {
+                return "value too small";
+            }
+            return null;
+        })));
+        _$vaadoo_validator_1 = minValidator2;
+        MinValidator minValidator3 = new MinValidator();
+        minValidator3.initialize((Annotation)((MinReproduction)Proxy.newProxyInstance(Generated_1766960183.class.getClassLoader(), new Class[]{MinReproduction.class}, (object, method, objectArray) -> {
+            String string = method.getName();
+            if (string.equals("min")) {
+                return 74;
+            }
+            if (string.equals("payload")) {
+                return new Class[0];
+            }
+            if (string.equals("groups")) {
+                return new Class[0];
+            }
+            if (string.equals("message")) {
+                return "value too small";
+            }
+            return null;
+        })));
+        _$vaadoo_validator_2 = minValidator3;
+    }
+}
+
