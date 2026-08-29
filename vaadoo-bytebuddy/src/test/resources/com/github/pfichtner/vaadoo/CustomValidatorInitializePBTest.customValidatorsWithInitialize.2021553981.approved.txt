@@ -1,0 +1,106 @@
+Story:
+Custom validators with initialize
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.String, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface com.github.pfichtner.vaadoo.testclasses.custom.ComplexReproduction, values={boolValue=true, classValue=class java.lang.String, enumValue=DAYS, intValue=42, stringValue=jVt1V})])
+
+
+Source:
+Analysing type com.example.Generated_2021553981
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.github.pfichtner.vaadoo.testclasses.custom.ComplexReproduction;
+import java.util.concurrent.TimeUnit;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_2021553981
+implements ValueObject {
+    public Generated_2021553981(@ComplexReproduction(boolValue=true, classValue=String.class, doubleValue=0.0, enumValue=TimeUnit.DAYS, floatValue=0.0f, groups={}, intValue=42, longValue=0L, message="complex failure", payload={}, stringValue="jVt1V") String string) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_2021553981
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_2021553981;
+import com.github.pfichtner.vaadoo.testclasses.custom.ComplexReproduction;
+import com.github.pfichtner.vaadoo.testclasses.custom.ComplexValidator;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Proxy;
+import java.util.concurrent.TimeUnit;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_2021553981
+implements ValueObject {
+    private static final /* synthetic */ ComplexValidator _$vaadoo_validator_0;
+
+    public Generated_2021553981(@ComplexReproduction(boolValue=true, classValue=String.class, doubleValue=0.0, enumValue=TimeUnit.DAYS, floatValue=0.0f, groups={}, intValue=42, longValue=0L, message="complex failure", payload={}, stringValue="jVt1V") String string) {
+        Generated_2021553981.validate(string);
+        this(string, null);
+    }
+
+    private /* synthetic */ Generated_2021553981(String string, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate_string(String string) {
+        if (!_$vaadoo_validator_0.isValid((Object)string, null)) {
+            throw new IllegalArgumentException(String.format("complex failure", string));
+        }
+    }
+
+    private static void validate(String string) {
+        Generated_2021553981.validate_string(string);
+    }
+
+    static {
+        ComplexValidator complexValidator = new ComplexValidator();
+        complexValidator.initialize((Annotation)((ComplexReproduction)Proxy.newProxyInstance(Generated_2021553981.class.getClassLoader(), new Class[]{ComplexReproduction.class}, (object, method, objectArray) -> {
+            String string = method.getName();
+            if (string.equals("stringValue")) {
+                return "jVt1V";
+            }
+            if (string.equals("classValue")) {
+                return String.class;
+            }
+            if (string.equals("enumValue")) {
+                return TimeUnit.DAYS;
+            }
+            if (string.equals("payload")) {
+                return new Class[0];
+            }
+            if (string.equals("intValue")) {
+                return 42;
+            }
+            if (string.equals("floatValue")) {
+                return Float.valueOf(0.0f);
+            }
+            if (string.equals("groups")) {
+                return new Class[0];
+            }
+            if (string.equals("boolValue")) {
+                return true;
+            }
+            if (string.equals("doubleValue")) {
+                return 0.0;
+            }
+            if (string.equals("message")) {
+                return "complex failure";
+            }
+            if (string.equals("longValue")) {
+                return 0L;
+            }
+            return null;
+        })));
+        _$vaadoo_validator_0 = complexValidator;
+    }
+}
+

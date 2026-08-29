@@ -34,6 +34,7 @@ import static net.bytebuddy.jar.asm.Type.getMethodDescriptor;
 import static net.bytebuddy.jar.asm.Type.getObjectType;
 import static net.bytebuddy.jar.asm.Type.getType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -59,7 +60,13 @@ import net.bytebuddy.jar.asm.Type;
 @NoArgsConstructor(access = PRIVATE)
 public final class CustomAnnotations {
 
-	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation) {
+	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation,
+			String ownerInternalName) {
+		addCustomAnnotations(mv, parameter, annotation, ownerInternalName, null);
+	}
+
+	public static void addCustomAnnotations(MethodVisitor mv, Parameter parameter, TypeDescription annotation,
+			String ownerInternalName, Function<CustomValidatorInfo, String> fieldNameResolver) {
 		var contraint = annotation.getDeclaredAnnotations().ofType(Constraint.class);
 		if (contraint == null) {
 			return;
@@ -75,27 +82,71 @@ public final class CustomAnnotations {
 
 		for (TypeDescription validatorClass : validatorClasses) {
 			String validatorType = validatorClass.getInternalName();
-			mv.visitTypeInsn(NEW, validatorType);
-			mv.visitInsn(DUP);
-			mv.visitMethodInsn(INVOKESPECIAL, validatorType, "<init>", "()V", false);
-			mv.visitVarInsn(ALOAD, parameter.index());
-			mv.visitInsn(ACONST_NULL);
-			String descriptor = getMethodDescriptor(BOOLEAN_TYPE,
-					getObjectType(typeThatGetsValidated(validatorClass).getInternalName()),
-					getType(ConstraintValidatorContext.class));
-			mv.visitMethodInsn(INVOKEVIRTUAL, validatorType, "isValid", descriptor, false);
-			Label label0 = new Label();
-			mv.visitJumpInsn(IFNE, label0);
-			mv.visitTypeInsn(NEW, "java/lang/IllegalArgumentException");
-			mv.visitInsn(DUP);
-			var message = parameter.annotationValue(getObjectType(annotation.getInternalName()), "message");
-			mv.visitLdcInsn(getMessage(parameter, annotation, message));
-			injectFormatMessage(mv, parameter);
-			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/IllegalArgumentException", "<init>", "(Ljava/lang/String;)V",
-					false);
-			mv.visitInsn(ATHROW);
-			mv.visitLabel(label0);
+
+			String fieldName = null;
+			if (fieldNameResolver != null && overridesInitialize(validatorClass, annotation)) {
+				CustomValidatorInfo info = new CustomValidatorInfo(validatorClass, annotation,
+						annotationValues(parameter, annotation), null);
+				fieldName = fieldNameResolver.apply(info);
+			}
+
+			if (fieldName != null) {
+				if (mv != null) {
+					mv.visitFieldInsn(net.bytebuddy.jar.asm.Opcodes.GETSTATIC, ownerInternalName, fieldName,
+							"L" + validatorType + ";");
+				}
+			} else {
+				if (mv != null) {
+					mv.visitTypeInsn(NEW, validatorType);
+					mv.visitInsn(DUP);
+					mv.visitMethodInsn(INVOKESPECIAL, validatorType, "<init>", "()V", false);
+				}
+			}
+
+			if (mv != null) {
+				mv.visitVarInsn(ALOAD, parameter.index());
+				mv.visitInsn(ACONST_NULL);
+				String descriptor = getMethodDescriptor(BOOLEAN_TYPE,
+						getObjectType(typeThatGetsValidated(validatorClass).getInternalName()),
+						getType(ConstraintValidatorContext.class));
+				mv.visitMethodInsn(INVOKEVIRTUAL, validatorType, "isValid", descriptor, false);
+				Label label0 = new Label();
+				mv.visitJumpInsn(IFNE, label0);
+				mv.visitTypeInsn(NEW, "java/lang/IllegalArgumentException");
+				mv.visitInsn(DUP);
+				var message = parameter.annotationValue(getObjectType(annotation.getInternalName()), "message");
+				mv.visitLdcInsn(getMessage(parameter, annotation, message));
+				injectFormatMessage(mv, parameter);
+				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/IllegalArgumentException", "<init>", "(Ljava/lang/String;)V",
+						false);
+				mv.visitInsn(ATHROW);
+				mv.visitLabel(label0);
+			}
 		}
+	}
+
+	private static java.util.Map<String, Object> annotationValues(Parameter parameter, TypeDescription annotation) {
+		java.util.Map<String, Object> values = new java.util.HashMap<>();
+		for (InDefinedShape method : annotation.getDeclaredMethods()) {
+			String name = method.getName();
+			Object value = parameter.annotationValue(getObjectType(annotation.getInternalName()), name);
+			if (value == null) {
+				value = method.getDefaultValue().resolve();
+			}
+			values.put(name, value);
+		}
+		return values;
+	}
+
+	public static boolean overridesInitialize(TypeDescription validatorClass, TypeDescription annotationType) {
+		TypeDescription current = validatorClass;
+		while (current != null && !current.represents(Object.class)) {
+			if (!current.getDeclaredMethods().filter(named("initialize").and(takesArguments(annotationType))).isEmpty()) {
+				return !current.represents(ConstraintValidator.class);
+			}
+			current = current.getSuperClass() == null ? null : current.getSuperClass().asErasure();
+		}
+		return false;
 	}
 
 	private static final Pattern annoMethodPattern = Pattern.compile("anno\\.(\\w+)\\(\\)");

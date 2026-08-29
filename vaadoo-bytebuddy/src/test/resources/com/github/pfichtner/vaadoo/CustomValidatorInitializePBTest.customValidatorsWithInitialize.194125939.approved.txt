@@ -1,0 +1,83 @@
+Story:
+Custom validators with initialize
+
+params annotations
+-: TestClassBuilder.DefaultParameterDefinition(typeDefinition=TestClassBuilder.TypeDefinition(type=class java.lang.Integer, genericType=null, genericTypeAnnotations=[]), annotations=[TestClassBuilder.AnnotationDefinition(annotation=interface com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction, values={min=2})])
+
+
+Source:
+Analysing type com.example.Generated_194125939
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_194125939
+implements ValueObject {
+    public Generated_194125939(@MinReproduction(groups={}, message="value too small", min=2, payload={}) Integer n) {
+    }
+}
+
+
+
+Transformed:
+Analysing type com.example.Generated_194125939
+/*
+ * Decompiled with CFR.
+ */
+package com.example;
+
+import com.example.Generated_194125939;
+import com.github.pfichtner.vaadoo.testclasses.custom.MinReproduction;
+import com.github.pfichtner.vaadoo.testclasses.custom.MinValidator;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Proxy;
+import org.jmolecules.ddd.types.ValueObject;
+
+public class Generated_194125939
+implements ValueObject {
+    private static final /* synthetic */ MinValidator _$vaadoo_validator_0;
+
+    public Generated_194125939(@MinReproduction(groups={}, message="value too small", min=2, payload={}) Integer n) {
+        Generated_194125939.validate(n);
+        this(n, null);
+    }
+
+    private /* synthetic */ Generated_194125939(Integer n, auxiliary.[AUX1_1 AUX1_1] {
+    }
+
+    private static void validate_integer(Integer n) {
+        if (!_$vaadoo_validator_0.isValid(n, null)) {
+            throw new IllegalArgumentException(String.format("value too small", n));
+        }
+    }
+
+    private static void validate(Integer n) {
+        Generated_194125939.validate_integer(n);
+    }
+
+    static {
+        MinValidator minValidator = new MinValidator();
+        minValidator.initialize((Annotation)((MinReproduction)Proxy.newProxyInstance(Generated_194125939.class.getClassLoader(), new Class[]{MinReproduction.class}, (object, method, objectArray) -> {
+            String string = method.getName();
+            if (string.equals("min")) {
+                return 2;
+            }
+            if (string.equals("payload")) {
+                return new Class[0];
+            }
+            if (string.equals("groups")) {
+                return new Class[0];
+            }
+            if (string.equals("message")) {
+                return "value too small";
+            }
+            return null;
+        })));
+        _$vaadoo_validator_0 = minValidator;
+    }
+}
+
