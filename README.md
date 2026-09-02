@@ -2,7 +2,9 @@
 <img src="https://pfichtner.github.io/assets/vaadoo/vaadoo.png" alt="vaadoo logo" height="120px" align="right" />
 </a>
 
-[![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/maven.yml)
+[![Java CI with Maven](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml/badge.svg)](https://github.com/pfichtner/vaadoo/actions/workflows/build.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.pfichtner/vaadoo.svg)](https://search.maven.org/artifact/io.github.pfichtner/vaadoo)
+[![Codecov](https://codecov.io/gh/pfichtner/vaadoo/graph/badge.svg)](https://codecov.io/gh/pfichtner/vaadoo)
 
 # Vaadoo
 Vaadoo is a build-time bytecode transformation tool that turns Bean Validation annotations into real constructor checks.
