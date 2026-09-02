@@ -1,0 +1,6 @@
+# Make Codecov count partially-covered lines as hits, matching JaCoCo's
+# line-coverage semantics, so the reported number isn't deflated by the
+# many partially-taken branches in the bytecode-generation code.
+parsers:
+  jacoco:
+    partials_as_hits: true
