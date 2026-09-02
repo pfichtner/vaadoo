@@ -73,6 +73,17 @@
 				</executions>
 			</plugin>
 
+			<!-- This module only contains example.* test fixtures plus tests that
+				exercise the plugin; it has no production code, so skip coverage
+				entirely so these classes do not feed into the coverage report. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+
 		</plugins>
 
 	</build>
