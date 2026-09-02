@@ -51,6 +51,19 @@ class ClassUtilsTest {
 			assertThatThrownBy(() -> ClassUtils.forName("com.example.DoesNotExist", null))
 					.isInstanceOf(ClassNotFoundException.class);
 		}
+
+		@Test
+		void interpretsInternalArrayPrefixThenRethrows() throws Exception {
+			// The "[..." branch recurses on the raw element name ("I" has no mapping in
+			// this implementation), so the lookup ultimately fails with a ClassNotFoundException.
+			assertThatThrownBy(() -> ClassUtils.forName("[[I", null)).isInstanceOf(ClassNotFoundException.class);
+		}
+
+		@Test
+		void rethrowsWhenNameHasNoPackageSeparator() throws Exception {
+			assertThatThrownBy(() -> ClassUtils.forName("NoSuchBareType", null))
+					.isInstanceOf(ClassNotFoundException.class);
+		}
 	}
 
 	@Nested

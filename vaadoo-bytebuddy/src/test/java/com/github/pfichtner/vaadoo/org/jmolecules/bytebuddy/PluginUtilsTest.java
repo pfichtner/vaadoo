@@ -89,6 +89,20 @@ class PluginUtilsTest {
 					Map.of(java.lang.annotation.Target.class, Deprecated.class), LOG);
 			assertThat(mapping).isNotNull();
 		}
+
+		@Test
+		void mapAnnotationOrInterfacesHandlesNonAnnotationSource() {
+			Builder<?> mapping = PluginUtils.mapAnnotationOrInterfaces(builder(String.class),
+					describe(CharSequence.class), Map.of(String.class, Deprecated.class), LOG);
+			assertThat(mapping).isNotNull();
+		}
+
+		@Test
+		void mapAnnotationOrInterfacesSkipsNonMatchingNonAnnotationSource() {
+			Builder<?> mapping = PluginUtils.mapAnnotationOrInterfaces(builder(String.class),
+					describe(String.class), Map.of(Integer.class, Deprecated.class), LOG);
+			assertThat(mapping).isNotNull();
+		}
 	}
 
 	@Nested
@@ -159,6 +173,25 @@ class PluginUtilsTest {
 		void addAnnotationIfMissingUsesProducer() {
 			Builder<?> result = PluginUtils.addAnnotationIfMissing(type -> Deprecated.class, builder(String.class),
 					describe(String.class), LOG);
+			assertThat(result).isNotNull();
+		}
+
+		@Test
+		void addAnnotationIfMissingLogsWhenExclusionAlreadyPresent() {
+			// Deprecated carries @Retention, so passing Retention as exclusion hits the
+			// "already annotated with @Retention" branch.
+			Builder<?> result = PluginUtils.addAnnotationIfMissing(java.lang.annotation.Target.class,
+					builder(Deprecated.class), describe(Deprecated.class), LOG,
+					java.lang.annotation.Retention.class);
+			assertThat(result).isNotNull();
+		}
+
+		@Test
+		void addAnnotationIfMissingContinuesWhenExclusionNotPresent() {
+			// String carries no @Retention annotation, so the exclusion does not match and
+			// the annotation is still added.
+			Builder<?> result = PluginUtils.addAnnotationIfMissing(Deprecated.class, builder(String.class),
+					describe(String.class), LOG, java.lang.annotation.Retention.class);
 			assertThat(result).isNotNull();
 		}
 	}
@@ -242,6 +275,18 @@ class PluginUtilsTest {
 
 	@Test
 	void defaultMappingLogsOnMatch() {
+		AtomicInteger logged = new AtomicInteger();
+		Log countingLog = (message, parameters) -> logged.incrementAndGet();
+		var mapping = PluginUtils.defaultMapping(countingLog, ElementMatchers.named("value"),
+				PluginUtils.getAnnotation(Deprecated.class));
+		FieldDescription field = new TypeDescription.ForLoadedType(String.class).getDeclaredFields()
+				.filter(ElementMatchers.named("value")).getOnly();
+		assertThat(mapping.matches(field)).isTrue();
+		assertThat(logged).hasValue(1);
+	}
+
+	@Test
+	void defaultMappingDoesNotLogOnNoMatch() {
 		AtomicInteger logged = new AtomicInteger();
 		Log countingLog = (message, parameters) -> logged.incrementAndGet();
 		var mapping = PluginUtils.defaultMapping(countingLog, ElementMatchers.named("length"),
