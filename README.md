@@ -54,20 +54,24 @@ The resulting constructor behaves roughly like:
 public record RevealSchedule(List<Round> values) {
 
     public RevealSchedule {
+        // @NotEmpty results in ...
         if (values == null) {
             throw new NullPointerException("values must not be null");
         }
 
+        // ... and ...
         if (values.isEmpty()) {
             throw new IllegalArgumentException("values must not be empty");
         }
 
+        // List<@NotNull Round> results in ...
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i) == null) {
                 throw new NullPointerException("values[" + i + "] must not be null");
             }
         }
 
+	// This is the preserved user code
         var sorted = values.stream().sorted().distinct().toList();
         if (!sorted.equals(values)) {
             throw new IllegalArgumentException(
