@@ -59,14 +59,20 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.github.pfichtner.vaadoo.ConstructorAnnotationRemover;
+import com.github.pfichtner.vaadoo.CustomAnnotationValidatorClassVisitor;
+import com.github.pfichtner.vaadoo.CustomAnnotations;
+import com.github.pfichtner.vaadoo.CustomValidatorInfo;
 import com.github.pfichtner.vaadoo.Jsr380Annos;
 import com.github.pfichtner.vaadoo.Jsr380Annos.ConfigEntry;
 import com.github.pfichtner.vaadoo.Parameters;
@@ -118,6 +124,23 @@ class VaadooImplementor {
 				.map(MethodDescription.InDefinedShape::getName).collect(toList()));
 		Set<String> allGeneratedValidateMethodNames = new HashSet<>();
 
+		Map<CustomValidatorInfo, String> customValidatorFields = new LinkedHashMap<>();
+		AtomicInteger validatorCounter = new AtomicInteger();
+		Function<CustomValidatorInfo, String> fieldNameResolver = info -> {
+			for (Map.Entry<CustomValidatorInfo, String> entry : customValidatorFields.entrySet()) {
+				CustomValidatorInfo existing = entry.getKey();
+				if (existing.getValidatorClass().equals(info.getValidatorClass())
+						&& existing.getAnnotationType().equals(info.getAnnotationType())
+						&& valuesEqual(existing.getAnnotationValues(), info.getAnnotationValues())) {
+					return entry.getValue();
+				}
+			}
+			String name = "_$vaadoo_validator_" + validatorCounter.getAndIncrement();
+			customValidatorFields.put(new CustomValidatorInfo(info.getValidatorClass(), info.getAnnotationType(),
+					info.getAnnotationValues(), name), name);
+			return name;
+		};
+
 		for (InDefinedShape definedShape : typeDescription.getDeclaredMethods()) {
 			if (definedShape.isConstructor()) {
 				Parameters parameters = Parameters.of(definedShape.getParameters(), typeDescription);
@@ -131,7 +154,9 @@ class VaadooImplementor {
 					String validateParamMethodName = nonExistingMethodName(usedMethodNames,
 							VALIDATE_METHOD_BASE_NAME + "_" + parameter.name());
 					StaticValidateAppender parameterAppender = new StaticValidateAppender(validateParamMethodName,
-							parameter, configuration);
+							parameter, configuration, fieldNameResolver, typeDescription.getInternalName());
+
+					parameterAppender.triggerEagerResolution();
 
 					if (parameterAppender.hasInjections()) {
 						usedMethodNames.add(validateParamMethodName);
@@ -163,6 +188,11 @@ class VaadooImplementor {
 		}
 
 		if (!allGeneratedValidateMethodNames.isEmpty()) {
+			if (!customValidatorFields.isEmpty()) {
+				type = type.mapBuilder(t -> wrap(t,
+						cv -> new CustomAnnotationValidatorClassVisitor(cv, customValidatorFields.keySet())));
+			}
+
 			if (configuration.regexOptimizationEnabled()) {
 				type = type.mapBuilder(
 						t -> wrap(t, cv -> new PatternRewriteClassVisitor(cv, allGeneratedValidateMethodNames)));
@@ -174,6 +204,20 @@ class VaadooImplementor {
 		}
 
 		return type;
+	}
+
+	private static boolean valuesEqual(Map<String, Object> v1, Map<String, Object> v2) {
+		if (v1.size() != v2.size()) {
+			return false;
+		}
+		for (Map.Entry<String, Object> entry : v1.entrySet()) {
+			Object val1 = entry.getValue();
+			Object val2 = v2.get(entry.getKey());
+			if (!Objects.deepEquals(val1, val2)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private Builder<?> wrap(Builder<?> builder, Function<ClassVisitor, ClassVisitor> classVisitorProvider) {
@@ -233,6 +277,16 @@ class VaadooImplementor {
 
 	private static class StaticValidateAppender implements ByteCodeAppender {
 
+		public void triggerEagerResolution() {
+			for (InjectionTask task : injectionTasks) {
+				if (task instanceof CustomInjectionTask) {
+					CustomInjectionTask customTask = (CustomInjectionTask) task;
+					CustomAnnotations.addCustomAnnotations(null, customTask.parameter, customTask.annotation,
+							customTask.ownerInternalName, customTask.fieldNameResolver);
+				}
+			}
+		}
+
 		private interface InjectionTask {
 			void apply(ValidationCodeInjector injector, MethodVisitor mv, int argsSize);
 		}
@@ -260,10 +314,12 @@ class VaadooImplementor {
 		private static class CustomInjectionTask implements InjectionTask {
 			Parameter parameter;
 			TypeDescription annotation;
+			Function<CustomValidatorInfo, String> fieldNameResolver;
+			String ownerInternalName;
 
 			@Override
 			public void apply(ValidationCodeInjector __, MethodVisitor mv, int argsSize) {
-				addCustomAnnotations(mv, parameter, annotation);
+				addCustomAnnotations(mv, parameter, annotation, ownerInternalName, fieldNameResolver);
 			}
 		}
 
@@ -276,12 +332,17 @@ class VaadooImplementor {
 		private final String methodDescriptor;
 		private final List<InjectionTask> injectionTasks;
 		private final List<TypeDescription> jsr380RepeatableAnnotationContainers;
+		private final Function<CustomValidatorInfo, String> fieldNameResolver;
+		private final String ownerInternalName;
 
 		public StaticValidateAppender(String validateMethodName, Parameter parameter,
-				VaadooConfiguration configuration) {
+				VaadooConfiguration configuration, Function<CustomValidatorInfo, String> fieldNameResolver,
+				String ownerInternalName) {
 			this.validateMethodName = validateMethodName;
 			this.parameter = new ParameterWithOffsetZero(parameter);
 			this.configuration = configuration;
+			this.fieldNameResolver = fieldNameResolver;
+			this.ownerInternalName = ownerInternalName;
 			this.preComputedPatternFlags = computePatternFlagsDuringBuild(this.parameter);
 			this.fragmentMixinsCodeFragmentMethods = configuration.codeFragmentMixins().stream()
 					.map(m -> fragmentMethods(m)).flatMap(List::stream).collect(toList());
@@ -400,7 +461,7 @@ class VaadooImplementor {
 		private Stream<InjectionTask> custom(Parameter parameter, TypeDescription annotation) {
 			return configuration.customAnnotationsEnabled() && isStandardJr380Anno(annotation) //
 					? empty()
-					: Stream.of(CustomInjectionTask.of(parameter, annotation));
+					: Stream.of(CustomInjectionTask.of(parameter, annotation, fieldNameResolver, ownerInternalName));
 		}
 
 		public boolean hasInjections() {
