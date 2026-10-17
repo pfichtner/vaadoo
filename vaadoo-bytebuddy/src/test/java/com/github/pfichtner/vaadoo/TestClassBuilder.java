@@ -400,6 +400,27 @@ public class TestClassBuilder implements Buildable<Unloaded<?>> {
 				builder = builder.define("regexp", getAnnotationValue(annotationDefinition, "regexp", ""));
 				Pattern.Flag[] flags = getAnnotationValue(annotationDefinition, "flags", new Pattern.Flag[0]);
 				builder = builder.defineEnumerationArray("flags", Pattern.Flag.class, flags);
+			} else {
+				for (Map.Entry<String, Object> entry : annotationDefinition.values().entrySet()) {
+					Object value = entry.getValue();
+					if (value instanceof Enum) {
+						builder = builder.define(entry.getKey(), (Enum<?>) value);
+					} else if (value instanceof Class) {
+						builder = builder.define(entry.getKey(), TypeDescription.ForLoadedType.of((Class<?>) value));
+					} else if (value instanceof String) {
+						builder = builder.define(entry.getKey(), (String) value);
+					} else if (value instanceof Integer) {
+						builder = builder.define(entry.getKey(), (Integer) value);
+					} else if (value instanceof Long) {
+						builder = builder.define(entry.getKey(), (Long) value);
+					} else if (value instanceof Double) {
+						builder = builder.define(entry.getKey(), (Double) value);
+					} else if (value instanceof Float) {
+						builder = builder.define(entry.getKey(), (Float) value);
+					} else if (value instanceof Boolean) {
+						builder = builder.define(entry.getKey(), (Boolean) value);
+					}
+				}
 			}
 			return builder.build();
 		} catch (Exception e) {
